@@ -1,0 +1,11 @@
+typer
+rich
+langchain==0.3.25
+langgraph==0.4.8
+langchain-community==0.3.25
+langchain-core==0.3.65
+langchain-google-genai==2.1.3
+google-generativeai==0.6.17
+python-dotenv
+pandas
+numpy
