@@ -29,6 +29,7 @@ AU_TO_TEXT_MAP = {
     "AU25_r": "Lips part",
     "AU26_r": "Jaw drop",
     "AU28_r": "Lip suck",
+    "AU45_r": "Blink",
 }
 
 
@@ -90,14 +91,25 @@ def map_au_to_text(state):
     au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
     top_intensities = [c.replace("_c", "_r") for c in au_frequencies.head(5).index]
 
-    if not top_intensities:
-        return {"au_text_description": "No Action Units detected in the video."}
+    # Filter out AUs that are not in the AU_TO_TEXT_MAP or have very low intensity
+    # This also helps handle cases where OpenFace might detect an AU_c but its AU_r is effectively zero
+    valid_top_intensities = [
+        au for au in top_intensities if au in AU_TO_TEXT_MAP and df.columns.contains(au)
+    ]  # Ensure column exists in DF
+    if not valid_top_intensities:
+        return {
+            "au_text_description": "No significant Action Units detected in the video."
+        }
 
-    df["peak_score"] = df[top_intensities].sum(axis=1)
-    peak_frame_data = df.loc[df["peak_score"].idxmax()]
+    # Re-calculate peak_score based on valid_top_intensities
+    df["peak_score"] = df[valid_top_intensities].sum(axis=1)
+    peak_frame_index = df["peak_score"].idxmax()
+    peak_frame_data = df.loc[peak_frame_index]
 
     active_aus = {
-        au: i for au, i in peak_frame_data[top_intensities].items() if i > 0.2
+        au: i
+        for au, i in peak_frame_data[valid_top_intensities].items()
+        if i > 0.2  # Use valid_top_intensities here too
     }
     if not active_aus:
         desc = "No prominent facial action units were detected at the emotional peak."
@@ -122,6 +134,7 @@ def generate_au_description(state):
     if (
         "No prominent facial action units" in au_text
         or "No Action Units detected" in au_text
+        or "No significant Action Units detected" in au_text
     ):
         llm_description = "Could not generate a description as no strong facial actions were detected."
     else:
@@ -242,7 +255,11 @@ def filter_by_emotion(state):
         return {"error": f"OpenFace output not found at {au_data_path}"}
 
     detected_emotions = []
-    threshold = 0.45
+
+    # Get threshold from state
+    threshold = state.get(
+        "threshold", 0.45
+    )  # Use provided threshold, default to 0.45 if not found
 
     for emotion, au_list in EMOTION_TO_AU_MAP.items():
         # Check if all required AUs for the emotion are present in the dataframe columns
@@ -282,7 +299,19 @@ def find_peak_frame(state):
         c for c in df.columns if c.startswith("AU") and c.endswith("_c")
     ]
     au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
-    top_intensities = [c.replace("_c", "_r") for c in au_frequencies.head(5).index]
+
+    # Generate potential regression AUs from classification AUs
+    potential_top_intensities_r = [
+        c.replace("_c", "_r") for c in au_frequencies.head(5).index
+    ]
+
+    # Filter top_intensities to only include those that actually exist as columns in the DataFrame
+    top_intensities = [au for au in potential_top_intensities_r if au in df.columns]
+
+    if not top_intensities:
+        return {
+            "error": "No valid AU regression columns found to determine peak score."
+        }
 
     df["peak_score"] = df[top_intensities].sum(axis=1)
     peak_frame_index = df["peak_score"].idxmax()
@@ -299,7 +328,11 @@ def find_peak_frame(state):
     peak_frame_info = {
         "frame_number": int(peak_frame_data["frame"]),
         "timestamp": peak_timestamp,
-        "top_aus_intensities": peak_frame_data[top_intensities].to_dict(),
+        "top_aus_intensities": {
+            au: peak_frame_data[au]
+            for au in top_intensities
+            if au in peak_frame_data.index
+        },
     }
 
     console.log(f"Identified peak frame at [yellow]{peak_timestamp:.2f}s[/yellow].")

@@ -20,7 +20,7 @@ class GeminiModels:
     def __init__(self, api_key: str):
         """Initializes the Gemini models with the provided API key."""
         self.model = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash", google_api_key=api_key, temperature=0
+            model="gemini-2.5-flash", google_api_key=api_key, temperature=0
         )
 
         console.log("Gemini models initialized.")

@@ -14,7 +14,7 @@ from .nodes import (
     run_audio_extraction_and_analysis,
     save_audio_results,
     run_video_analysis,
-    save_video_results,  # Import new video nodes
+    save_video_results,
     extract_full_features,
     filter_by_emotion,
     find_peak_frame,
@@ -48,6 +48,7 @@ class MERRState(TypedDict, total=False):
     final_summary: str
     models: GeminiModels
     error: str
+    threshold: float
 
 
 def route_by_processing_type(state: MERRState) -> str:
