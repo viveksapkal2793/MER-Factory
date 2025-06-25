@@ -48,5 +48,5 @@ Here are the clues you've gathered:
 {context}
 ---
 
-Based on these clues, provide a single-paragraph summary of the person's emotional experience.
+Based on these clues, provide a single-paragraph summary of the person's emotional experience. YOU HAVE TO DESCRIBE THE CLUES PROVIDED IN THE CONTEXT, DO NOT ANSWER IN A HIGH AND ABSTRACT WAY, BUT IN A VERY DETAILED AND SPECIFIC WAY. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION.
 """

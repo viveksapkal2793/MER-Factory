@@ -22,7 +22,7 @@ from .nodes import (
     synthesize_summary,
     save_mer_results,
 )
-from .models import GeminiModels
+from .models import LLMModels
 
 console = Console()
 
@@ -46,7 +46,7 @@ class MERRState(TypedDict, total=False):
     video_description: str
     descriptions: Dict[str, str]
     final_summary: str
-    models: GeminiModels
+    models: LLMModels  # Changed from GeminiModels to LLMModels
     error: str
     threshold: float
     verbose: bool

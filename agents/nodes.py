@@ -7,7 +7,7 @@ import asyncio
 
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
-from .models import GeminiModels
+from .models import LLMModels
 
 console = Console(stderr=True)
 
@@ -125,7 +125,7 @@ async def generate_au_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating LLM description for facial expression...")
-    models: GeminiModels = state["models"]
+    models: LLMModels = state["models"]
     au_text = state["au_text_description"]
 
     if (
@@ -175,7 +175,7 @@ async def run_audio_extraction_and_analysis(state):
             "error": f"Audio file not found at {audio_path}. The background FFMpeg task may have failed."
         }
 
-    models: GeminiModels = state["models"]
+    models: LLMModels = state["models"]
     if verbose:
         console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
     audio_analysis = await models.analyze_audio(audio_path)
@@ -210,7 +210,7 @@ async def run_video_analysis(state):
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
-    models: GeminiModels = state["models"]
+    models: LLMModels = state["models"]
     video_description = await models.describe_video(video_path)
     if verbose:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
@@ -337,7 +337,7 @@ async def generate_full_descriptions(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating full multimodal descriptions...")
-    models: GeminiModels = state["models"]
+    models: LLMModels = state["models"]
 
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
     active_aus = {au: i for au, i in peak_aus.items() if i > 0.2}
@@ -369,7 +369,7 @@ async def synthesize_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final MER summary...")
-    models: GeminiModels = state["models"]
+    models: LLMModels = state["models"]
     desc = state["descriptions"]
     coarse_summary = (
         f"- Detected Emotion Category: {', '.join(state.get('detected_emotions', ['N/A']))}\n"

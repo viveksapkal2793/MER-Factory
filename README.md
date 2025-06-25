@@ -128,8 +128,11 @@ command = [
 ### Basic Command Structure
 ```bash
 python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
-python main.py path_to_video/ output/ --type MER --silent
+python main.py path_to_video/ output/ --type MER --silent # using gemini by default
+python main.py path_to_video/ output/ --type MER --ollama-vision-model bakllava --ollama-text-model llama3.2 --silent # support local ollama running
 ```
+
+Note: run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only support peak frame & AU analysis for now.
 
 ### Processing Types
 

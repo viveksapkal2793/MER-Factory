@@ -18,7 +18,7 @@ import asyncio
 import traceback
 
 from agents.graph import create_graph, MERRState
-from agents.models import GeminiModels
+from agents.models import LLMModels  # Changed from GeminiModels to LLMModels
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 
@@ -48,15 +48,18 @@ async def _process(
     threshold: float,
     silent: bool,
     concurrency: int,
+    ollama_text_model_name: str = None,  # Added ollama_text_model_name parameter
+    ollama_vision_model_name: str = None,  # Added ollama_vision_model_name parameter
 ):
     """
     Internal async implementation for processing video files.
     """
     load_dotenv()
     api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
+
+    if not ollama_text_model_name and not ollama_vision_model_name and not api_key:
         console.print(
-            "[bold red]Error: GOOGLE_API_KEY not found in .env file.[/bold red]"
+            "[bold red]Error: Either GOOGLE_API_KEY must be set in .env or at least one Ollama model (--ollama-text-model or --ollama-vision-model) must be provided.[/bold red]"
         )
         raise typer.Exit(code=1)
 
@@ -70,7 +73,13 @@ async def _process(
             f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
         )
 
-    models = GeminiModels(api_key=api_key, verbose=verbose)
+    # Initialize LLMModels with either api_key or ollama_model_name
+    models = LLMModels(
+        api_key=api_key,
+        ollama_text_model_name=ollama_text_model_name,
+        ollama_vision_model_name=ollama_vision_model_name,
+        verbose=verbose,
+    )
 
     video_files_to_process = []
     if video_path.is_file():
@@ -179,19 +188,28 @@ async def _process(
                 au_data_path = video_output_dir / f"{video_id}.csv"
                 audio_path = video_output_dir / f"{video_id}.wav"
 
+                # Conditional checks based on selected model type for audio/video
+                if models.model_type == "ollama":
+                    # For Ollama, audio/video analysis is not supported directly by the LLM
+                    # The LLMModels class will return an error message for these specific calls.
+                    # No need to skip the entire pipeline based on this, as other parts
+                    # of the pipeline (like AU) might still be relevant.
+                    pass
+                elif models.model_type == "gemini":
+                    if (
+                        processing_type in [ProcessingType.mer, ProcessingType.audio]
+                        and not audio_path.exists()
+                    ):
+                        raise FileNotFoundError(
+                            f"Required FFMpeg audio output not found for {video_id}. Skipping."
+                        )
+
                 if (
                     processing_type in [ProcessingType.mer, ProcessingType.au]
                     and not au_data_path.exists()
                 ):
                     raise FileNotFoundError(
                         f"Required OpenFace output not found for {video_id}. Skipping."
-                    )
-                if (
-                    processing_type in [ProcessingType.mer, ProcessingType.audio]
-                    and not audio_path.exists()
-                ):
-                    raise FileNotFoundError(
-                        f"Required FFMpeg audio output not found for {video_id}. Skipping."
                     )
 
                 initial_state: MERRState = {
@@ -303,6 +321,18 @@ def process(
         min=1,
         help="Number of videos to process concurrently.",
     ),
+    ollama_vision_model: str = typer.Option(  # Renamed and adjusted help
+        None,
+        "--ollama-vision-model",
+        "-ovm",
+        help="Name of the Ollama vision model to use (e.g., 'bakllava').",
+    ),
+    ollama_text_model: str = typer.Option(  # Added new option
+        None,
+        "--ollama-text-model",
+        "-otm",
+        help="Name of the Ollama text model to use. If not provided, --ollama-vision-model will be used for text tasks.",
+    ),
 ):
     """
     Processes a single video file or multiple video files from a directory
@@ -316,6 +346,8 @@ def process(
             threshold=threshold,
             silent=silent,
             concurrency=concurrency,
+            ollama_text_model_name=ollama_text_model,
+            ollama_vision_model_name=ollama_vision_model,
         )
     )
 
