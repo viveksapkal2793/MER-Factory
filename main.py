@@ -6,6 +6,7 @@ import typer
 from pathlib import Path
 from dotenv import load_dotenv
 from rich.console import Console
+from typing import Optional
 from enum import Enum
 from rich.progress import (
     Progress,
@@ -13,12 +14,13 @@ from rich.progress import (
     TextColumn,
     TimeRemainingColumn,
     SpinnerColumn,
+    TaskID,
 )
 import asyncio
 import traceback
 
 from agents.graph import create_graph, MERRState
-from agents.models import LLMModels  # Changed from GeminiModels to LLMModels
+from agents.models import LLMModels
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 
@@ -113,8 +115,17 @@ async def _process(
 
     extraction_semaphore = asyncio.Semaphore(8)  # Limit concurrent extractions
 
-    async def run_extraction_job(video_file: Path, video_output_dir: Path):
-        """Wrapper to run a single video's extraction tasks under semaphore control."""
+    async def run_extraction_job(
+        video_file: Path,
+        video_output_dir: Path,
+        progress: Progress,
+        openface_task_id: Optional[TaskID],
+        ffmpeg_task_id: Optional[TaskID],
+    ):
+        """
+        Wrapper to run a single video's extraction tasks under semaphore control
+        and update the consolidated progress bars.
+        """
         async with extraction_semaphore:
             if verbose:
                 console.log(
@@ -124,46 +135,88 @@ async def _process(
             needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
             needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
 
-            tasks_to_run = []
-            if needs_openface:
-                tasks_to_run.append(
-                    OpenFaceAdapter.run_feature_extraction(
+            try:
+                if needs_openface:
+                    res = await OpenFaceAdapter.run_feature_extraction(
                         video_file, video_output_dir, verbose
                     )
-                )
-            if needs_ffmpeg:
-                audio_path = video_output_dir / f"{video_file.stem}.wav"
-                tasks_to_run.append(
-                    FFMpegAdapter.extract_audio(video_file, audio_path, verbose)
-                )
-
-            if tasks_to_run:
-                extraction_results = await asyncio.gather(
-                    *tasks_to_run, return_exceptions=True
-                )
-                for res in extraction_results:
+                    if openface_task_id is not None:
+                        progress.update(openface_task_id, advance=1)
                     if isinstance(res, Exception) or res is False:
-                        # Log the error but don't stop other extractions
                         console.log(
-                            f"[bold red]Error during extraction for {video_file.name}: {res}[/bold red]"
+                            f"[bold red]Error during OpenFace for {video_file.name}: {res}[/bold red]"
                         )
-                        return False  # Indicate failure
-            return True  # Indicate success
+                        return False
+
+                if needs_ffmpeg:
+                    audio_path = video_output_dir / f"{video_file.stem}.wav"
+                    res = await FFMpegAdapter.extract_audio(
+                        video_file, audio_path, verbose
+                    )
+                    if ffmpeg_task_id is not None:
+                        progress.update(ffmpeg_task_id, advance=1)
+                    if isinstance(res, Exception) or res is False:
+                        console.log(
+                            f"[bold red]Error during FFmpeg for {video_file.name}: {res}[/bold red]"
+                        )
+                        return False
+
+            except Exception as e:
+                console.log(
+                    f"[bold red]Fatal error during extraction for {video_file.name}: {e}[/bold red]"
+                )
+                return False
+
+            return True
 
     if verbose:
         console.rule(
             "[bold yellow]Phase 1: Kicking off background feature extractions[/bold yellow]"
         )
 
-    # Create a list of extraction tasks to run
-    all_extraction_tasks = []
-    for video_file in video_files_to_process:
-        video_output_dir = output_dir / video_file.stem
-        video_output_dir.mkdir(exist_ok=True)
-        all_extraction_tasks.append(run_extraction_job(video_file, video_output_dir))
+    needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
+    needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
+    num_openface_tasks = len(video_files_to_process) if needs_openface else 0
+    num_ffmpeg_tasks = len(video_files_to_process) if needs_ffmpeg else 0
 
-    # Run all extraction tasks, respecting the semaphore limit within run_extraction_job
-    await asyncio.gather(*all_extraction_tasks)
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TextColumn("({task.completed} of {task.total})"),
+        TimeRemainingColumn(),
+        console=console,
+        transient=False,
+    ) as progress:
+        openface_task_id = (
+            progress.add_task(
+                "[bold blue]OpenFace Extraction", total=num_openface_tasks
+            )
+            if num_openface_tasks > 0
+            else None
+        )
+        ffmpeg_task_id = (
+            progress.add_task("[bold green]FFmpeg Extraction", total=num_ffmpeg_tasks)
+            if num_ffmpeg_tasks > 0
+            else None
+        )
+
+        all_extraction_tasks = []
+        for video_file in video_files_to_process:
+            video_output_dir = output_dir / video_file.stem
+            video_output_dir.mkdir(exist_ok=True)
+            all_extraction_tasks.append(
+                run_extraction_job(
+                    video_file,
+                    video_output_dir,
+                    progress,
+                    openface_task_id,
+                    ffmpeg_task_id,
+                )
+            )
+
+        await asyncio.gather(*all_extraction_tasks)
 
     if verbose:
         console.rule(

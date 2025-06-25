@@ -1,6 +1,6 @@
-# MERR-AutoAnn: Multimodal Emotion Recognition and Auto-Annotation
+# MER-Dataset-Builder: Multimodal Emotion Recognition Reasoning Dataset Builder
 
-A modular CLI tool for constructing multimodal emotion recognition (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline.
+A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline. This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset contruction strategy.
 
 ```mermaid
 graph TD;
@@ -108,7 +108,7 @@ conda activate mer_dataset_builder
 pip install -r requirements.txt
 ```
 
-Create a `.env` file with:
+If using Gemini, create a `.env` file with:
 ```env
 GOOGLE_API_KEY=your_google_gemini_api_key
 ```
@@ -129,7 +129,7 @@ command = [
 ```bash
 python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
 python main.py path_to_video/ output/ --type MER --silent # using gemini by default
-python main.py path_to_video/ output/ --type MER --ollama-vision-model bakllava --ollama-text-model llama3.2 --silent # support local ollama running
+python main.py ./video ./output --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent --concurrency 4 # support local ollama running
 ```
 
 Note: run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only support peak frame & AU analysis for now.
