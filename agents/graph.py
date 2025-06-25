@@ -155,5 +155,8 @@ def create_graph() -> StateGraph:
     # 6. Shared error handler
     workflow.add_edge("handle_error", END)
 
+    app = workflow.compile()
+
     console.log("Modular graph compiled successfully.")
-    return workflow.compile()
+    # print(app.get_graph().draw_mermaid())
+    return app

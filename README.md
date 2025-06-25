@@ -2,6 +2,54 @@
 
 A modular CLI tool for constructing multimodal emotion recognition (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline.
 
+```mermaid
+graph TD;
+        __start__([<p>__start__</p>]):::first
+        setup_paths(setup_paths)
+        handle_error(handle_error)
+        run_au_extraction(run_au_extraction)
+        map_au_to_text(map_au_to_text)
+        generate_au_description(generate_au_description)
+        save_au_results(save_au_results)
+        run_audio_analysis(run_audio_analysis)
+        save_audio_results(save_audio_results)
+        run_video_analysis(run_video_analysis)
+        save_video_results(save_video_results)
+        extract_full_features(extract_full_features)
+        filter_by_emotion(filter_by_emotion)
+        find_peak_frame(find_peak_frame)
+        generate_full_descriptions(generate_full_descriptions)
+        synthesize_summary(synthesize_summary)
+        save_mer_results(save_mer_results)
+        __end__([<p>__end__</p>]):::last
+        __start__ --> setup_paths;
+        extract_full_features --> filter_by_emotion;
+        filter_by_emotion -. &nbsp;end_processing&nbsp; .-> __end__;
+        filter_by_emotion -. &nbsp;continue_processing&nbsp; .-> find_peak_frame;
+        filter_by_emotion -.-> handle_error;
+        find_peak_frame --> generate_full_descriptions;
+        generate_au_description --> save_au_results;
+        generate_full_descriptions --> synthesize_summary;
+        map_au_to_text --> generate_au_description;
+        run_au_extraction --> map_au_to_text;
+        run_audio_analysis --> save_audio_results;
+        run_video_analysis --> save_video_results;
+        setup_paths -. &nbsp;full_pipeline&nbsp; .-> extract_full_features;
+        setup_paths -.-> handle_error;
+        setup_paths -. &nbsp;au_pipeline&nbsp; .-> run_au_extraction;
+        setup_paths -. &nbsp;audio_pipeline&nbsp; .-> run_audio_analysis;
+        setup_paths -. &nbsp;video_pipeline&nbsp; .-> run_video_analysis;
+        synthesize_summary --> save_mer_results;
+        handle_error --> __end__;
+        save_au_results --> __end__;
+        save_audio_results --> __end__;
+        save_mer_results --> __end__;
+        save_video_results --> __end__;
+        classDef default fill:#f2f0ff,line-height:1.2
+        classDef first fill-opacity:0
+        classDef last fill:#bfb6fc
+```
+
 ## Features
 
 - **AU Pipeline**: Extract facial Action Units and generate natural language descriptions
