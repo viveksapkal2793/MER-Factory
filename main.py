@@ -19,6 +19,8 @@ import traceback
 
 from agents.graph import create_graph, MERRState
 from agents.models import GeminiModels
+from tools.ffmpeg_adapter import FFMpegAdapter
+from tools.openface_adapter import OpenFaceAdapter
 
 
 class ProcessingType(str, Enum):
@@ -100,40 +102,130 @@ async def _process(
     error_logs_dir = output_dir / "error_logs"
     error_logs_dir.mkdir(exist_ok=True)
 
-    semaphore = asyncio.Semaphore(concurrency)
+    extraction_semaphore = asyncio.Semaphore(8)  # Limit concurrent extractions
 
-    async def run_processing(video_file: Path):
-        async with semaphore:
+    async def run_extraction_job(video_file: Path, video_output_dir: Path):
+        """Wrapper to run a single video's extraction tasks under semaphore control."""
+        async with extraction_semaphore:
             if verbose:
-                console.rule(f"[bold blue]Processing: {video_file.name}[/bold blue]")
+                console.log(
+                    f"[yellow]Starting extraction for {video_file.name}...[/yellow]"
+                )
 
-            initial_state: MERRState = {
-                "video_path": video_file,
-                "output_dir": output_dir,
-                "processing_type": processing_type.value,
-                "models": models,
-                "threshold": threshold,
-                "verbose": verbose,
-                "error_logs_dir": error_logs_dir,
-            }
+            needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
+            needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
+
+            tasks_to_run = []
+            if needs_openface:
+                tasks_to_run.append(
+                    OpenFaceAdapter.run_feature_extraction(
+                        video_file, video_output_dir, verbose
+                    )
+                )
+            if needs_ffmpeg:
+                audio_path = video_output_dir / f"{video_file.stem}.wav"
+                tasks_to_run.append(
+                    FFMpegAdapter.extract_audio(video_file, audio_path, verbose)
+                )
+
+            if tasks_to_run:
+                extraction_results = await asyncio.gather(
+                    *tasks_to_run, return_exceptions=True
+                )
+                for res in extraction_results:
+                    if isinstance(res, Exception) or res is False:
+                        # Log the error but don't stop other extractions
+                        console.log(
+                            f"[bold red]Error during extraction for {video_file.name}: {res}[/bold red]"
+                        )
+                        return False  # Indicate failure
+            return True  # Indicate success
+
+    if verbose:
+        console.rule(
+            "[bold yellow]Phase 1: Kicking off background feature extractions[/bold yellow]"
+        )
+
+    # Create a list of extraction tasks to run
+    all_extraction_tasks = []
+    for video_file in video_files_to_process:
+        video_output_dir = output_dir / video_file.stem
+        video_output_dir.mkdir(exist_ok=True)
+        all_extraction_tasks.append(run_extraction_job(video_file, video_output_dir))
+
+    # Run all extraction tasks, respecting the semaphore limit within run_extraction_job
+    await asyncio.gather(*all_extraction_tasks)
+
+    if verbose:
+        console.rule(
+            "[bold yellow]Phase 1 Complete: All extractions finished or failed[/bold yellow]"
+        )
+
+    main_processing_semaphore = asyncio.Semaphore(concurrency)
+
+    async def run_processing_graph(video_file: Path):
+        nonlocal results
+        async with main_processing_semaphore:
+            video_id = video_file.stem
+            video_output_dir = output_dir / video_id
+
+            if verbose:
+                console.rule(
+                    f"[bold blue]Phase 2: Processing Graph for: {video_file.name}[/bold blue]"
+                )
 
             try:
+                # Check if required files exist before proceeding
+                au_data_path = video_output_dir / f"{video_id}.csv"
+                audio_path = video_output_dir / f"{video_id}.wav"
+
+                if (
+                    processing_type in [ProcessingType.mer, ProcessingType.au]
+                    and not au_data_path.exists()
+                ):
+                    raise FileNotFoundError(
+                        f"Required OpenFace output not found for {video_id}. Skipping."
+                    )
+                if (
+                    processing_type in [ProcessingType.mer, ProcessingType.audio]
+                    and not audio_path.exists()
+                ):
+                    raise FileNotFoundError(
+                        f"Required FFMpeg audio output not found for {video_id}. Skipping."
+                    )
+
+                initial_state: MERRState = {
+                    "video_path": video_file,
+                    "output_dir": output_dir,
+                    "processing_type": processing_type.value,
+                    "models": models,
+                    "threshold": threshold,
+                    "verbose": verbose,
+                    "error_logs_dir": error_logs_dir,
+                    "video_id": video_id,
+                    "video_output_dir": video_output_dir,
+                    "audio_path": audio_path,
+                    "au_data_path": au_data_path,
+                }
+
                 final_state = await graph_app.ainvoke(initial_state)
                 if final_state and final_state.get("error"):
                     results["failure"] += 1
                 else:
                     results["success"] += 1
-            except Exception:
+
+            except (Exception, FileNotFoundError) as e:
                 results["failure"] += 1
                 error_log_path = error_logs_dir / f"{video_file.stem}_fatal_error.log"
                 with open(error_log_path, "w") as f:
+                    f.write(f"Error: {e}\n")
                     f.write(traceback.format_exc())
                 console.print(
                     f"[bold red]FATAL ERROR processing {video_file.name}. Log saved to {error_log_path}.[/bold red]"
                 )
             return video_file
 
-    tasks = [run_processing(vf) for vf in video_files_to_process]
+    tasks = [run_processing_graph(vf) for vf in video_files_to_process]
 
     if not verbose and total_files > 0:
         with Progress(
@@ -155,7 +247,7 @@ async def _process(
                     description=f"Finished [cyan]{completed_file.name}[/cyan]",
                 )
     elif total_files > 0:
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
 
     console.rule("[bold green]Processing Complete[/bold green]")
     console.print(f"Total videos attempted: {total_files}")

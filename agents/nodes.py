@@ -47,27 +47,28 @@ EMOTION_TO_AU_MAP = {
 
 async def setup_paths(state):
     video_path = Path(state["video_path"])
-    output_dir = Path(state["output_dir"])
-    video_id = video_path.stem
-    video_output_dir = output_dir / video_id
-    await asyncio.to_thread(video_output_dir.mkdir, parents=True, exist_ok=True)
+    video_id = state.get("video_id", video_path.stem)
+    video_output_dir = state.get("video_output_dir")
+
     if state.get("verbose", True):
         console.log(f"Processing: {video_id}")
-    return {"video_id": video_id, "video_output_dir": video_output_dir}
+        console.log(f"Output directory set to: [cyan]{video_output_dir}[/cyan]")
+
+    return {}
 
 
 async def run_au_extraction(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Action Unit (AU) Extraction[/bold]")
-    video_path = Path(state["video_path"])
-    video_output_dir = Path(state["video_output_dir"])
-    if not await OpenFaceAdapter.run_feature_extraction(
-        video_path, video_output_dir, verbose
-    ):
-        return {"error": f"Failed to run OpenFace on {video_path.name}"}
 
-    au_data_path = video_output_dir / f"{state['video_id']}.csv"
+    au_data_path = Path(state["au_data_path"])
+    if not au_data_path.exists():
+        return {
+            "error": f"AU data file not found at {au_data_path}. The background OpenFace task may have failed."
+        }
+    if verbose:
+        console.log(f"Confirmed OpenFace output at [green]{au_data_path}[/green]")
     return {"au_data_path": au_data_path}
 
 
@@ -167,12 +168,16 @@ async def run_audio_extraction_and_analysis(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Audio Analysis[/bold]")
-    video_path = Path(state["video_path"])
-    video_output_dir = Path(state["video_output_dir"])
+
+    audio_path = Path(state["audio_path"])
+    if not audio_path.exists():
+        return {
+            "error": f"Audio file not found at {audio_path}. The background FFMpeg task may have failed."
+        }
+
     models: GeminiModels = state["models"]
-    audio_path = video_output_dir / f"{state['video_id']}_audio_only.wav"
-    if not await FFMpegAdapter.extract_audio(video_path, audio_path, verbose):
-        return {"error": f"Failed to extract audio for {video_path.name}"}
+    if verbose:
+        console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
     audio_analysis = await models.analyze_audio(audio_path)
     return {"audio_analysis_results": audio_analysis}
 
@@ -238,26 +243,20 @@ async def extract_full_features(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Full MER Feature Extraction[/bold]")
-    video_path = Path(state["video_path"])
-    video_output_dir = Path(state["video_output_dir"])
-    audio_path = video_output_dir / f"{state['video_id']}.wav"
 
-    audio_task = FFMpegAdapter.extract_audio(video_path, audio_path, verbose)
-    openface_task = OpenFaceAdapter.run_feature_extraction(
-        video_path, video_output_dir, verbose
-    )
+    # Extraction is now handled by the main script. This node just verifies the paths.
+    audio_path = Path(state["audio_path"])
+    au_data_path = Path(state["au_data_path"])
 
-    audio_ok, openface_ok = await asyncio.gather(audio_task, openface_task)
+    if not audio_path.exists():
+        return {"error": f"Audio file not found at {audio_path} for MER pipeline."}
+    if not au_data_path.exists():
+        return {"error": f"OpenFace CSV not found at {au_data_path} for MER pipeline."}
 
-    if not audio_ok:
-        return {"error": "Failed audio extraction for MER."}
-    if not openface_ok:
-        return {"error": "Failed OpenFace extraction for MER."}
+    if verbose:
+        console.log("Confirmed existence of pre-extracted audio and AU data.")
 
-    return {
-        "audio_path": audio_path,
-        "au_data_path": video_output_dir / f"{state['video_id']}.csv",
-    }
+    return {}
 
 
 async def filter_by_emotion(state):
@@ -317,10 +316,10 @@ async def find_peak_frame(state):
     peak_frame_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_peak_frame.png"
     )
-    if not await FFMpegAdapter.extract_frame(
+    if not await FFMpegAdapter.extract_nearby_frame(
         video_path, peak_timestamp, peak_frame_path, verbose
     ):
-        return {"error": "Failed to extract peak frame."}
+        return {"error": f"Failed to extract peak frame at timestamp {peak_timestamp}."}
 
     peak_frame_info = {
         "frame_number": int(peak_frame_data["frame"]),
