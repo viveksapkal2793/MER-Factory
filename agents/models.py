@@ -1,3 +1,4 @@
+from itertools import chain
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import StrOutputParser
@@ -8,6 +9,8 @@ import json
 import base64
 import mimetypes
 import asyncio
+
+from .prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -32,18 +35,12 @@ class GeminiModels:
         if self.verbose:
             console.log("Generating facial expression description from AUs...")
         try:
-            prompt = f"""
-            Based on the following detected facial Action Units (AUs), provide a concise, natural language description of the person's facial expression.
-
-            Detected AUs:
-            ---
-            {au_text}
-            ---
-
-            Example: If the AUs are 'inner brow raised, lip corners pulled up', a good description would be 'The person appears to be smiling gently, with a hint of pleasant surprise or happiness.'
-            """
-            response = self.model.invoke(prompt)
-            return response.content
+            prompt = PromptTemplates.describe_facial_expression().format(
+                au_text=au_text
+            )
+            chain = self.model | StrOutputParser()
+            response = await chain.ainvoke(prompt)
+            return response
         except Exception as e:
             console.log(
                 f"[bold red]❌ Error describing facial expression: {e}[/bold red]"
@@ -69,7 +66,7 @@ class GeminiModels:
                 content=[
                     {
                         "type": "text",
-                        "text": "Analyze this image. Describe the main subject, their apparent age and gender, clothing, background scene, and any discernible objects or gestures. Focus only on objective visual elements.",
+                        "text": PromptTemplates.describe_image(),
                     },
                     {
                         "type": "image_url",
@@ -77,8 +74,9 @@ class GeminiModels:
                     },
                 ]
             )
-            response = await self.model.ainvoke([message])
-            return response.content
+            chain = self.model | StrOutputParser()
+            response = await chain.ainvoke([message])
+            return response
         except Exception as e:
             console.log(
                 f"[bold red]❌ Error describing image {image_path}: {e}[/bold red]"
@@ -100,13 +98,7 @@ class GeminiModels:
             audio_data = await asyncio.to_thread(_read_and_encode)
             mime_type = mimetypes.guess_type(audio_path)[0] or "audio/wav"
 
-            prompt = """
-            Analyze this audio file. Perform two tasks:
-            1. Transcribe the speech into text. If there is no speech, state "No speech detected".
-            2. Describe the audio characteristics. Include descriptions of the speaker's tone (e.g., cheerful, angry, calm), pitch, speed, and any background noises.
-            
-            Provide the output as a single, raw JSON object string with two keys: "transcript" and "tone_description". Do not wrap it in markdown backticks or other formatting.
-            """
+            prompt = PromptTemplates.analyze_audio()
 
             message = HumanMessage(
                 content=[
@@ -162,7 +154,7 @@ class GeminiModels:
                 content=[
                     {
                         "type": "text",
-                        "text": "Describe the content of this video. What is happening? Describe the scene, any people, any emotion, and their actions.",
+                        "text": PromptTemplates.describe_video(),
                     },
                     {
                         "type": "media",
@@ -171,8 +163,9 @@ class GeminiModels:
                     },
                 ]
             )
-            response = await self.model.ainvoke([message])
-            return response.content
+            chain = self.model | StrOutputParser()
+            response = await chain.ainvoke([message])
+            return response
         except Exception as e:
             console.log(
                 f"[bold red]❌ Error describing video {video_path}: {e}[/bold red]"
@@ -184,19 +177,10 @@ class GeminiModels:
         if self.verbose:
             console.log("Generating fine-grained summary...")
         try:
-            prompt = f"""
-            You are an expert in multimodal emotion recognition. Your task is to synthesize a set of clues from different modalities (visual, audio, text) into a coherent and insightful emotional analysis.
-            Reason about the connections between the clues to infer the subject's emotional state, its intensity, and the likely cause.
-            
-            Here are the clues:
-            ---
-            {context}
-            ---
-            
-            Based on these clues, provide a single-paragraph summary of the person's emotional experience.
-            """
-            response = await self.model.ainvoke(prompt)
-            return response.content
+            prompt = PromptTemplates.synthesize_summary().format(context=context)
+            chain = self.model | StrOutputParser()
+            response = await chain.ainvoke(prompt)
+            return response
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
             return f"Error generating summary: {e}"
