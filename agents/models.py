@@ -7,6 +7,7 @@ from rich.console import Console
 import json
 import base64
 import mimetypes
+import asyncio
 
 console = Console(stderr=True)
 
@@ -26,7 +27,7 @@ class GeminiModels:
 
         console.log("Gemini models initialized.")
 
-    def describe_facial_expression(self, au_text: str) -> str:
+    async def describe_facial_expression(self, au_text: str) -> str:
         """Generates a natural language description from AU text."""
         if self.verbose:
             console.log("Generating facial expression description from AUs...")
@@ -49,16 +50,19 @@ class GeminiModels:
             )
             return f"Error generating facial description: {e}"
 
-    def describe_image(self, image_path: Path) -> str:
-        """Generates a description for an image file using LangChain messages."""
+    async def describe_image(self, image_path: Path) -> str:
+        """Generates a description for an image file using async I/O."""
         if self.verbose:
             console.log(
-                f"Generating visual objective description for [cyan]{image_path.name}[/cyan]..."
+                f"Generating visual description for [cyan]{image_path.name}[/cyan]..."
             )
         try:
-            with open(image_path, "rb") as image_file:
-                image_data = base64.b64encode(image_file.read()).decode("utf-8")
 
+            def _read_and_encode():
+                with open(image_path, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode("utf-8")
+
+            image_data = await asyncio.to_thread(_read_and_encode)
             mime_type = mimetypes.guess_type(image_path)[0] or "image/png"
 
             message = HumanMessage(
@@ -73,7 +77,7 @@ class GeminiModels:
                     },
                 ]
             )
-            response = self.model.invoke([message])
+            response = await self.model.ainvoke([message])
             return response.content
         except Exception as e:
             console.log(
@@ -81,18 +85,19 @@ class GeminiModels:
             )
             return f"Error describing image: {e}"
 
-    def analyze_audio(self, audio_path: Path) -> dict:
-        """
-        Transcribes audio and describes its tone by passing the file as base64 data.
-        """
+    async def analyze_audio(self, audio_path: Path) -> dict:
+        """Transcribes audio and describes its tone using async I/O."""
         if self.verbose:
             console.log(
                 f"Generating audio tone description for [cyan]{audio_path.name}[/cyan]..."
             )
         try:
-            with open(audio_path, "rb") as audio_file:
-                audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
 
+            def _read_and_encode():
+                with open(audio_path, "rb") as audio_file:
+                    return base64.b64encode(audio_file.read()).decode("utf-8")
+
+            audio_data = await asyncio.to_thread(_read_and_encode)
             mime_type = mimetypes.guess_type(audio_path)[0] or "audio/wav"
 
             prompt = """
@@ -113,10 +118,8 @@ class GeminiModels:
                     },
                 ]
             )
-
             chain = self.model | StrOutputParser()
-            str_response = chain.invoke([message])
-
+            str_response = await chain.ainvoke([message])
             try:
                 cleaned_response = (
                     str_response.replace("```json", "").replace("```", "").strip()
@@ -132,7 +135,6 @@ class GeminiModels:
                     "transcript": "Error: Invalid JSON response.",
                     "tone_description": "Error: Invalid JSON response.",
                 }
-
         except Exception as e:
             console.log(
                 f"[bold red]❌ Error analyzing audio {audio_path}: {e}[/bold red]"
@@ -142,20 +144,20 @@ class GeminiModels:
                 "tone_description": f"Error analyzing audio tone: {e}",
             }
 
-    def describe_video(self, video_path: Path) -> str:
-        """
-        Generates a description for a video file by passing it as base64 data.
-        """
+    async def describe_video(self, video_path: Path) -> str:
+        """Generates a description for a video file using async I/O."""
         if self.verbose:
             console.log(
                 f"Generating description for video [cyan]{video_path.name}[/cyan]..."
             )
         try:
-            with open(video_path, "rb") as video_file:
-                video_data = base64.b64encode(video_file.read()).decode("utf-8")
 
+            def _read_and_encode():
+                with open(video_path, "rb") as video_file:
+                    return base64.b64encode(video_file.read()).decode("utf-8")
+
+            video_data = await asyncio.to_thread(_read_and_encode)
             mime_type = mimetypes.guess_type(video_path)[0] or "video/mp4"
-
             message = HumanMessage(
                 content=[
                     {
@@ -169,7 +171,7 @@ class GeminiModels:
                     },
                 ]
             )
-            response = self.model.invoke([message])
+            response = await self.model.ainvoke([message])
             return response.content
         except Exception as e:
             console.log(
@@ -177,7 +179,7 @@ class GeminiModels:
             )
             return f"Error describing video: {e}"
 
-    def synthesize_summary(self, context: str) -> str:
+    async def synthesize_summary(self, context: str) -> str:
         """Generates a fine-grained emotional summary from coarse clues."""
         if self.verbose:
             console.log("Generating fine-grained summary...")
@@ -193,7 +195,7 @@ class GeminiModels:
             
             Based on these clues, provide a single-paragraph summary of the person's emotional experience.
             """
-            response = self.model.invoke(prompt)
+            response = await self.model.ainvoke(prompt)
             return response.content
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
