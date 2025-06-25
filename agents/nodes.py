@@ -8,7 +8,7 @@ from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 from .models import GeminiModels
 
-console = Console()
+console = Console(stderr=True)
 
 
 AU_TO_TEXT_MAP = {
@@ -51,18 +51,23 @@ def setup_paths(state):
     video_id = video_path.stem
     video_output_dir = output_dir / video_id
     video_output_dir.mkdir(parents=True, exist_ok=True)
-    console.log(f"Processing: {video_id}")
+    if state.get("verbose", True):
+        console.log(f"Processing: {video_id}")
     return {"video_id": video_id, "video_output_dir": video_output_dir}
 
 
 # --- Nodes for 'AU' processing type ---
 def run_au_extraction(state):
     """Runs OpenFace feature extraction."""
-    console.rule("[bold]Executing: Action Unit (AU) Extraction[/bold]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold]Executing: Action Unit (AU) Extraction[/bold]")
     video_path = Path(state["video_path"])
     video_output_dir = Path(state["video_output_dir"])
 
-    if not OpenFaceAdapter.run_feature_extraction(video_path, video_output_dir):
+    if not OpenFaceAdapter.run_feature_extraction(
+        video_path, video_output_dir, verbose
+    ):
         return {"error": f"Failed to run OpenFace on {video_path.name}"}
 
     au_data_path = video_output_dir / f"{state['video_id']}.csv"
@@ -71,7 +76,9 @@ def run_au_extraction(state):
 
 def map_au_to_text(state):
     """Finds the peak emotional frame and maps its AUs to text."""
-    console.log("Mapping Action Units to text...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Mapping Action Units to text...")
     au_data_path = Path(state["au_data_path"])
     try:
         df = pd.read_csv(au_data_path)
@@ -91,8 +98,6 @@ def map_au_to_text(state):
     au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
     top_intensities = [c.replace("_c", "_r") for c in au_frequencies.head(5).index]
 
-    # Filter out AUs that are not in the AU_TO_TEXT_MAP or have very low intensity
-    # This also helps handle cases where OpenFace might detect an AU_c but its AU_r is effectively zero
     valid_top_intensities = [
         au for au in top_intensities if au in AU_TO_TEXT_MAP and df.columns.contains(au)
     ]  # Ensure column exists in DF
@@ -101,15 +106,12 @@ def map_au_to_text(state):
             "au_text_description": "No significant Action Units detected in the video."
         }
 
-    # Re-calculate peak_score based on valid_top_intensities
     df["peak_score"] = df[valid_top_intensities].sum(axis=1)
     peak_frame_index = df["peak_score"].idxmax()
     peak_frame_data = df.loc[peak_frame_index]
 
     active_aus = {
-        au: i
-        for au, i in peak_frame_data[valid_top_intensities].items()
-        if i > 0.2  # Use valid_top_intensities here too
+        au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.2
     }
     if not active_aus:
         desc = "No prominent facial action units were detected at the emotional peak."
@@ -120,14 +122,16 @@ def map_au_to_text(state):
                 for au, i in active_aus.items()
             ]
         )
-
-    console.log(f"Detected peak expression: [yellow]{desc}[/yellow]")
+    if verbose:
+        console.log(f"Detected peak expression: [yellow]{desc}[/yellow]")
     return {"au_text_description": desc}
 
 
 def generate_au_description(state):
     """Generates an LLM description based on the detected AUs."""
-    console.log("Generating LLM description for facial expression...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Generating LLM description for facial expression...")
     models: GeminiModels = state["models"]
     au_text = state["au_text_description"]
 
@@ -140,13 +144,16 @@ def generate_au_description(state):
     else:
         llm_description = models.describe_facial_expression(au_text)
 
-    console.log(f"LLM Description: [cyan]{llm_description}[/cyan]")
+    if verbose:
+        console.log(f"LLM Description: [cyan]{llm_description}[/cyan]")
     return {"llm_au_description": llm_description}
 
 
 def save_au_results(state):
     """Saves the results of the AU pipeline to a JSON file."""
-    console.rule("[bold green]✅ AU Analysis Complete[/bold green]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold green]✅ AU Analysis Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_au_analysis.json"
     )
@@ -156,21 +163,24 @@ def save_au_results(state):
         "llm_facial_summary": state["llm_au_description"],
     }
     with open(output_path, "w") as f:
-        json.dump(result_data, f, indent=4)
-    console.print(f"AU analysis results saved to [green]{output_path}[/green]")
+        json.dump(result_data, f, indent=4, ensure_ascii=False)
+    if verbose:
+        console.print(f"AU analysis results saved to [green]{output_path}[/green]")
     return {}
 
 
 # --- Nodes for 'audio' processing type ---
 def run_audio_extraction_and_analysis(state):
     """Extracts and analyzes audio in a single node for the audio pipeline."""
-    console.rule("[bold]Executing: Audio Analysis[/bold]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold]Executing: Audio Analysis[/bold]")
     video_path = Path(state["video_path"])
     video_output_dir = Path(state["video_output_dir"])
     models: GeminiModels = state["models"]
 
     audio_path = video_output_dir / f"{state['video_id']}_audio_only.wav"
-    if not FFMpegAdapter.extract_audio(video_path, audio_path):
+    if not FFMpegAdapter.extract_audio(video_path, audio_path, verbose):
         return {"error": f"Failed to extract audio for {video_path.name}"}
 
     audio_analysis = models.analyze_audio(audio_path)
@@ -179,37 +189,45 @@ def run_audio_extraction_and_analysis(state):
 
 def save_audio_results(state):
     """Saves the results of the audio pipeline to a JSON file."""
-    console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
-    results = state["audio_analysis_results"]
-    console.print(f"[bold]Transcript:[/bold] {results.get('transcript', 'N/A')}")
-    console.print(
-        f"[bold]Tone Description:[/bold] {results.get('tone_description', 'N/A')}"
-    )
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
+        results = state["audio_analysis_results"]
+        console.print(f"[bold]Transcript:[/bold] {results.get('transcript', 'N/A')}")
+        console.print(
+            f"[bold]Tone Description:[/bold] {results.get('tone_description', 'N/A')}"
+        )
 
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
     with open(output_path, "w") as f:
-        json.dump(results, f, indent=4)
-    console.print(f"Results saved to [cyan]{output_path}[/cyan]")
+        json.dump(state["audio_analysis_results"], f, indent=4, ensure_ascii=False)
+    if verbose:
+        console.print(f"Results saved to [cyan]{output_path}[/cyan]")
     return {}
 
 
 # --- Nodes for 'video' processing type ---
 def run_video_analysis(state):
     """Runs video analysis using the LLM."""
-    console.rule("[bold]Executing: Video Content Analysis[/bold]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     models: GeminiModels = state["models"]
 
     video_description = models.describe_video(video_path)
-    console.log(f"Video Description: [cyan]{video_description}[/cyan]")
+    if verbose:
+        console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
 
 
 def save_video_results(state):
     """Saves the results of the video analysis pipeline."""
-    console.rule("[bold green]✅ Video Analysis Complete[/bold green]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold green]✅ Video Analysis Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_video_analysis.json"
     )
@@ -218,22 +236,27 @@ def save_video_results(state):
         "llm_video_summary": state["video_description"],
     }
     with open(output_path, "w") as f:
-        json.dump(result_data, f, indent=4)
-    console.print(f"Video analysis results saved to [green]{output_path}[/green]")
+        json.dump(result_data, f, indent=4, ensure_ascii=False)
+    if verbose:
+        console.print(f"Video analysis results saved to [green]{output_path}[/green]")
     return {}
 
 
 # --- Nodes for the Full MER Pipeline ---
 def extract_full_features(state):
-    console.rule("[bold]Executing: Full MER Feature Extraction[/bold]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold]Executing: Full MER Feature Extraction[/bold]")
     video_path = Path(state["video_path"])
     video_output_dir = Path(state["video_output_dir"])
 
     if not FFMpegAdapter.extract_audio(
-        video_path, video_output_dir / f"{state['video_id']}.wav"
+        video_path, video_output_dir / f"{state['video_id']}.wav", verbose
     ):
         return {"error": "Failed audio extraction for MER pipeline."}
-    if not OpenFaceAdapter.run_feature_extraction(video_path, video_output_dir):
+    if not OpenFaceAdapter.run_feature_extraction(
+        video_path, video_output_dir, verbose
+    ):
         return {"error": "Failed OpenFace extraction for MER pipeline."}
 
     return {
@@ -244,9 +267,11 @@ def extract_full_features(state):
 
 def filter_by_emotion(state):
     """
-    UPDATED: Filters video based on a map of emotions to AU combinations.
+    Filters video based on a map of emotions to AU combinations.
     """
-    console.log("Filtering by emotion for MER pipeline...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Filtering by emotion for MER pipeline...")
     au_data_path = Path(state["au_data_path"])
     try:
         df = pd.read_csv(au_data_path)
@@ -255,42 +280,36 @@ def filter_by_emotion(state):
         return {"error": f"OpenFace output not found at {au_data_path}"}
 
     detected_emotions = []
-
-    # Get threshold from state
-    threshold = state.get(
-        "threshold", 0.45
-    )  # Use provided threshold, default to 0.45 if not found
+    threshold = state.get("threshold", 0.45)
 
     for emotion, au_list in EMOTION_TO_AU_MAP.items():
-        # Check if all required AUs for the emotion are present in the dataframe columns
         available_aus = [au for au in au_list if au in df.columns]
-
         if not available_aus:
             continue
-
         present_au_count = sum(1 for au in available_aus if (df[au] > 0.5).any())
-
-        # Check if the number of present AUs meets our threshold
         if (present_au_count / len(available_aus)) >= threshold:
             detected_emotions.append(emotion)
 
     is_expressive = bool(detected_emotions)
 
-    if is_expressive:
-        console.log(
-            f"😊 Video deemed emotionally expressive. Detected emotions: {', '.join(detected_emotions)}"
-        )
-    else:
-        console.log(
-            "😐 Video does not meet expressive criteria for any mapped emotion. Halting pipeline."
-        )
+    if verbose:
+        if is_expressive:
+            console.log(
+                f"😊 Video deemed emotionally expressive. Detected emotions: {', '.join(detected_emotions)}"
+            )
+        else:
+            console.log(
+                "😐 Video does not meet expressive criteria for any mapped emotion. Halting pipeline."
+            )
 
     return {"is_expressive": is_expressive, "detected_emotions": detected_emotions}
 
 
 def find_peak_frame(state):
     """Finds the emotional peak frame for the full pipeline."""
-    console.log("Finding peak frame for MER pipeline...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Finding peak frame for MER pipeline...")
     au_data_path = Path(state["au_data_path"])
     df = pd.read_csv(au_data_path)
     df.columns = df.columns.str.strip()
@@ -300,12 +319,10 @@ def find_peak_frame(state):
     ]
     au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
 
-    # Generate potential regression AUs from classification AUs
     potential_top_intensities_r = [
         c.replace("_c", "_r") for c in au_frequencies.head(5).index
     ]
 
-    # Filter top_intensities to only include those that actually exist as columns in the DataFrame
     top_intensities = [au for au in potential_top_intensities_r if au in df.columns]
 
     if not top_intensities:
@@ -322,7 +339,9 @@ def find_peak_frame(state):
     peak_frame_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_peak_frame.png"
     )
-    if not FFMpegAdapter.extract_frame(video_path, peak_timestamp, peak_frame_path):
+    if not FFMpegAdapter.extract_frame(
+        video_path, peak_timestamp, peak_frame_path, verbose
+    ):
         return {"error": "Failed to extract peak frame."}
 
     peak_frame_info = {
@@ -334,13 +353,15 @@ def find_peak_frame(state):
             if au in peak_frame_data.index
         },
     }
-
-    console.log(f"Identified peak frame at [yellow]{peak_timestamp:.2f}s[/yellow].")
+    if verbose:
+        console.log(f"Identified peak frame at [yellow]{peak_timestamp:.2f}s[/yellow].")
     return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
 
 
 def generate_full_descriptions(state):
-    console.log("Generating full multimodal descriptions...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Generating full multimodal descriptions...")
     models: GeminiModels = state["models"]
 
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
@@ -365,7 +386,9 @@ def generate_full_descriptions(state):
 
 
 def synthesize_summary(state):
-    console.log("Synthesizing final MER summary...")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Synthesizing final MER summary...")
     models: GeminiModels = state["models"]
     desc = state["descriptions"]
     coarse_summary = f"""
@@ -381,7 +404,9 @@ def synthesize_summary(state):
 
 
 def save_mer_results(state):
-    console.rule("[bold green]✅ Full MER Pipeline Complete[/bold green]")
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold green]✅ Full MER Pipeline Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_merr_data.json"
     )
@@ -395,14 +420,29 @@ def save_mer_results(state):
     }
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=4, ensure_ascii=False)
-    console.print(f"Full MER analysis results saved to [green]{output_path}[/green]")
+    if verbose:
+        console.print(
+            f"Full MER analysis results saved to [green]{output_path}[/green]"
+        )
     return {}
 
 
 def handle_error(state):
-    """Logs an error that occurred in any pipeline."""
-    console.rule(
-        f"[bold red]❌ Error processing {state.get('video_id', 'Unknown Video')}[/bold red]"
-    )
-    console.log(state.get("error", "An unknown error occurred."))
-    return {}
+    """Logs an error that occurred in any pipeline and saves it to a file."""
+    error_msg = state.get("error", "An unknown error occurred.")
+    video_id = state.get("video_id", "unknown_video")
+    error_logs_dir = state.get("error_logs_dir", Path("./error_logs"))
+    error_logs_dir.mkdir(exist_ok=True)
+
+    error_log_path = error_logs_dir / f"{video_id}_error.log"
+
+    console.rule(f"[bold red]❌ Error processing {video_id}[/bold red]")
+    console.log(error_msg)
+    console.log(f"Saving error details to [cyan]{error_log_path}[/cyan]")
+
+    with open(error_log_path, "w") as f:
+        f.write(f"Error processing video: {video_id}\n")
+        f.write("=" * 20 + "\n")
+        f.write(error_msg)
+
+    return {"error": error_msg}

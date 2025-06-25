@@ -80,6 +80,7 @@ command = [
 ### Basic Command Structure
 ```bash
 python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
+python main.py path_to_video/ output/ --type MER --silent
 ```
 
 ### Processing Types

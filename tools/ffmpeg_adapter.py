@@ -2,28 +2,24 @@ import subprocess
 from pathlib import Path
 from rich.console import Console
 
-console = Console()
+console = Console(stderr=True)
 
 
 class FFMpegAdapter:
     """A wrapper for common ffmpeg commands needed for the MERR pipeline."""
 
     @staticmethod
-    def extract_audio(video_path: Path, output_path: Path) -> bool:
+    def extract_audio(
+        video_path: Path, output_path: Path, verbose: bool = True
+    ) -> bool:
         """
         Extracts the audio from a video file into a WAV file.
-
-        Args:
-            video_path: Path to the input video.
-            output_path: Path to save the output WAV audio file.
-
-        Returns:
-            True if successful, False otherwise.
         """
         if output_path.exists():
-            console.log(
-                f"Audio file already exists: [cyan]{output_path}[/cyan]. Skipping extraction."
-            )
+            if verbose:
+                console.log(
+                    f"Audio file already exists: [cyan]{output_path}[/cyan]. Skipping extraction."
+                )
             return True
 
         command = [
@@ -43,7 +39,8 @@ class FFMpegAdapter:
 
         try:
             subprocess.run(command, check=True, capture_output=True, text=True)
-            console.log(f"✅ Extracted audio to [green]{output_path}[/green]")
+            if verbose:
+                console.log(f"✅ Extracted audio to [green]{output_path}[/green]")
             return True
         except subprocess.CalledProcessError as e:
             console.log(f"❌ Failed to extract audio from {video_path}.")
@@ -51,22 +48,17 @@ class FFMpegAdapter:
             return False
 
     @staticmethod
-    def extract_frame(video_path: Path, timestamp: float, output_path: Path) -> bool:
+    def extract_frame(
+        video_path: Path, timestamp: float, output_path: Path, verbose: bool = True
+    ) -> bool:
         """
         Extracts a single frame from a video at a specific timestamp.
-
-        Args:
-            video_path: Path to the input video.
-            timestamp: The time in seconds to extract the frame from.
-            output_path: Path to save the output PNG image file.
-
-        Returns:
-            True if successful, False otherwise.
         """
         if output_path.exists():
-            console.log(
-                f"Frame file already exists: [cyan]{output_path}[/cyan]. Skipping extraction."
-            )
+            if verbose:
+                console.log(
+                    f"Frame file already exists: [cyan]{output_path}[/cyan]. Skipping extraction."
+                )
             return True
 
         command = [
@@ -84,9 +76,10 @@ class FFMpegAdapter:
 
         try:
             subprocess.run(command, check=True, capture_output=True, text=True)
-            console.log(
-                f"✅ Extracted frame at {timestamp:.2f}s to [green]{output_path}[/green]"
-            )
+            if verbose:
+                console.log(
+                    f"✅ Extracted frame at {timestamp:.2f}s to [green]{output_path}[/green]"
+                )
             return True
         except subprocess.CalledProcessError as e:
             console.log(

@@ -8,7 +8,7 @@ import json
 import base64
 import mimetypes
 
-console = Console()
+console = Console(stderr=True)
 
 
 class GeminiModels:
@@ -17,8 +17,9 @@ class GeminiModels:
     LangChain integration.
     """
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, verbose: bool = True):
         """Initializes the Gemini models with the provided API key."""
+        self.verbose = verbose
         self.model = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash", google_api_key=api_key, temperature=0
         )
@@ -27,7 +28,8 @@ class GeminiModels:
 
     def describe_facial_expression(self, au_text: str) -> str:
         """Generates a natural language description from AU text."""
-        console.log("Generating facial expression description from AUs...")
+        if self.verbose:
+            console.log("Generating facial expression description from AUs...")
         try:
             prompt = f"""
             Based on the following detected facial Action Units (AUs), provide a concise, natural language description of the person's facial expression.
@@ -49,9 +51,10 @@ class GeminiModels:
 
     def describe_image(self, image_path: Path) -> str:
         """Generates a description for an image file using LangChain messages."""
-        console.log(
-            f"Generating visual objective description for [cyan]{image_path.name}[/cyan]..."
-        )
+        if self.verbose:
+            console.log(
+                f"Generating visual objective description for [cyan]{image_path.name}[/cyan]..."
+            )
         try:
             with open(image_path, "rb") as image_file:
                 image_data = base64.b64encode(image_file.read()).decode("utf-8")
@@ -82,9 +85,10 @@ class GeminiModels:
         """
         Transcribes audio and describes its tone by passing the file as base64 data.
         """
-        console.log(
-            f"Generating audio tone description for [cyan]{audio_path.name}[/cyan]..."
-        )
+        if self.verbose:
+            console.log(
+                f"Generating audio tone description for [cyan]{audio_path.name}[/cyan]..."
+            )
         try:
             with open(audio_path, "rb") as audio_file:
                 audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
@@ -122,7 +126,8 @@ class GeminiModels:
                 console.log(
                     f"[bold red]❌ Failed to parse JSON response from LLM.[/bold red]"
                 )
-                console.log(f"Raw response: {str_response}")
+                if self.verbose:
+                    console.log(f"Raw response: {str_response}")
                 return {
                     "transcript": "Error: Invalid JSON response.",
                     "tone_description": "Error: Invalid JSON response.",
@@ -141,9 +146,10 @@ class GeminiModels:
         """
         Generates a description for a video file by passing it as base64 data.
         """
-        console.log(
-            f"Generating description for video [cyan]{video_path.name}[/cyan]..."
-        )
+        if self.verbose:
+            console.log(
+                f"Generating description for video [cyan]{video_path.name}[/cyan]..."
+            )
         try:
             with open(video_path, "rb") as video_file:
                 video_data = base64.b64encode(video_file.read()).decode("utf-8")
@@ -173,7 +179,8 @@ class GeminiModels:
 
     def synthesize_summary(self, context: str) -> str:
         """Generates a fine-grained emotional summary from coarse clues."""
-        console.log("Generating fine-grained summary...")
+        if self.verbose:
+            console.log("Generating fine-grained summary...")
         try:
             prompt = f"""
             You are an expert in multimodal emotion recognition. Your task is to synthesize a set of clues from different modalities (visual, audio, text) into a coherent and insightful emotional analysis.

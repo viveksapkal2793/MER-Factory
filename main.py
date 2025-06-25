@@ -4,7 +4,13 @@ from dotenv import load_dotenv
 import os
 from rich.console import Console
 from enum import Enum
-
+from rich.progress import (
+    Progress,
+    BarColumn,
+    TextColumn,
+    TimeRemainingColumn,
+    SpinnerColumn,
+)
 
 from agents.graph import create_graph, MERRState
 from agents.models import GeminiModels
@@ -22,7 +28,7 @@ app = typer.Typer(
     help="A modular CLI tool to construct the MERR dataset from video files.",
     add_completion=False,
 )
-console = Console()
+console = Console(stderr=True)  # Log errors to stderr
 graph_app = create_graph()
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv"}
@@ -60,6 +66,12 @@ def process(
         max=1.0,
         help="Threshold for Action Unit (AU) presence in emotion filtering (0.0 to 1.0).",
     ),
+    silent: bool = typer.Option(
+        False,
+        "--silent",
+        "-s",
+        help="Run silently, showing only a progress bar and final summary.",
+    ),
 ):
     """
     Processes a single video file or multiple video files from a directory
@@ -78,11 +90,18 @@ def process(
         )
         raise typer.Exit(code=1)
 
-    console.rule(
-        f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
-    )
+    verbose = not silent
 
-    models = GeminiModels(api_key=api_key)
+    if verbose:
+        console.rule(
+            f"[bold magenta]MERR CLI - Mode: {processing_type.value} (Verbose)[/bold magenta]"
+        )
+    else:
+        console.print(
+            f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
+        )
+
+    models = GeminiModels(api_key=api_key, verbose=verbose)
 
     video_files_to_process = []
     if video_path.is_file():
@@ -94,9 +113,10 @@ def process(
             )
             raise typer.Exit(code=1)
     elif video_path.is_dir():
-        console.print(
-            f"Searching for video files in directory: [cyan]{video_path}[/cyan]"
-        )
+        if verbose:
+            console.print(
+                f"Searching for video files in directory: [cyan]{video_path}[/cyan]"
+            )
         for ext in VIDEO_EXTENSIONS:
             video_files_to_process.extend(
                 video_path.rglob(f"*{ext}")
@@ -106,33 +126,82 @@ def process(
                 f"[bold red]Error: No video files found in '{video_path}' or its subdirectories with extensions: {', '.join(VIDEO_EXTENSIONS)}[/bold red]"
             )
             raise typer.Exit(code=1)
-        console.print(f"Found {len(video_files_to_process)} video(s) to process.")
+        if verbose:
+            console.print(f"Found {len(video_files_to_process)} video(s) to process.")
     else:
         console.print(
             f"[bold red]Error: '{video_path}' is neither a file nor a directory.[/bold red]"
         )
         raise typer.Exit(code=1)
 
-    for i, current_video_file in enumerate(video_files_to_process):
-        console.rule(
-            f"[bold blue]Processing video {i+1}/{len(video_files_to_process)}: {current_video_file.name}[/bold blue]"
-        )
+    success_count = 0
+    failure_count = 0
+    total_files = len(video_files_to_process)
+    output_dir.mkdir(exist_ok=True)
+    error_logs_dir = output_dir / "error_logs"
+    error_logs_dir.mkdir(exist_ok=True)
+
+    def run_processing(video_file: Path):
+        nonlocal success_count, failure_count
         initial_state: MERRState = {
-            "video_path": current_video_file,  # Use current_video_file
+            "video_path": video_file,
             "output_dir": output_dir,
             "processing_type": processing_type.value,
             "models": models,
             "threshold": threshold,
+            "verbose": verbose,
+            "error_logs_dir": error_logs_dir,
         }
 
         try:
-            graph_app.invoke(initial_state)
-        except Exception as e:
-            console.rule(
-                f"[bold red]FATAL ERROR processing {current_video_file.name}[/bold red]"
+            final_state = graph_app.invoke(initial_state)
+            if "error" in final_state and final_state["error"]:
+                failure_count += 1
+            else:
+                success_count += 1
+        except Exception:
+            failure_count += 1
+            error_log_path = error_logs_dir / f"{video_file.stem}_fatal_error.log"
+            with open(error_log_path, "w") as f:
+                import traceback
+
+                traceback.print_exc(file=f)
+            console.print(
+                f"[bold red]FATAL ERROR processing {video_file.name}. Log saved to {error_log_path}.[/bold red]"
             )
-            console.print_exception(show_locals=True)
-            console.print(f"[bold red]Skipping to next video due to error.[/bold red]")
+
+    if not verbose and total_files > 0:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TextColumn("({task.completed} of {task.total})"),
+            TimeRemainingColumn(),
+            console=console,
+            transient=False,
+        ) as progress:
+            task = progress.add_task("Processing videos...", total=total_files)
+            for video_file in video_files_to_process:
+                progress.update(
+                    task, description=f"Processing [cyan]{video_file.name}[/cyan]"
+                )
+                run_processing(video_file)
+                progress.advance(task)
+    elif total_files > 0:
+        for i, current_video_file in enumerate(video_files_to_process):
+            if verbose:
+                console.rule(
+                    f"[bold blue]Processing video {i+1}/{total_files}: {current_video_file.name}[/bold blue]"
+                )
+            run_processing(current_video_file)
+
+    console.rule("[bold green]Processing Complete[/bold green]")
+    console.print(f"Total videos attempted: {total_files}")
+    console.print(f"✅ [green]Successful[/green]: {success_count}")
+    if failure_count > 0:
+        console.print(f"❌ [red]Failed[/red]: {failure_count}")
+        console.print(f"Error logs have been saved in: [cyan]{error_logs_dir}[/cyan]")
 
 
 if __name__ == "__main__":

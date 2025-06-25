@@ -49,12 +49,15 @@ class MERRState(TypedDict, total=False):
     models: GeminiModels
     error: str
     threshold: float
+    verbose: bool
+    error_logs_dir: Path
 
 
 def route_by_processing_type(state: MERRState) -> str:
     """Routes flow based on the user's chosen processing type."""
     proc_type = state["processing_type"]
-    console.log(f"Routing based on processing type: [yellow]{proc_type}[/yellow]")
+    if state.get("verbose", True):
+        console.log(f"Routing based on processing type: [yellow]{proc_type}[/yellow]")
     if state.get("error"):
         return "handle_error"
     if proc_type == "AU":
