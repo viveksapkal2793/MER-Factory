@@ -29,6 +29,9 @@ graph TD;
         generate_full_descriptions(generate_full_descriptions)
         synthesize_summary(synthesize_summary)
         save_mer_results(save_mer_results)
+        run_image_analysis(run_image_analysis)
+        synthesize_image_summary(synthesize_image_summary)
+        save_image_results(save_image_results)
         __end__([<p>__end__</p>]):::last
         __start__ --> setup_paths;
         extract_full_features --> filter_by_emotion;
@@ -41,16 +44,20 @@ graph TD;
         map_au_to_text --> generate_au_description;
         run_au_extraction --> map_au_to_text;
         run_audio_analysis --> save_audio_results;
+        run_image_analysis --> synthesize_image_summary;
         run_video_analysis --> save_video_results;
         setup_paths -. &nbsp;full_pipeline&nbsp; .-> extract_full_features;
         setup_paths -.-> handle_error;
         setup_paths -. &nbsp;au_pipeline&nbsp; .-> run_au_extraction;
         setup_paths -. &nbsp;audio_pipeline&nbsp; .-> run_audio_analysis;
+        setup_paths -. &nbsp;image_pipeline&nbsp; .-> run_image_analysis;
         setup_paths -. &nbsp;video_pipeline&nbsp; .-> run_video_analysis;
+        synthesize_image_summary --> save_image_results;
         synthesize_summary --> save_mer_results;
         handle_error --> __end__;
         save_au_results --> __end__;
         save_audio_results --> __end__;
+        save_image_results --> __end__;
         save_mer_results --> __end__;
         save_video_results --> __end__;
         classDef default fill:#f2f0ff,line-height:1.2
