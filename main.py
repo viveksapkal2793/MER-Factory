@@ -30,21 +30,23 @@ class ProcessingType(str, Enum):
     audio = "audio"
     video = "video"
     mer = "MER"
+    image = "image"
 
 
 app = typer.Typer(
     name="merr-cli",
-    help="A modular CLI tool to construct the MERR dataset from video files.",
+    help="A modular CLI tool to construct the MERR dataset from video and image files.",
     add_completion=False,
 )
 console = Console(stderr=True)  # Log errors to stderr
 graph_app = create_graph()
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 
 
 async def _process(
-    video_path: Path,
+    input_path: Path,
     output_dir: Path,
     processing_type: ProcessingType,
     threshold: float,
@@ -54,7 +56,7 @@ async def _process(
     ollama_vision_model_name: str = None,
 ):
     """
-    Internal async implementation for processing video files.
+    Internal async implementation for processing video and image files.
     """
     load_dotenv()
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -82,32 +84,34 @@ async def _process(
         verbose=verbose,
     )
 
-    video_files_to_process = []
-    if video_path.is_file():
-        if video_path.suffix.lower() in VIDEO_EXTENSIONS:
-            video_files_to_process.append(video_path)
+    files_to_process = []
+    if input_path.is_file():
+        ext = input_path.suffix.lower()
+        if ext in VIDEO_EXTENSIONS or ext in IMAGE_EXTENSIONS:
+            files_to_process.append(input_path)
         else:
             console.print(
-                f"[bold red]Error: '{video_path}' is not a recognized video file type.[/bold red]"
+                f"[bold red]Error: '{input_path}' is not a recognized video or image file type.[/bold red]"
             )
             raise typer.Exit(code=1)
-    elif video_path.is_dir():
+    elif input_path.is_dir():
         if verbose:
             console.print(
-                f"Searching for video files in directory: [cyan]{video_path}[/cyan]"
+                f"Searching for video and image files in directory: [cyan]{input_path}[/cyan]"
             )
-        for ext in VIDEO_EXTENSIONS:
-            video_files_to_process.extend(video_path.rglob(f"*{ext}"))
-        if not video_files_to_process:
+        all_extensions = VIDEO_EXTENSIONS.union(IMAGE_EXTENSIONS)
+        for ext in all_extensions:
+            files_to_process.extend(input_path.rglob(f"*{ext}"))
+        if not files_to_process:
             console.print(
-                f"[bold red]Error: No video files found in '{video_path}' or its subdirectories with extensions: {', '.join(VIDEO_EXTENSIONS)}[/bold red]"
+                f"[bold red]Error: No video or image files found in '{input_path}' or its subdirectories with extensions: {', '.join(all_extensions)}[/bold red]"
             )
             raise typer.Exit(code=1)
         if verbose:
-            console.print(f"Found {len(video_files_to_process)} video(s) to process.")
+            console.print(f"Found {len(files_to_process)} file(s) to process.")
 
     results = {"success": 0, "failure": 0}
-    total_files = len(video_files_to_process)
+    total_files = len(files_to_process)
     output_dir.mkdir(exist_ok=True)
     error_logs_dir = output_dir / "error_logs"
     error_logs_dir.mkdir(exist_ok=True)
@@ -115,54 +119,64 @@ async def _process(
     extraction_semaphore = asyncio.Semaphore(8)  # Limit concurrent extractions
 
     async def run_extraction_job(
-        video_file: Path,
-        video_output_dir: Path,
+        file_path: Path,
+        file_output_dir: Path,
         progress: Optional[Progress],
         openface_task_id: Optional[TaskID],
         ffmpeg_task_id: Optional[TaskID],
     ):
         """
-        Wrapper to run a single video's extraction tasks under semaphore control
+        Wrapper to run a single image/video's extraction tasks under semaphore control
         and update the consolidated progress bars.
         """
         async with extraction_semaphore:
             if verbose:
                 console.log(
-                    f"[yellow]Starting extraction for {video_file.name}...[/yellow]"
+                    f"[yellow]Starting extraction for {file_path.name}...[/yellow]"
                 )
 
-            needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
-            needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
+            is_video = file_path.suffix.lower() in VIDEO_EXTENSIONS
+            is_image = file_path.suffix.lower() in IMAGE_EXTENSIONS
+
+            # For videos, OpenFace need depends on processing type. For images, it's always needed.
+            needs_openface = is_image or (
+                is_video and processing_type in [ProcessingType.mer, ProcessingType.au]
+            )
+            # FFmpeg is only needed for videos.
+            needs_ffmpeg = is_video and processing_type in [
+                ProcessingType.mer,
+                ProcessingType.audio,
+            ]
 
             try:
                 if needs_openface:
                     res = await OpenFaceAdapter.run_feature_extraction(
-                        video_file, video_output_dir, verbose
+                        file_path, file_output_dir, verbose
                     )
                     if progress and openface_task_id is not None:
                         progress.update(openface_task_id, advance=1)
                     if isinstance(res, Exception) or res is False:
                         console.log(
-                            f"[bold red]Error during OpenFace for {video_file.name}: {res}[/bold red]"
+                            f"[bold red]Error during OpenFace for {file_path.name}: {res}[/bold red]"
                         )
                         return False
 
                 if needs_ffmpeg:
-                    audio_path = video_output_dir / f"{video_file.stem}.wav"
+                    audio_path = file_output_dir / f"{file_path.stem}.wav"
                     res = await FFMpegAdapter.extract_audio(
-                        video_file, audio_path, verbose
+                        file_path, audio_path, verbose
                     )
                     if progress and ffmpeg_task_id is not None:
                         progress.update(ffmpeg_task_id, advance=1)
                     if isinstance(res, Exception) or res is False:
                         console.log(
-                            f"[bold red]Error during FFmpeg for {video_file.name}: {res}[/bold red]"
+                            f"[bold red]Error during FFmpeg for {file_path.name}: {res}[/bold red]"
                         )
                         return False
 
             except Exception as e:
                 console.log(
-                    f"[bold red]Fatal error during extraction for {video_file.name}: {e}[/bold red]"
+                    f"[bold red]Fatal error during extraction for {file_path.name}: {e}[/bold red]"
                 )
                 return False
 
@@ -173,13 +187,26 @@ async def _process(
             "[bold yellow]Phase 1: Kicking off background feature extractions[/bold yellow]"
         )
 
-    needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
-    needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
+    video_files = [f for f in files_to_process if f.suffix.lower() in VIDEO_EXTENSIONS]
+    image_files = [f for f in files_to_process if f.suffix.lower() in IMAGE_EXTENSIONS]
 
-    if video_files_to_process and (needs_openface or needs_ffmpeg):
+    # Calculate required extractions
+    openface_for_videos = (
+        len(video_files)
+        if processing_type in [ProcessingType.mer, ProcessingType.au]
+        else 0
+    )
+    openface_for_images = len(image_files)
+    total_openface_tasks = openface_for_videos + openface_for_images
+
+    total_ffmpeg_tasks = (
+        len(video_files)
+        if processing_type in [ProcessingType.mer, ProcessingType.audio]
+        else 0
+    )
+
+    if files_to_process and (total_openface_tasks > 0 or total_ffmpeg_tasks > 0):
         if not verbose:
-            num_openface_tasks = len(video_files_to_process) if needs_openface else 0
-            num_ffmpeg_tasks = len(video_files_to_process) if needs_ffmpeg else 0
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -192,27 +219,27 @@ async def _process(
             ) as progress:
                 openface_task_id = (
                     progress.add_task(
-                        "[bold blue]OpenFace Extraction", total=num_openface_tasks
+                        "[bold blue]OpenFace Extraction", total=total_openface_tasks
                     )
-                    if num_openface_tasks > 0
+                    if total_openface_tasks > 0
                     else None
                 )
                 ffmpeg_task_id = (
                     progress.add_task(
-                        "[bold green]FFmpeg Extraction", total=num_ffmpeg_tasks
+                        "[bold green]FFmpeg Extraction", total=total_ffmpeg_tasks
                     )
-                    if num_ffmpeg_tasks > 0
+                    if total_ffmpeg_tasks > 0
                     else None
                 )
 
                 extraction_tasks = []
-                for video_file in video_files_to_process:
-                    video_output_dir = output_dir / video_file.stem
-                    video_output_dir.mkdir(exist_ok=True)
+                for file in files_to_process:
+                    file_output_dir = output_dir / file.stem
+                    file_output_dir.mkdir(exist_ok=True)
                     extraction_tasks.append(
                         run_extraction_job(
-                            video_file,
-                            video_output_dir,
+                            file,
+                            file_output_dir,
                             progress,
                             openface_task_id,
                             ffmpeg_task_id,
@@ -221,11 +248,11 @@ async def _process(
                 await asyncio.gather(*extraction_tasks)
         else:
             extraction_tasks = []
-            for video_file in video_files_to_process:
-                video_output_dir = output_dir / video_file.stem
-                video_output_dir.mkdir(exist_ok=True)
+            for file in files_to_process:
+                file_output_dir = output_dir / file.stem
+                file_output_dir.mkdir(exist_ok=True)
                 extraction_tasks.append(
-                    run_extraction_job(video_file, video_output_dir, None, None, None)
+                    run_extraction_job(file, file_output_dir, None, None, None)
                 )
             await asyncio.gather(*extraction_tasks)
 
@@ -236,58 +263,34 @@ async def _process(
 
     main_processing_semaphore = asyncio.Semaphore(concurrency)
 
-    async def run_processing_graph(video_file: Path):
+    async def run_processing_graph(file_path: Path):
         nonlocal results
         async with main_processing_semaphore:
-            video_id = video_file.stem
-            video_output_dir = output_dir / video_id
+            file_id = file_path.stem
+            file_output_dir = output_dir / file_id
+            is_image = file_path.suffix.lower() in IMAGE_EXTENSIONS
+            current_processing_type = (
+                ProcessingType.image if is_image else processing_type
+            )
 
             if verbose:
                 console.rule(
-                    f"[bold blue]Phase 2: Processing Graph for: {video_file.name}[/bold blue]"
+                    f"[bold blue]Phase 2: Processing Graph for: {file_path.name} (Type: {current_processing_type.value})[/bold blue]"
                 )
 
             try:
-                # Check if required files exist before proceeding
-                au_data_path = video_output_dir / f"{video_id}.csv"
-                audio_path = video_output_dir / f"{video_id}.wav"
-
-                # Conditional checks based on selected model type for audio/video
-                if models.model_type == "ollama":
-                    # For Ollama, audio/video analysis is not supported directly by the LLM
-                    # The LLMModels class will return an error message for these specific calls.
-                    # No need to skip the entire pipeline based on this, as other parts
-                    # of the pipeline (like AU) might still be relevant.
-                    pass
-                elif models.model_type == "gemini":
-                    if (
-                        processing_type in [ProcessingType.mer, ProcessingType.audio]
-                        and not audio_path.exists()
-                    ):
-                        raise FileNotFoundError(
-                            f"Required FFMpeg audio output not found for {video_id}. Skipping."
-                        )
-
-                if (
-                    processing_type in [ProcessingType.mer, ProcessingType.au]
-                    and not au_data_path.exists()
-                ):
-                    raise FileNotFoundError(
-                        f"Required OpenFace output not found for {video_id}. Skipping."
-                    )
-
                 initial_state: MERRState = {
-                    "video_path": video_file,
+                    "video_path": file_path,
                     "output_dir": output_dir,
-                    "processing_type": processing_type.value,
+                    "processing_type": current_processing_type.value,
                     "models": models,
                     "threshold": threshold,
                     "verbose": verbose,
                     "error_logs_dir": error_logs_dir,
-                    "video_id": video_id,
-                    "video_output_dir": video_output_dir,
-                    "audio_path": audio_path,
-                    "au_data_path": au_data_path,
+                    "video_id": file_id,
+                    "video_output_dir": file_output_dir,
+                    "audio_path": file_output_dir / f"{file_id}.wav",
+                    "au_data_path": file_output_dir / f"{file_id}.csv",
                 }
 
                 final_state = await graph_app.ainvoke(initial_state)
@@ -296,18 +299,18 @@ async def _process(
                 else:
                     results["success"] += 1
 
-            except (Exception, FileNotFoundError) as e:
+            except Exception as e:
                 results["failure"] += 1
-                error_log_path = error_logs_dir / f"{video_file.stem}_fatal_error.log"
+                error_log_path = error_logs_dir / f"{file_path.stem}_fatal_error.log"
                 with open(error_log_path, "w") as f:
                     f.write(f"Error: {e}\n")
                     f.write(traceback.format_exc())
                 console.print(
-                    f"[bold red]FATAL ERROR processing {video_file.name}. Log saved to {error_log_path}.[/bold red]"
+                    f"[bold red]FATAL ERROR processing {file_path.name}. Log saved to {error_log_path}.[/bold red]"
                 )
-            return video_file
+            return file_path
 
-    tasks = [run_processing_graph(vf) for vf in video_files_to_process]
+    tasks = [run_processing_graph(vf) for vf in files_to_process]
 
     if not verbose and total_files > 0:
         with Progress(
@@ -320,7 +323,7 @@ async def _process(
             console=console,
             transient=False,
         ) as progress:
-            prog_task = progress.add_task("Processing videos...", total=total_files)
+            prog_task = progress.add_task("Processing files...", total=total_files)
             for future in asyncio.as_completed(tasks):
                 completed_file = await future
                 progress.update(
@@ -332,7 +335,7 @@ async def _process(
         await asyncio.gather(*tasks, return_exceptions=True)
 
     console.rule("[bold green]Processing Complete[/bold green]")
-    console.print(f"Total videos attempted: {total_files}")
+    console.print(f"Total files attempted: {total_files}")
     console.print(f"✅ [green]Successful[/green]: {results['success']}")
 
     if results["failure"] > 0:
@@ -342,13 +345,13 @@ async def _process(
 
 @app.command()
 def process(
-    video_path: Path = typer.Argument(
+    input_path: Path = typer.Argument(
         ...,
         exists=True,
         file_okay=True,
         dir_okay=True,
         readable=True,
-        help="Path to a single video file or a directory containing video files to process.",
+        help="Path to a single video/image file or a directory containing files to process.",
     ),
     output_dir: Path = typer.Argument(
         ...,
@@ -362,7 +365,7 @@ def process(
         "--type",
         "-t",
         case_sensitive=False,
-        help="The type of processing to perform.",
+        help="The type of processing to perform for videos. For images, this is ignored and 'image' is used.",
     ),
     threshold: float = typer.Option(
         0.45,
@@ -383,7 +386,7 @@ def process(
         "--concurrency",
         "-c",
         min=1,
-        help="Number of videos to process concurrently.",
+        help="Number of files to process concurrently.",
     ),
     ollama_vision_model: str = typer.Option(
         None,
@@ -399,12 +402,13 @@ def process(
     ),
 ):
     """
-    Processes a single video file or multiple video files from a directory
-    based on the selected processing type.
+    Processes a single file or multiple files from a directory
+    based on the selected processing type. For images, the type is
+    automatically set to 'image'.
     """
     asyncio.run(
         _process(
-            video_path=video_path,
+            input_path=input_path,
             output_dir=output_dir,
             processing_type=processing_type,
             threshold=threshold,

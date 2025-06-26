@@ -169,6 +169,12 @@ Generates comprehensive video content descriptions:
 python main.py video.mp4 output/ --type video
 ```
 
+#### 4. Image Analysis
+Runs the pipeline with images input:
+```bash
+python main.py ./images ./output --type MER
+```
+
 #### 4. Full MER Pipeline (Default)
 Runs the complete multimodal emotion recognition pipeline:
 ```bash

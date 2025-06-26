@@ -6,7 +6,6 @@ import asyncio
 
 
 from tools.ffmpeg_adapter import FFMpegAdapter
-from tools.openface_adapter import OpenFaceAdapter
 from .models import LLMModels
 
 console = Console(stderr=True)
@@ -428,3 +427,132 @@ async def handle_error(state):
 
     await asyncio.to_thread(_save)
     return {"error": error_msg}
+
+
+async def run_image_analysis(state):
+    """
+    Runs the full analysis for a single image: AU extraction, AU description, and visual description.
+    """
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold]Executing: Image Analysis[/bold]")
+
+    models: LLMModels = state["models"]
+    image_path = Path(
+        state["video_path"]
+    )  # for simplicity, we use video_path for image_path
+    au_data_path = Path(state["au_data_path"])
+
+    if not au_data_path.exists():
+        return {
+            "error": f"AU data file not found at {au_data_path}. The background OpenFace task may have failed."
+        }
+    if verbose:
+        console.log(f"Confirmed OpenFace output at [green]{au_data_path}[/green]")
+
+    try:
+        df = await asyncio.to_thread(pd.read_csv, au_data_path)
+        df.columns = df.columns.str.strip()
+    except FileNotFoundError:
+        return {"error": f"AU data file not found at {au_data_path}"}
+
+    if df.empty:
+        return {"error": "OpenFace produced an empty CSV for the image."}
+
+    image_frame_data = df.iloc[0]
+
+    au_intensity_cols = [
+        c for c in df.columns if c.startswith("AU") and c.endswith("_r")
+    ]
+    active_aus = {
+        au: i
+        for au, i in image_frame_data[au_intensity_cols].items()
+        if i > 0.2 and au in AU_TO_TEXT_MAP
+    }
+
+    if not active_aus:
+        au_text_desc = "No prominent facial action units were detected in the image."
+    else:
+        au_text_desc = ", ".join(
+            [
+                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
+                for au, i in active_aus.items()
+            ]
+        )
+    if verbose:
+        console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
+
+    if "No prominent facial action units" in au_text_desc:
+        llm_au_desc_task = asyncio.completed_future(
+            "Could not generate a description as no strong facial actions were detected."
+        )
+    else:
+        llm_au_desc_task = models.describe_facial_expression(au_text_desc)
+
+    visual_desc_task = models.describe_image(image_path)
+
+    llm_au_description, image_visual_description = await asyncio.gather(
+        llm_au_desc_task, visual_desc_task
+    )
+
+    if verbose:
+        console.log(f"LLM AU Description: [cyan]{llm_au_description}[/cyan]")
+        console.log(f"LLM Visual Description: [cyan]{image_visual_description}[/cyan]")
+
+    return {
+        "au_text_description": au_text_desc,
+        "llm_au_description": llm_au_description,
+        "image_visual_description": image_visual_description,
+    }
+
+
+async def synthesize_image_summary(state):
+    """
+    Synthesizes the final summary for the image analysis.
+    """
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Synthesizing final image summary...")
+    models: LLMModels = state["models"]
+
+    context = (
+        f"- Facial Expression Clues: {state['llm_au_description']}\n"
+        f"- Visual Context: {state['image_visual_description']}"
+    )
+
+    final_summary = await models.synthesize_summary(context)
+    if verbose:
+        console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
+
+    return {"final_summary": final_summary}
+
+
+async def save_image_results(state):
+    """
+    Saves the image analysis results to a JSON file.
+    """
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.rule("[bold green]✅ Image Analysis Complete[/bold green]")
+
+    output_path = (
+        Path(state["video_output_dir"]) / f"{state['video_id']}_image_analysis.json"
+    )
+
+    result_data = {
+        "image_id": state["video_id"],
+        "source_image": str(state["video_path"]),
+        "au_text_description": state["au_text_description"],
+        "llm_au_description": state["llm_au_description"],
+        "image_visual_description": state["image_visual_description"],
+        "final_summary": state["final_summary"],
+    }
+
+    def _save():
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(result_data, f, indent=4, ensure_ascii=False)
+
+    await asyncio.to_thread(_save)
+    if verbose:
+        console.print(f"Image analysis results saved to [green]{output_path}[/green]")
+    return {}

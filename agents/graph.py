@@ -24,6 +24,9 @@ from .nodes import (
     generate_full_descriptions,
     synthesize_summary,
     save_mer_results,
+    run_image_analysis,
+    synthesize_image_summary,
+    save_image_results,
 )
 from .models import LLMModels
 
@@ -38,23 +41,28 @@ class MERRState(TypedDict, total=False):
     processing_type: str
     video_id: str
     video_output_dir: Path
-    is_expressive: bool
+    models: LLMModels
+    error: str
+    verbose: bool
+    error_logs_dir: Path
     au_data_path: Path
+    au_text_description: str
+    llm_au_description: str
+    final_summary: str
+
+    # Video-Specific State
+    is_expressive: bool
     peak_frame_info: Dict[str, Any]
     peak_frame_path: Path
     audio_path: Path
-    au_text_description: str
-    llm_au_description: str
     audio_analysis_results: dict
     video_description: str
     descriptions: Dict[str, str]
-    final_summary: str
-    models: LLMModels
-    error: str
     threshold: float
-    verbose: bool
-    error_logs_dir: Path
     detected_emotions: List
+
+    # Image-Specific State
+    image_visual_description: str
 
 
 def route_by_processing_type(state: MERRState) -> str:
@@ -72,6 +80,8 @@ def route_by_processing_type(state: MERRState) -> str:
         return "video_pipeline"
     if proc_type == "MER":
         return "full_pipeline"
+    if proc_type == "image":
+        return "image_pipeline"
     return "handle_error"
 
 
@@ -109,6 +119,10 @@ def create_graph() -> StateGraph:
     workflow.add_node("generate_full_descriptions", generate_full_descriptions)
     workflow.add_node("synthesize_summary", synthesize_summary)
     workflow.add_node("save_mer_results", save_mer_results)
+    # Image Pipeline
+    workflow.add_node("run_image_analysis", run_image_analysis)
+    workflow.add_node("synthesize_image_summary", synthesize_image_summary)
+    workflow.add_node("save_image_results", save_image_results)
 
     # --- Define Graph Structure ---
     workflow.set_entry_point("setup_paths")
@@ -122,6 +136,7 @@ def create_graph() -> StateGraph:
             "audio_pipeline": "run_audio_analysis",
             "video_pipeline": "run_video_analysis",
             "full_pipeline": "extract_full_features",
+            "image_pipeline": "run_image_analysis",
             "handle_error": "handle_error",
         },
     )
@@ -156,7 +171,12 @@ def create_graph() -> StateGraph:
     workflow.add_edge("synthesize_summary", "save_mer_results")
     workflow.add_edge("save_mer_results", END)
 
-    # 6. Shared error handler
+    # 6. Image pipeline
+    workflow.add_edge("run_image_analysis", "synthesize_image_summary")
+    workflow.add_edge("synthesize_image_summary", "save_image_results")
+    workflow.add_edge("save_image_results", END)
+
+    # 7. Shared error handler
     workflow.add_edge("handle_error", END)
 
     app = workflow.compile()

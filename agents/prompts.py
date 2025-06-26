@@ -6,9 +6,7 @@ class PromptTemplates:
     @staticmethod
     def describe_facial_expression():
         """Returns the prompt for describing facial expressions from AUs."""
-        return """You are an expert in the Facial Action Coding System (FACS). Based on the provided
-list of detected facial Action Units (AUs) and their intensities, provide a structured
-analysis of the person's facial expression.
+        return """You are an expert in the Facial Action Coding System (FACS). Based on the provided list of detected facial Action Units (AUs) and their intensities, provide a structured analysis of the person's facial expression.
 
 Detected AUs:
 ---
