@@ -1,8 +1,14 @@
-# MER-Dataset-Builder: Multimodal Emotion Recognition Reasoning Dataset Builder
+# Multimodal Emotion Recognition Reasoning Dataset Builder
 
 A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline.
 
-This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset contruction strategy.
+This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset construction strategy.
+
+## Pipeline Structure
+
+<details>
+<summary>Click here to expand/collapse</summary>
+
 
 ```mermaid
 graph TD;
@@ -52,6 +58,8 @@ graph TD;
         classDef last fill:#bfb6fc
 ```
 
+</details>
+
 ## Features
 
 - **AU Pipeline**: Extract facial Action Units and generate natural language descriptions
@@ -59,12 +67,17 @@ graph TD;
 - **Video Pipeline**: Generate comprehensive video content descriptions  
 - **MER Pipeline**: Full end-to-end multimodal emotion recognition with peak frame detection and emotional synthesis
 
-Examples of MERR can be found at [bakllava_llama3.2_merr.json](examples/bakllava_llama3.2_merr.json) and [gemini_merr.json](Examples/gemini_merr.json)
+Examples of MERR can be found at [bakllava_llama3.2_merr.json](examples/bakllava_llama3.2_merr.json) and [gemini_merr.json](examples/gemini_merr.json)
 
 ## Prerequisites
 
+
+
 ### 1. FFmpeg
 FFmpeg is required for video and audio processing.
+
+<details>
+<summary>Click here to expand/collapse</summary>
 
 **Installation:**
 - **macOS**: `brew install ffmpeg`
@@ -77,8 +90,13 @@ ffmpeg -version
 ffprobe -version
 ```
 
-### 2. OpenFace (Required for AU extraction)
+</details>
+
+### 2. OpenFace
 OpenFace is needed for facial Action Unit extraction.
+
+<details>
+<summary>Click here to expand/collapse</summary>
 
 **Installation:**
 1. Clone OpenFace repository:
@@ -90,6 +108,8 @@ OpenFace is needed for facial Action Unit extraction.
 2. Follow the installation instructions for your platform from the [OpenFace Wiki](https://github.com/TadasBaltrusaitis/OpenFace/wiki)
 
 3. Build the project and note the path to the `FeatureExtraction` executable (typically in `build/bin/FeatureExtraction`)
+
+</details>
 
 ## Installation
 
@@ -159,7 +179,10 @@ python main.py video.mp4 output/
 
 ## Testing Tools
 
-The project includes testing utilities to verify your setup:
+Verify your installation of FFmpeg and OpenFace:
+
+<details>
+<summary>Click here to expand/collapse</summary>
 
 ### Test FFmpeg Integration
 ```bash
@@ -170,6 +193,8 @@ python test_ffmpeg.py video_file.mp4 test_output/
 ```bash
 python test_openface.py /path/to/FeatureExtraction video_file.mp4 test_output/
 ```
+
+</details>
 
 ## Troubleshooting
 
