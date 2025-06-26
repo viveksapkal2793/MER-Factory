@@ -50,8 +50,8 @@ async def _process(
     threshold: float,
     silent: bool,
     concurrency: int,
-    ollama_text_model_name: str = None,  # Added ollama_text_model_name parameter
-    ollama_vision_model_name: str = None,  # Added ollama_vision_model_name parameter
+    ollama_text_model_name: str = None,
+    ollama_vision_model_name: str = None,
 ):
     """
     Internal async implementation for processing video files.
@@ -75,7 +75,6 @@ async def _process(
             f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
         )
 
-    # Initialize LLMModels with either api_key or ollama_model_name
     models = LLMModels(
         api_key=api_key,
         ollama_text_model_name=ollama_text_model_name,
@@ -118,7 +117,7 @@ async def _process(
     async def run_extraction_job(
         video_file: Path,
         video_output_dir: Path,
-        progress: Progress,
+        progress: Optional[Progress],
         openface_task_id: Optional[TaskID],
         ffmpeg_task_id: Optional[TaskID],
     ):
@@ -140,7 +139,7 @@ async def _process(
                     res = await OpenFaceAdapter.run_feature_extraction(
                         video_file, video_output_dir, verbose
                     )
-                    if openface_task_id is not None:
+                    if progress and openface_task_id is not None:
                         progress.update(openface_task_id, advance=1)
                     if isinstance(res, Exception) or res is False:
                         console.log(
@@ -153,7 +152,7 @@ async def _process(
                     res = await FFMpegAdapter.extract_audio(
                         video_file, audio_path, verbose
                     )
-                    if ffmpeg_task_id is not None:
+                    if progress and ffmpeg_task_id is not None:
                         progress.update(ffmpeg_task_id, advance=1)
                     if isinstance(res, Exception) or res is False:
                         console.log(
@@ -176,47 +175,59 @@ async def _process(
 
     needs_openface = processing_type in [ProcessingType.mer, ProcessingType.au]
     needs_ffmpeg = processing_type in [ProcessingType.mer, ProcessingType.audio]
-    num_openface_tasks = len(video_files_to_process) if needs_openface else 0
-    num_ffmpeg_tasks = len(video_files_to_process) if needs_ffmpeg else 0
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        TextColumn("({task.completed} of {task.total})"),
-        TimeRemainingColumn(),
-        console=console,
-        transient=False,
-    ) as progress:
-        openface_task_id = (
-            progress.add_task(
-                "[bold blue]OpenFace Extraction", total=num_openface_tasks
-            )
-            if num_openface_tasks > 0
-            else None
-        )
-        ffmpeg_task_id = (
-            progress.add_task("[bold green]FFmpeg Extraction", total=num_ffmpeg_tasks)
-            if num_ffmpeg_tasks > 0
-            else None
-        )
-
-        all_extraction_tasks = []
-        for video_file in video_files_to_process:
-            video_output_dir = output_dir / video_file.stem
-            video_output_dir.mkdir(exist_ok=True)
-            all_extraction_tasks.append(
-                run_extraction_job(
-                    video_file,
-                    video_output_dir,
-                    progress,
-                    openface_task_id,
-                    ffmpeg_task_id,
+    if video_files_to_process and (needs_openface or needs_ffmpeg):
+        if not verbose:
+            num_openface_tasks = len(video_files_to_process) if needs_openface else 0
+            num_ffmpeg_tasks = len(video_files_to_process) if needs_ffmpeg else 0
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TextColumn("({task.completed} of {task.total})"),
+                TimeRemainingColumn(),
+                console=console,
+                transient=False,
+            ) as progress:
+                openface_task_id = (
+                    progress.add_task(
+                        "[bold blue]OpenFace Extraction", total=num_openface_tasks
+                    )
+                    if num_openface_tasks > 0
+                    else None
                 )
-            )
+                ffmpeg_task_id = (
+                    progress.add_task(
+                        "[bold green]FFmpeg Extraction", total=num_ffmpeg_tasks
+                    )
+                    if num_ffmpeg_tasks > 0
+                    else None
+                )
 
-        await asyncio.gather(*all_extraction_tasks)
+                extraction_tasks = []
+                for video_file in video_files_to_process:
+                    video_output_dir = output_dir / video_file.stem
+                    video_output_dir.mkdir(exist_ok=True)
+                    extraction_tasks.append(
+                        run_extraction_job(
+                            video_file,
+                            video_output_dir,
+                            progress,
+                            openface_task_id,
+                            ffmpeg_task_id,
+                        )
+                    )
+                await asyncio.gather(*extraction_tasks)
+        else:
+            extraction_tasks = []
+            for video_file in video_files_to_process:
+                video_output_dir = output_dir / video_file.stem
+                video_output_dir.mkdir(exist_ok=True)
+                extraction_tasks.append(
+                    run_extraction_job(video_file, video_output_dir, None, None, None)
+                )
+            await asyncio.gather(*extraction_tasks)
 
     if verbose:
         console.rule(
@@ -374,13 +385,13 @@ def process(
         min=1,
         help="Number of videos to process concurrently.",
     ),
-    ollama_vision_model: str = typer.Option(  # Renamed and adjusted help
+    ollama_vision_model: str = typer.Option(
         None,
         "--ollama-vision-model",
         "-ovm",
-        help="Name of the Ollama vision model to use (e.g., 'bakllava').",
+        help="Name of the Ollama vision model to use (e.g., 'llava-llama3:latest').",
     ),
-    ollama_text_model: str = typer.Option(  # Added new option
+    ollama_text_model: str = typer.Option(
         None,
         "--ollama-text-model",
         "-otm",

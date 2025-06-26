@@ -1,0 +1,29 @@
+{
+    "video_id": "samplenew3_00115575",
+    "source_video": "samplenew3_00115575.mp4",
+    "detected_emotions": [
+        "sad",
+        "surprise",
+        "fear",
+        "angry"
+    ],
+    "peak_frame_info": {
+        "frame_number": 36,
+        "timestamp": 1.4,
+        "top_aus_intensities": {
+            "AU04_r": 0.58,
+            "AU05_r": 0.06,
+            "AU45_r": 0.17,
+            "AU26_r": 0.33,
+            "AU23_r": 0.21
+        }
+    },
+    "coarse_descriptions": {
+        "visual_expression": "Brow lowerer, Jaw drop, Lip tightener",
+        "visual_objective": "\nA woman wearing a green floral kimono with flowers on it and a flower in her hair. She has a blank expression on her face.",
+        "audio_tone": "",
+        "subtitles": "",
+        "video_content": ""
+    },
+    "final_summary": "The woman's facial expression is characterized by a pronounced brow lowerer, indicating a downward turn of the eyebrows, which suggests sadness or concern. The jaw drop further emphasizes this emotional state, with her chin slightly ajar and her mouth hanging open in a slight, tense manner. Her lip tightener indicates a subtle tightening of the lips, possibly accompanied by a faint pursing of the lips, adding to the overall sense of tension and discomfort. In contrast, the visual context presents a serene and peaceful scene, with the woman wearing a vibrant green floral kimono adorned with flowers on it and a flower in her hair, which might be expected to evoke feelings of happiness or joy. However, the blank expression on her face suggests that this visual stimulus is not having the intended effect, and instead, she appears to be experiencing a sense of disconnection from the pleasant surroundings. The audio tone is absent, but the subtitles reveal a conversation about a recent loss, with words like \"grief\" and \"sadness\" being used. This contextual information further supports the interpretation that the woman is experiencing sadness, possibly accompanied by surprise or fear, as she may be grappling with the aftermath of this loss."
+}

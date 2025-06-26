@@ -1,0 +1,29 @@
+{
+    "video_id": "samplenew3_00115575",
+    "source_video": "samplenew3_00115575.mp4",
+    "detected_emotions": [
+        "sad",
+        "surprise",
+        "fear",
+        "angry"
+    ],
+    "peak_frame_info": {
+        "frame_number": 36,
+        "timestamp": 1.4,
+        "top_aus_intensities": {
+            "AU04_r": 0.58,
+            "AU05_r": 0.06,
+            "AU45_r": 0.17,
+            "AU26_r": 0.33,
+            "AU23_r": 0.21
+        }
+    },
+    "coarse_descriptions": {
+        "visual_expression": "Brow lowerer, Jaw drop, Lip tightener",
+        "visual_objective": "The main subject is a woman. She appears to be middle-aged. She is wearing a green jacket with floral embroidery, a black collar with floral details, and ornate earrings. Her hair is styled in an elaborate updo with decorative headwear. The background features a wooden structure with decorative panels, a chair, and a small clock. Text is present at the bottom of the image. The woman's expression is neutral.",
+        "audio_tone": "The speaker's tone is slightly surprised and possibly amused. The pitch is moderate, and the speed is normal. There is no significant background noise.",
+        "subtitles": "他还记得这个妹妹啊。",
+        "video_content": "A woman is sitting in a room. She is wearing a green jacket with floral embroidery and a decorative headpiece. She is looking forward and speaking. The room has ornate wooden panels and a clock. She appears to be speaking with a slight smile."
+    },
+    "final_summary": "The woman, appearing middle-aged and dressed in a green jacket with floral embroidery, a black collar with floral details, and elaborate headwear, is likely experiencing a complex emotional state. The facial expression clues, including a brow lowerer, jaw drop, and lip tightener, suggest a potential for surprise, fear, or even anger, despite her neutral expression in the visual context. The audio tone, described as slightly surprised and possibly amused, with a moderate pitch and normal speed, supports this ambiguity. The subtitles, \"他还记得这个妹妹啊,\" which translates to \"He still remembers this younger sister,\" provide crucial context. The video content, showing the woman speaking with a slight smile in an ornate room, further complicates the analysis. The combination of the facial clues, the audio tone, and the subtitles suggests that the woman is likely experiencing a mix of surprise and perhaps a touch of amusement or even a hint of sadness, possibly triggered by the unexpected memory of her younger sister. The ornate setting and her elaborate attire might indicate a special occasion or a formal setting, adding another layer to the emotional complexity."
+}

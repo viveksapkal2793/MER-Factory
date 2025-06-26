@@ -1,7 +1,10 @@
+from ast import List
 from typing import TypedDict, Dict, Any
 from langgraph.graph import StateGraph, END
 from rich.console import Console
 from pathlib import Path
+
+from sympy import Li
 
 
 from .nodes import (
@@ -46,11 +49,12 @@ class MERRState(TypedDict, total=False):
     video_description: str
     descriptions: Dict[str, str]
     final_summary: str
-    models: LLMModels  # Changed from GeminiModels to LLMModels
+    models: LLMModels
     error: str
     threshold: float
     verbose: bool
     error_logs_dir: Path
+    detected_emotions: List
 
 
 def route_by_processing_type(state: MERRState) -> str:

@@ -1,6 +1,8 @@
 # MER-Dataset-Builder: Multimodal Emotion Recognition Reasoning Dataset Builder
 
-A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline. This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset contruction strategy.
+A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline.
+
+This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset contruction strategy.
 
 ```mermaid
 graph TD;
@@ -57,6 +59,8 @@ graph TD;
 - **Video Pipeline**: Generate comprehensive video content descriptions  
 - **MER Pipeline**: Full end-to-end multimodal emotion recognition with peak frame detection and emotional synthesis
 
+Examples of MERR can be found at [bakllava_llama3.2_merr.json](examples/bakllava_llama3.2_merr.json) and [gemini_merr.json](Examples/gemini_merr.json)
+
 ## Prerequisites
 
 ### 1. FFmpeg
@@ -87,15 +91,6 @@ OpenFace is needed for facial Action Unit extraction.
 
 3. Build the project and note the path to the `FeatureExtraction` executable (typically in `build/bin/FeatureExtraction`)
 
-### 3. Google Gemini API Key
-The tool uses Google's Gemini AI for natural language processing.
-
-1. Get an API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a `.env` file in the project root:
-   ```bash
-   GOOGLE_API_KEY=your_api_key_here
-   ```
-
 ## Installation
 
 ```bash
@@ -108,8 +103,8 @@ conda activate mer_dataset_builder
 pip install -r requirements.txt
 ```
 
-If using Gemini, create a `.env` file with:
-```env
+If using Gemini, get an **FREE** API key from [Google AI Studio](https://makersuite.google.com/app/apikey), and create a `.env` file with:
+```bash
 GOOGLE_API_KEY=your_google_gemini_api_key
 ```
 
@@ -128,8 +123,8 @@ command = [
 ### Basic Command Structure
 ```bash
 python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
-python main.py path_to_video/ output/ --type MER --silent # using gemini by default
-python main.py ./video ./output --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent --concurrency 4 # support local ollama running
+python main.py path_to_video/ output/ --type MER --silent --threshold 0.1 # using gemini by default
+python main.py ./video ./output --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent --concurrency 4 --threshold 0.1 # support local ollama running
 ```
 
 Note: run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only support peak frame & AU analysis for now.
