@@ -1,33 +1,8 @@
-from ast import List
-from typing import TypedDict, Dict, Any
 from langgraph.graph import StateGraph, END
 from rich.console import Console
 from pathlib import Path
+from typing import TypedDict, Dict, Any, List
 
-from sympy import Li
-
-
-from .nodes import (
-    setup_paths,
-    handle_error,
-    run_au_extraction,
-    map_au_to_text,
-    generate_au_description,
-    save_au_results,
-    run_audio_extraction_and_analysis,
-    save_audio_results,
-    run_video_analysis,
-    save_video_results,
-    extract_full_features,
-    filter_by_emotion,
-    find_peak_frame,
-    generate_full_descriptions,
-    synthesize_summary,
-    save_mer_results,
-    run_image_analysis,
-    synthesize_image_summary,
-    save_image_results,
-)
 from .models import LLMModels
 
 console = Console()
@@ -49,8 +24,6 @@ class MERRState(TypedDict, total=False):
     au_text_description: str
     llm_au_description: str
     final_summary: str
-
-    # Video-Specific State
     is_expressive: bool
     peak_frame_info: Dict[str, Any]
     peak_frame_path: Path
@@ -94,35 +67,47 @@ def should_continue_full_pipeline(state: MERRState) -> str:
     return "end_processing"
 
 
-def create_graph() -> StateGraph:
-    """Creates and compiles the modular MERR construction graph."""
+def create_graph(use_sync_nodes: bool = False):
+    """
+    Creates and compiles the modular MERR construction graph.
+    It can create either an asynchronous or a synchronous graph based on the flag.
+    """
+    if use_sync_nodes:
+        console.log(
+            "Creating a [bold yellow]synchronous[/bold yellow] graph for Hugging Face model."
+        )
+        from . import sync_node as nodes
+    else:
+        console.log("Creating an [bold green]asynchronous[/bold green] graph.")
+        from . import nodes
+
     workflow = StateGraph(MERRState)
 
-    # Add all nodes
-    workflow.add_node("setup_paths", setup_paths)
-    workflow.add_node("handle_error", handle_error)
+    # Add all nodes from the selected module
+    workflow.add_node("setup_paths", nodes.setup_paths)
+    workflow.add_node("handle_error", nodes.handle_error)
     # AU Pipeline
-    workflow.add_node("run_au_extraction", run_au_extraction)
-    workflow.add_node("map_au_to_text", map_au_to_text)
-    workflow.add_node("generate_au_description", generate_au_description)
-    workflow.add_node("save_au_results", save_au_results)
+    workflow.add_node("run_au_extraction", nodes.run_au_extraction)
+    workflow.add_node("map_au_to_text", nodes.map_au_to_text)
+    workflow.add_node("generate_au_description", nodes.generate_au_description)
+    workflow.add_node("save_au_results", nodes.save_au_results)
     # Audio Pipeline
-    workflow.add_node("run_audio_analysis", run_audio_extraction_and_analysis)
-    workflow.add_node("save_audio_results", save_audio_results)
+    workflow.add_node("run_audio_analysis", nodes.run_audio_extraction_and_analysis)
+    workflow.add_node("save_audio_results", nodes.save_audio_results)
     # Video Pipeline
-    workflow.add_node("run_video_analysis", run_video_analysis)
-    workflow.add_node("save_video_results", save_video_results)
+    workflow.add_node("run_video_analysis", nodes.run_video_analysis)
+    workflow.add_node("save_video_results", nodes.save_video_results)
     # MER Pipeline
-    workflow.add_node("extract_full_features", extract_full_features)
-    workflow.add_node("filter_by_emotion", filter_by_emotion)
-    workflow.add_node("find_peak_frame", find_peak_frame)
-    workflow.add_node("generate_full_descriptions", generate_full_descriptions)
-    workflow.add_node("synthesize_summary", synthesize_summary)
-    workflow.add_node("save_mer_results", save_mer_results)
+    workflow.add_node("extract_full_features", nodes.extract_full_features)
+    workflow.add_node("filter_by_emotion", nodes.filter_by_emotion)
+    workflow.add_node("find_peak_frame", nodes.find_peak_frame)
+    workflow.add_node("generate_full_descriptions", nodes.generate_full_descriptions)
+    workflow.add_node("synthesize_summary", nodes.synthesize_summary)
+    workflow.add_node("save_mer_results", nodes.save_mer_results)
     # Image Pipeline
-    workflow.add_node("run_image_analysis", run_image_analysis)
-    workflow.add_node("synthesize_image_summary", synthesize_image_summary)
-    workflow.add_node("save_image_results", save_image_results)
+    workflow.add_node("run_image_analysis", nodes.run_image_analysis)
+    workflow.add_node("synthesize_image_summary", nodes.synthesize_image_summary)
+    workflow.add_node("save_image_results", nodes.save_image_results)
 
     # --- Define Graph Structure ---
     workflow.set_entry_point("setup_paths")
