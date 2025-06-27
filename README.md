@@ -1,6 +1,6 @@
 # Multimodal Emotion Recognition Reasoning Dataset Builder
 
-A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, and full multimodal emotion recognition pipeline.
+A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image anlysis, and full multimodal emotion recognition pipeline.
 
 This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset construction strategy.
 
@@ -72,6 +72,7 @@ graph TD;
 - **AU Pipeline**: Extract facial Action Units and generate natural language descriptions
 - **Audio Pipeline**: Extract audio, transcribe speech, and analyze tone
 - **Video Pipeline**: Generate comprehensive video content descriptions  
+- **Image Pipeline**: End-to-end emotion recognition with image description and emotional synthesis
 - **MER Pipeline**: Full end-to-end multimodal emotion recognition with peak frame detection and emotional synthesis
 
 Examples of MERR can be found at [bakllava_llama3.2_merr.json](examples/bakllava_llama3.2_merr.json) and [gemini_merr.json](examples/gemini_merr.json)
@@ -150,8 +151,9 @@ command = [
 ### Basic Command Structure
 ```bash
 python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
-python main.py path_to_video/ output/ --type MER --silent --threshold 0.1 # using gemini by default
-python main.py ./video ./output --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent --concurrency 4 --threshold 0.1 # support local ollama running
+python main.py path_to_video/ output/ --type MER --silent --threshold 0.45 # using gemini by default
+python main.py path_to_video/ output/ --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent # support local ollama running
+python main.py path_to_video/ output/ --type MER --huggingface-model google/gemma-3n-E4B-it --silent # huggingface model
 ```
 
 Note: run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only support peak frame & AU analysis for now.

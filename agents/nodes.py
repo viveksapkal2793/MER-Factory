@@ -346,13 +346,18 @@ async def generate_full_descriptions(state):
     )
 
     # Run LLM calls concurrently
-    visual_obj_desc_task = models.describe_image(Path(state["peak_frame_path"]))
-    audio_analysis_task = models.analyze_audio(Path(state["audio_path"]))
-    video_desc_task = models.describe_video(Path(state["video_path"]))
+    if models.model_type == "huggingface":
+        visual_obj_desc = await models.describe_image(Path(state["peak_frame_path"]))
+        audio_analysis = await models.analyze_audio(Path(state["audio_path"]))
+        video_desc = await models.describe_video(Path(state["video_path"]))
 
-    visual_obj_desc, audio_analysis, video_desc = await asyncio.gather(
-        visual_obj_desc_task, audio_analysis_task, video_desc_task
-    )
+    else:
+        visual_obj_desc_task = models.describe_image(Path(state["peak_frame_path"]))
+        audio_analysis_task = models.analyze_audio(Path(state["audio_path"]))
+        video_desc_task = models.describe_video(Path(state["video_path"]))
+        visual_obj_desc, audio_analysis, video_desc = await asyncio.gather(
+            visual_obj_desc_task, audio_analysis_task, video_desc_task
+        )
 
     descriptions = {
         "visual_expression": visual_expr_desc,

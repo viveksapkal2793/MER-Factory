@@ -54,6 +54,7 @@ async def _process(
     concurrency: int,
     ollama_text_model_name: str = None,
     ollama_vision_model_name: str = None,
+    huggingface_model_id: str = None,
 ):
     """
     Internal async implementation for processing video and image files.
@@ -61,9 +62,14 @@ async def _process(
     load_dotenv()
     api_key = os.getenv("GOOGLE_API_KEY")
 
-    if not ollama_text_model_name and not ollama_vision_model_name and not api_key:
+    if (
+        not huggingface_model_id
+        and not ollama_text_model_name
+        and not ollama_vision_model_name
+        and not api_key
+    ):
         console.print(
-            "[bold red]Error: Either GOOGLE_API_KEY must be set in .env or at least one Ollama model (--ollama-text-model or --ollama-vision-model) must be provided.[/bold red]"
+            "[bold red]Error: One of --huggingface-model, GOOGLE_API_KEY, or --ollama-... must be provided.[/bold red]"
         )
         raise typer.Exit(code=1)
 
@@ -77,12 +83,17 @@ async def _process(
             f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
         )
 
-    models = LLMModels(
-        api_key=api_key,
-        ollama_text_model_name=ollama_text_model_name,
-        ollama_vision_model_name=ollama_vision_model_name,
-        verbose=verbose,
-    )
+    try:
+        models = LLMModels(
+            api_key=api_key,
+            ollama_text_model_name=ollama_text_model_name,
+            ollama_vision_model_name=ollama_vision_model_name,
+            huggingface_model_id=huggingface_model_id,
+            verbose=verbose,
+        )
+    except (ValueError, ImportError) as e:
+        console.print(f"[bold red]Failed to initialize models: {e}[/bold red]")
+        raise typer.Exit(code=1)
 
     files_to_process = []
     if input_path.is_file():
@@ -261,6 +272,13 @@ async def _process(
             "[bold yellow]Phase 1 Complete: All extractions finished or failed[/bold yellow]"
         )
 
+    # if using huggingface, the concurrency is set to 1
+    concurrency = 1 if huggingface_model_id else concurrency
+    if verbose:
+        console.log(
+            f"[bold yellow]Setting ocnurrency to {concurrency} for using huggingface models.[/bold yellow]"
+        )
+
     main_processing_semaphore = asyncio.Semaphore(concurrency)
 
     async def run_processing_graph(file_path: Path):
@@ -398,7 +416,14 @@ def process(
         None,
         "--ollama-text-model",
         "-otm",
-        help="Name of the Ollama text model to use. If not provided, --ollama-vision-model will be used for text tasks.",
+        help="Name of the Ollama text model to use (e.g. llama3.2). If not provided, --ollama-vision-model will be used for text tasks.",
+    ),
+    huggingface_model_id: str = typer.Option(
+        None,
+        "--huggingface-model",
+        "-hfm",
+        # TODO: only gemma multimodal model is supported now
+        help="ID of the Hugging Face model to use (e.g., 'google/gemma-3n-E4B-it', 'google/gemma-3n-E2B-it'). Takes precedence over other model providers.",
     ),
 ):
     """
@@ -416,6 +441,7 @@ def process(
             concurrency=concurrency,
             ollama_text_model_name=ollama_text_model,
             ollama_vision_model_name=ollama_vision_model,
+            huggingface_model_id=huggingface_model_id,
         )
     )
 
