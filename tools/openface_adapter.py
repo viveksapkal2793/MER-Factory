@@ -22,12 +22,27 @@ class OpenFaceAdapter:
                 )
             return True
 
-        # --- IMPORTANT: Update this path to your OpenFace installation ---
-        openface_executable = (
-            "/Users/linyuxiang/Desktop/openFace/OpenFace/build/bin/FeatureExtraction"
-        )
-        if os.name == "nt":
+        openface_executable = os.getenv("OPENFACE_EXECUTABLE")
+        if not openface_executable:
+            console.log(
+                "[bold red]❌ Error: OPENFACE_EXECUTABLE not set in environment variables.[/bold red]"
+            )
+            console.log(
+                "Please set OPENFACE_EXECUTABLE in your .env file to the correct path."
+            )
+            return False
+
+        if os.name == "nt" and not openface_executable.endswith(".exe"):
             openface_executable += ".exe"
+
+        if not os.path.exists(openface_executable):
+            console.log(
+                f"[bold red]❌ Error: OpenFace executable not found at '{openface_executable}'[/bold red]"
+            )
+            console.log(
+                "Please set OPENFACE_EXECUTABLE in your .env file to the correct path."
+            )
+            return False
 
         command = [
             openface_executable,
@@ -62,5 +77,7 @@ class OpenFaceAdapter:
             console.log(
                 f"[bold red]❌ Error: '{openface_executable}' not found.[/bold red]"
             )
-            console.log("Please ensure the path in `openface_adapter.py` is correct.")
+            console.log(
+                "Please ensure OPENFACE_EXECUTABLE in your .env file points to the correct path."
+            )
             return False

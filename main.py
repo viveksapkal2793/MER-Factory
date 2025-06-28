@@ -202,6 +202,21 @@ def _process_wrapper(
     load_dotenv()
     api_key = os.getenv("GOOGLE_API_KEY")
 
+    if processing_type in [ProcessingType.mer, ProcessingType.au]:
+        openface_executable = os.getenv("OPENFACE_EXECUTABLE")
+        if not openface_executable:
+            console.print(
+                "[bold yellow]Warning: OPENFACE_EXECUTABLE not set in .env file. Using default path.[/bold yellow]"
+            )
+        elif not os.path.exists(openface_executable):
+            console.print(
+                f"[bold red]Error: OpenFace executable not found at '{openface_executable}'[/bold red]"
+            )
+            console.print(
+                "Please check your OPENFACE_EXECUTABLE setting in the .env file."
+            )
+            raise typer.Exit(code=1)
+
     if not any(
         [
             huggingface_model_id,
@@ -442,6 +457,9 @@ def process(
     ollama_text_model: str = typer.Option(
         None, "--ollama-text-model", "-otm", help="Ollama text model name."
     ),
+    # TODO: Add support for Hugging Face models
+    # Currently only supports multimodal models like google/gemma-3n-E4B-it
+    # and google/gemma-3n-E2B-it.
     huggingface_model_id: str = typer.Option(
         None, "--huggingface-model", "-hfm", help="Hugging Face model ID."
     ),

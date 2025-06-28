@@ -182,7 +182,7 @@ class LLMModels:
                     f"[bold red]❌ Failed to parse JSON response from LLM.[/bold red]"
                 )
                 return {
-                    "transcript": "Error: Invalid JSON.",
+                    "transcript": "",
                     "tone_description": str_response,
                 }
         except Exception as e:

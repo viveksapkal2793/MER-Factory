@@ -39,6 +39,12 @@ class HuggingFaceModel:
         try:
             from transformers import AutoProcessor, AutoModelForImageTextToText
 
+            # Currently only supporting these multimodal models
+            assert self.model_id in [
+                "google/gemma-3n-E4B-it",
+                "google/gemma-3n-E2B-it",
+            ], f"Model '{self.model_id}' is not supported. Only google/gemma-3n-E4B-it and google/gemma-3n-E2B-it are currently supported."
+
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
             self.processor = AutoProcessor.from_pretrained(self.model_id)
             self.model = AutoModelForImageTextToText.from_pretrained(
@@ -49,10 +55,9 @@ class HuggingFaceModel:
                 device_map="auto" if torch.cuda.is_available() else "cpu",
                 low_cpu_mem_usage=True,
             )
-            if self.verbose:
-                console.log(
-                    f"Hugging Face model '{self.model_id}' initialized successfully on device: {self.model.device}."
-                )
+            console.log(
+                f"Hugging Face model '{self.model_id}' initialized successfully on device: {self.model.device}."
+            )
         except ImportError:
             console.log(
                 "[bold red]ERROR: 'transformers' and 'torch' are required. Please run: pip install transformers torch[/bold red]"
@@ -67,13 +72,17 @@ class HuggingFaceModel:
     def _validate_and_fix_inputs(
         self, inputs: Dict[str, torch.Tensor]
     ) -> Dict[str, torch.Tensor]:
-        """验证并修复输入张量中的数值问题"""
+        """Validates and fixes numerical issues in input tensors"""
         for key, tensor in inputs.items():
             if torch.isnan(tensor).any():
-                console.log(f"[yellow]⚠️ 检测到 {key} 中有 NaN 值，正在修复...[/yellow]")
+                console.log(
+                    f"[yellow]⚠️ Detected NaN values in {key}, fixing...[/yellow]"
+                )
                 tensor = torch.nan_to_num(tensor, nan=0.0)
             if torch.isinf(tensor).any():
-                console.log(f"[yellow]⚠️ 检测到 {key} 中有 Inf 值，正在修复...[/yellow]")
+                console.log(
+                    f"[yellow]⚠️ Detected Inf values in {key}, fixing...[/yellow]"
+                )
                 tensor = torch.nan_to_num(tensor, posinf=1e6, neginf=-1e6)
             inputs[key] = tensor
         return inputs
@@ -100,33 +109,31 @@ class HuggingFaceModel:
                 if hasattr(tensor, "dtype") and tensor.dtype.is_floating_point:
                     inputs[key] = tensor.to(self.model.dtype)
 
-            # 验证并修复输入
             inputs = self._validate_and_fix_inputs(inputs)
 
-            # 尝试主要生成策略
             try:
                 with torch.inference_mode():
                     generation = self.model.generate(
                         **inputs,
                         max_new_tokens=max_new_tokens,
                         do_sample=True,
-                        temperature=0.7,
+                        temperature=0.2,
                         top_p=0.9,
                         pad_token_id=self.processor.tokenizer.eos_token_id,
                         use_cache=True,
-                        output_scores=False,  # 避免概率计算问题
+                        output_scores=False,
                     )
             except RuntimeError as e:
                 if "probability tensor" in str(e) or "assert" in str(e).lower():
                     console.log(
-                        "[yellow]⚠️ 检测到概率张量错误，切换到保守生成策略...[/yellow]"
+                        "[yellow]⚠️ Probability tensor error detected, switching to conservative generation strategy...[/yellow]"
                     )
-                    # 使用更保守的生成参数
+
                     with torch.inference_mode():
                         generation = self.model.generate(
                             **inputs,
                             max_new_tokens=max_new_tokens,
-                            do_sample=False,  # 使用贪心解码
+                            do_sample=False,
                             pad_token_id=self.processor.tokenizer.eos_token_id,
                             use_cache=False,
                             num_beams=1,
@@ -186,7 +193,7 @@ class HuggingFaceModel:
                 "[bold red]❌ Failed to parse JSON from Hugging Face model.[/bold red]"
             )
             return {
-                "transcript": "Error: Invalid JSON.",
+                "transcript": "",
                 "tone_description": str_response,
             }
 

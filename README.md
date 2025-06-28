@@ -131,20 +131,14 @@ conda activate mer_dataset_builder
 pip install -r requirements.txt
 ```
 
-If using Gemini, get an **FREE** API key from [Google AI Studio](https://makersuite.google.com/app/apikey), and create a `.env` file with:
-```bash
-GOOGLE_API_KEY=your_google_gemini_api_key
-```
+**Configuration:**
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-Edit `tools/openface_adapter.py` and update the path to your OpenFace executable:
-```python
-command = [
-    "/path/to/your/OpenFace/build/bin/FeatureExtraction",  # Update this path
-    "-f",
-    str(video_path),
-    # ... rest of command
-]
-```
+2. Edit the `.env` file and configure your settings:
+
 
 ## Usage
 
@@ -206,7 +200,7 @@ python test_ffmpeg.py video_file.mp4 test_output/
 
 ### Test OpenFace Integration
 ```bash
-python test_openface.py /path/to/FeatureExtraction video_file.mp4 test_output/
+python test_openface.py video_file.mp4 test_output/
 ```
 
 </details>
@@ -220,7 +214,8 @@ python test_openface.py /path/to/FeatureExtraction video_file.mp4 test_output/
    - Test with: `ffmpeg -version`
 
 2. **OpenFace executable not found:**
-   - Verify the path in `tools/openface_adapter.py`
+   - Ensure OPENFACE_EXECUTABLE is set in your .env file
+   - Verify the path points to the correct FeatureExtraction executable
    - Ensure the executable has proper permissions
    - Test with the provided `test_openface.py` script
 

@@ -2,6 +2,8 @@ import typer
 import subprocess
 from pathlib import Path
 from rich.console import Console
+import os
+from dotenv import load_dotenv
 
 
 app = typer.Typer()
@@ -10,14 +12,6 @@ console = Console()
 
 @app.command()
 def run(
-    openface_executable: Path = typer.Argument(
-        ...,
-        exists=True,
-        dir_okay=False,
-        file_okay=True,
-        readable=True,
-        help="Full path to the OpenFace 'FeatureExtraction' executable.",
-    ),
     video_file: Path = typer.Argument(
         ...,
         exists=True,
@@ -37,6 +31,32 @@ def run(
     """
     Tests the integration with the OpenFace FeatureExtraction tool.
     """
+    load_dotenv()
+
+    openface_executable_str = os.getenv("OPENFACE_EXECUTABLE")
+    if not openface_executable_str:
+        console.print(
+            "[bold red]Error: OPENFACE_EXECUTABLE not set in .env file.[/bold red]"
+        )
+        console.print(
+            "Please set OPENFACE_EXECUTABLE in your .env file to the correct path."
+        )
+        raise typer.Exit(code=1)
+
+    openface_executable = Path(openface_executable_str)
+
+    if not openface_executable.exists():
+        console.print(
+            f"[bold red]Error: OpenFace executable not found at '{openface_executable}'[/bold red]"
+        )
+        raise typer.Exit(code=1)
+
+    if not openface_executable.is_file():
+        console.print(
+            f"[bold red]Error: '{openface_executable}' is not a file.[/bold red]"
+        )
+        raise typer.Exit(code=1)
+
     console.rule("[bold magenta]OpenFace Integration Test[/bold magenta]")
     console.print(f"OpenFace Path: [cyan]{openface_executable}[/cyan]")
     console.print(f"Video File: [cyan]{video_file}[/cyan]")
@@ -57,7 +77,6 @@ def run(
     console.print(f"[yellow]{' '.join(command)}[/yellow]\n")
 
     try:
-
         console.log("🚀 Starting OpenFace analysis... (This might take a while)")
         process = subprocess.run(
             command,
