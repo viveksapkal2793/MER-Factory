@@ -33,6 +33,7 @@ class MERRState(TypedDict, total=False):
     descriptions: Dict[str, str]
     threshold: float
     detected_emotions: List
+    peak_distance_frames: int
 
     # Image-Specific State
     image_visual_description: str

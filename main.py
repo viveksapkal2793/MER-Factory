@@ -190,6 +190,7 @@ def _process_wrapper(
     output_dir: Path,
     processing_type: ProcessingType,
     threshold: float,
+    peak_distance_frames: int,
     silent: bool,
     concurrency: int,
     ollama_text_model_name: str,
@@ -270,6 +271,7 @@ def _process_wrapper(
         processing_type=processing_type,
         models=models,
         threshold=threshold,
+        peak_distance_frames=peak_distance_frames,
         verbose=verbose,
         error_logs_dir=error_logs_dir,
     )
@@ -305,6 +307,7 @@ def build_initial_state(
     processing_type: ProcessingType,
     models: LLMModels,
     threshold: float,
+    peak_distance_frames: int,
     verbose: bool,
     error_logs_dir: Path,
 ) -> MERRState:
@@ -320,6 +323,7 @@ def build_initial_state(
         "processing_type": current_processing_type,
         "models": models,
         "threshold": threshold,
+        "peak_distance_frames": peak_distance_frames,
         "verbose": verbose,
         "error_logs_dir": error_logs_dir,
         "video_id": file_id,
@@ -445,6 +449,9 @@ def process(
     threshold: float = typer.Option(
         0.45, "--threshold", "-th", min=0.0, max=1.0, help="AU presence threshold."
     ),
+    peak_distance_frames: int = typer.Option(
+        15, "--peak_dis", "-pd", min=8, help="The steps between peak frame detection."
+    ),
     silent: bool = typer.Option(
         False, "--silent", "-s", help="Run with minimal output."
     ),
@@ -470,6 +477,7 @@ def process(
         output_dir=output_dir,
         processing_type=processing_type,
         threshold=threshold,
+        peak_distance_frames=peak_distance_frames,
         silent=silent,
         concurrency=concurrency,
         ollama_text_model_name=ollama_text_model,

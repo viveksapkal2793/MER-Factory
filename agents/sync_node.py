@@ -2,10 +2,11 @@ import json
 from rich.console import Console
 from pathlib import Path
 import pandas as pd
+from scipy.signal import find_peaks
 
 from tools.ffmpeg_adapter import FFMpegAdapter
-from .models import LLMModels
-from .nodes import AU_TO_TEXT_MAP, EMOTION_TO_AU_MAP  # Re-use constants
+
+from .nodes import AU_TO_TEXT_MAP, EMOTION_TO_AU_MAP
 
 console = Console(stderr=True)
 
@@ -215,10 +216,13 @@ def extract_full_features(state):
 
 
 def filter_by_emotion(state):
-    """Synchronous version of filter_by_emotion."""
+    """
+    Finds all significant emotional peaks in the video and, for each peak,
+    analyzes the primary and secondary emotions present.
+    """
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Filtering by emotion (Sync)...")
+        console.log("Finding all emotional peaks and analyzing mixed emotions...")
     au_data_path = Path(state["au_data_path"])
     try:
         df = pd.read_csv(au_data_path)
@@ -226,49 +230,100 @@ def filter_by_emotion(state):
     except FileNotFoundError:
         return {"error": f"OpenFace output not found at {au_data_path}"}
 
-    detected_emotions = []
-    threshold = state.get("threshold", 0.45)
-    for emotion, au_list in EMOTION_TO_AU_MAP.items():
-        available_aus = [au for au in au_list if au in df.columns]
-        if available_aus:
-            present_au_count = sum(1 for au in available_aus if (df[au] > 0.5).any())
-            if (present_au_count / len(available_aus)) >= threshold:
-                detected_emotions.append(emotion)
+    au_intensity_cols = [c for c in df.columns if c.endswith("_r")]
+    if not au_intensity_cols:
+        return {"error": "No AU intensity columns ('_r') found in the data."}
 
-    is_expressive = bool(detected_emotions)
+    # Calculate an overall emotional intensity score for each frame
+    df["overall_intensity"] = df[au_intensity_cols].sum(axis=1)
+
+    # Use scipy to find peaks in the overall intensity
+    # These parameters are tunable to control sensitivity
+    peak_indices, _ = find_peaks(
+        df["overall_intensity"],
+        height=state.get("peak_height_threshold", 1.5),  # Min intensity to be a peak
+        distance=state.get("peak_distance_frames", 20),  # Min frames between peaks
+    )
+
+    if peak_indices.size == 0:
+        if verbose:
+            console.log("😐 No significant emotional peaks found based on thresholds.")
+        return {"is_expressive": False, "detected_emotions": []}
+    
+    # --- Step 2: Analyze the emotions at each peak ---
+    emotion_threshold = state.get("emotion_score_threshold", 0.5)
+    detected_emotions_summary_list = []
+
+    for peak_idx in peak_indices:
+        peak_frame = df.iloc[peak_idx]
+        peak_timestamp = peak_frame["timestamp"]
+        
+        emotions_at_peak = []
+        for emotion, au_list_c in EMOTION_TO_AU_MAP.items():
+            au_list_r = [au.replace("_c", "_r") for au in au_list_c]
+            available_aus_r = [au for au in au_list_r if au in peak_frame]
+            
+            if not available_aus_r:
+                continue
+            
+            # Calculate the score for this emotion at this specific peak frame
+            score = peak_frame[available_aus_r].sum()
+            
+            if score >= emotion_threshold:
+                # Classify strength for better description
+                strength = "strong" if score >= 3*emotion_threshold else "moderate" if score >= 1.5*emotion_threshold else "slight"
+                emotions_at_peak.append({"emotion": emotion, "score": score, "strength": strength})
+
+        if not emotions_at_peak:
+            continue
+
+        # Sort emotions at this peak by score to find the primary one
+        emotions_at_peak.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Format the description string for this peak
+        peak_desc_parts = [f"{e['emotion']} ({e['strength']})" for e in emotions_at_peak]
+        peak_summary_str = f"Peak at {peak_timestamp:.2f}s: {', '.join(peak_desc_parts)}"
+        detected_emotions_summary_list.append(peak_summary_str)
+
+        if verbose:
+            console.log(f"  - {peak_summary_str}")
+
+
+    is_expressive = bool(detected_emotions_summary_list)
     if verbose:
         if is_expressive:
-            console.log(f"😊 Expressive. Emotions: {', '.join(detected_emotions)}")
+            console.log(f"😊 Expressive. Found {len(detected_emotions_summary_list)} distinct emotional peaks.")
         else:
-            console.log("😐 Not expressive enough. Halting.")
-    return {"is_expressive": is_expressive, "detected_emotions": detected_emotions}
+            console.log("😐 Not expressive enough for multi-peak analysis.")
+
+    return {
+        "is_expressive": is_expressive,
+        "detected_emotions": detected_emotions_summary_list,
+    }
+
 
 
 def find_peak_frame(state):
     """Synchronous version of find_peak_frame."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Finding peak frame (Sync)...")
+        console.log("Finding overall peak frame for representative image...")
     au_data_path = Path(state["au_data_path"])
     df = pd.read_csv(au_data_path)
     df.columns = df.columns.str.strip()
 
-    au_presence_cols = [
-        c for c in df.columns if c.startswith("AU") and c.endswith("_c")
-    ]
-    au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
-    top_intensities = [
-        c.replace("_c", "_r")
-        for c in au_frequencies.head(5).index
-        if c.replace("_c", "_r") in df.columns
-    ]
+    au_intensity_cols = [c for c in df.columns if c.endswith("_r")]
+    if not au_intensity_cols:
+            return {"error": "No AU intensity columns ('_r') found in the data."}
 
-    if not top_intensities:
-        return {"error": "No valid AU columns for peak score."}
+    if "overall_intensity" not in df.columns:
+        df["overall_intensity"] = df[au_intensity_cols].sum(axis=1)
 
-    df["peak_score"] = df[top_intensities].sum(axis=1)
-    peak_frame_data = df.loc[df["peak_score"].idxmax()]
+    # Find the single most intense frame in the entire video
+    peak_frame_idx = df["overall_intensity"].idxmax()
+    peak_frame_data = df.loc[peak_frame_idx]
     peak_timestamp = peak_frame_data["timestamp"]
+
     video_path = Path(state["video_path"])
     peak_frame_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_peak_frame.png"
@@ -278,16 +333,20 @@ def find_peak_frame(state):
         video_path, peak_timestamp, peak_frame_path, verbose
     ):
         return {"error": f"Failed to extract peak frame at timestamp {peak_timestamp}."}
+    
+    top_aus_intensities = {
+        au: peak_frame_data.get(au, 0)
+        for au in au_intensity_cols
+        if peak_frame_data.get(au, 0) > 0.2
+    }
 
     peak_frame_info = {
         "frame_number": int(peak_frame_data["frame"]),
         "timestamp": peak_timestamp,
-        "top_aus_intensities": {
-            au: peak_frame_data.get(au, 0) for au in top_intensities
-        },
+        "top_aus_intensities": top_aus_intensities,
     }
     if verbose:
-        console.log(f"Identified peak frame at [yellow]{peak_timestamp:.2f}s[/yellow].")
+        console.log(f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail.")
     return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
 
 
@@ -298,10 +357,10 @@ def generate_full_descriptions(state):
         console.log("Generating full multimodal descriptions (Sync)...")
     hf_model = state["models"].hf_model_instance
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
-    active_aus = {au: i for au, i in peak_aus.items() if i > 0.2}
+    active_aus = {au: i for au, i in peak_aus.items() if i > 0.2 and au in AU_TO_TEXT_MAP}
     visual_expr_desc = (
-        ", ".join([AU_TO_TEXT_MAP.get(au, au) for au in active_aus])
-        or "No strong facial clues."
+        ", ".join([f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})" for au, i in active_aus.items()])
+        or "No strong facial clues at the overall peak frame."
     )
 
     visual_obj_desc = hf_model.describe_image(Path(state["peak_frame_path"]))
@@ -326,9 +385,9 @@ def synthesize_summary(state):
     hf_model = state["models"].hf_model_instance
     desc = state["descriptions"]
     coarse_summary = (
-        f"- Detected Emotion Category: {', '.join(state.get('detected_emotions', ['N/A']))}\n"
-        f"- Facial Expression Clues: {desc['visual_expression']}\n"
-        f"- Visual Context: {desc['visual_objective']}\n"
+        f"- Chronological Emotion Peaks: {'; '.join(state.get('detected_emotions', ['N/A']))}\n"
+        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {desc['visual_expression']}\n"
+        f"- Visual Context (at overall peak): {desc['visual_objective']}\n"
         f"- Audio Tone: {desc['audio_tone']}\n"
         f"- Subtitles: {desc['subtitles']}\n"
         f"- Video Content: {desc['video_content']}"
@@ -348,9 +407,9 @@ def save_mer_results(state):
     result_data = {
         "video_id": state["video_id"],
         "source_video": str(state["video_path"]),
-        "detected_emotions": state.get("detected_emotions", []),
-        "peak_frame_info": state["peak_frame_info"],
-        "coarse_descriptions": state["descriptions"],
+        "chronological_emotion_peaks": state.get("detected_emotions", []),
+        "overall_peak_frame_info": state["peak_frame_info"],
+        "coarse_descriptions_at_peak": state["descriptions"],
         "final_summary": state["final_summary"],
     }
     with open(output_path, "w", encoding="utf-8") as f:
