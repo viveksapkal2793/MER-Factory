@@ -105,7 +105,7 @@ async def map_au_to_text(state):
     peak_frame_data = df.loc[peak_frame_index]
 
     active_aus = {
-        au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.2
+        au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.8
     }
     if not active_aus:
         desc = "No prominent facial action units were detected at the emotional peak."
@@ -286,7 +286,7 @@ async def filter_by_emotion(state):
     # These parameters are tunable to control sensitivity
     peak_indices, _ = find_peaks(
         df["overall_intensity"],
-        height=state.get("threshold", 0.5),  # Min intensity to be a peak
+        height=state.get("threshold", 0.8),  # Min intensity to be a peak
         distance=state.get("peak_distance_frames", 20),  # Min frames between peaks
     )
 
@@ -294,50 +294,67 @@ async def filter_by_emotion(state):
         if verbose:
             console.log("😐 No significant emotional peaks found based on thresholds.")
         return {"is_expressive": False, "detected_emotions": []}
-    
+
     # --- Step 2: Analyze the emotions at each peak ---
-    emotion_threshold = state.get("threshold", 0.5)
+    emotion_threshold = state.get("threshold", 0.8)
     detected_emotions_summary_list = []
 
     for peak_idx in peak_indices:
         peak_frame = df.iloc[peak_idx]
         peak_timestamp = peak_frame["timestamp"]
-        
+
         emotions_at_peak = []
         for emotion, au_list_c in EMOTION_TO_AU_MAP.items():
-            au_list_r = [au.replace("_c", "_r") for au in au_list_c]
-            available_aus_r = [au for au in au_list_r if au in peak_frame]
-            
-            if not available_aus_r:
+            available_aus_c = [au for au in au_list_c if au in peak_frame]
+            if not all(au in peak_frame for au in au_list_c):
                 continue
-            
-            # Calculate the score for this emotion at this specific peak frame
-            score = peak_frame[available_aus_r].sum()
-            
-            if score >= emotion_threshold:
-                # Classify strength for better description
-                strength = "strong" if score >= 3*emotion_threshold else "moderate" if score >= 1.5*emotion_threshold else "slight"
-                emotions_at_peak.append({"emotion": emotion, "score": score, "strength": strength})
+            present_aus_c = [au for au in available_aus_c if peak_frame[au] == 1]
+            if len(present_aus_c) >= 0.5 * len(au_list_c):
+
+                au_list_r = [au.replace("_c", "_r") for au in au_list_c]
+                available_aus_r = [au for au in au_list_r if au in peak_frame]
+
+                if not available_aus_r:
+                    continue
+
+                # Calculate the score for this emotion at this specific peak frame
+                score = peak_frame[available_aus_r].mean()
+
+                if score >= emotion_threshold:
+                    # Classify strength for better description
+                    strength = (
+                        "strong"
+                        if score >= 3.0 * emotion_threshold
+                        else "moderate" if score >= 2 * emotion_threshold else "slight"
+                    )
+                    emotions_at_peak.append(
+                        {"emotion": emotion, "score": score, "strength": strength}
+                    )
 
         if not emotions_at_peak:
             continue
 
         # Sort emotions at this peak by score to find the primary one
         emotions_at_peak.sort(key=lambda x: x["score"], reverse=True)
-        
+
         # Format the description string for this peak
-        peak_desc_parts = [f"{e['emotion']} ({e['strength']})" for e in emotions_at_peak]
-        peak_summary_str = f"Peak at {peak_timestamp:.2f}s: {', '.join(peak_desc_parts)}"
+        peak_desc_parts = [
+            f"{e['emotion']} ({e['strength']})" for e in emotions_at_peak
+        ]
+        peak_summary_str = (
+            f"Peak at {peak_timestamp:.2f}s: {', '.join(peak_desc_parts)}"
+        )
         detected_emotions_summary_list.append(peak_summary_str)
 
         if verbose:
             console.log(f"  - {peak_summary_str}")
 
-
     is_expressive = bool(detected_emotions_summary_list)
     if verbose:
         if is_expressive:
-            console.log(f"😊 Expressive. Found {len(detected_emotions_summary_list)} distinct emotional peaks.")
+            console.log(
+                f"😊 Expressive. Found {len(detected_emotions_summary_list)} distinct emotional peaks."
+            )
         else:
             console.log("😐 Not expressive enough for multi-peak analysis.")
 
@@ -357,7 +374,7 @@ async def find_peak_frame(state):
 
     au_intensity_cols = [c for c in df.columns if c.endswith("_r")]
     if not au_intensity_cols:
-            return {"error": "No AU intensity columns ('_r') found in the data."}
+        return {"error": "No AU intensity columns ('_r') found in the data."}
 
     if "overall_intensity" not in df.columns:
         df["overall_intensity"] = df[au_intensity_cols].sum(axis=1)
@@ -380,7 +397,7 @@ async def find_peak_frame(state):
     top_aus_intensities = {
         au: peak_frame_data.get(au, 0)
         for au in au_intensity_cols
-        if peak_frame_data.get(au, 0) > 0.2
+        if peak_frame_data.get(au, 0) > 0.8
     }
 
     peak_frame_info = {
@@ -389,7 +406,9 @@ async def find_peak_frame(state):
         "top_aus_intensities": top_aus_intensities,
     }
     if verbose:
-        console.log(f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail.")
+        console.log(
+            f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail."
+        )
     return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
 
 
@@ -400,9 +419,16 @@ async def generate_full_descriptions(state):
     models: LLMModels = state["models"]
 
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
-    active_aus = {au: i for au, i in peak_aus.items() if i > 0.2 and au in AU_TO_TEXT_MAP}
+    active_aus = {
+        au: i for au, i in peak_aus.items() if i > 0.8 and au in AU_TO_TEXT_MAP
+    }
     visual_expr_desc = (
-        ", ".join([f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})" for au, i in active_aus.items()])
+        ", ".join(
+            [
+                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
+                for au, i in active_aus.items()
+            ]
+        )
         or "No strong facial clues at the overall peak frame."
     )
 
@@ -534,7 +560,7 @@ async def run_image_analysis(state):
     active_aus = {
         au: i
         for au, i in image_frame_data[au_intensity_cols].items()
-        if i > 0.2 and au in AU_TO_TEXT_MAP
+        if i > 0.8 and au in AU_TO_TEXT_MAP
     }
 
     if not active_aus:
