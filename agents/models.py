@@ -53,7 +53,7 @@ class LLMModels:
 
         elif ollama_vision_model_name:
             self.vision_model = ChatOllama(
-                model=ollama_vision_model_name, temperature=0, num_predict=512
+                model=ollama_vision_model_name, temperature=0, num_predict=1024
             )
             self.model_type = "ollama"
             console.log(
@@ -61,7 +61,7 @@ class LLMModels:
             )
             if ollama_text_model_name:
                 self.text_model = ChatOllama(
-                    model=ollama_text_model_name, temperature=0, num_predict=512
+                    model=ollama_text_model_name, temperature=0, num_predict=1024
                 )
                 console.log(
                     f"Ollama text model '{ollama_text_model_name}' initialized."

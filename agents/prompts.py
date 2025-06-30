@@ -39,12 +39,28 @@ Provide the output as a single, raw JSON object string with two keys: "transcrip
     @staticmethod
     def synthesize_summary():
         """Returns the prompt for synthesizing an emotional summary."""
-        return """You are an expert psychologist specializing in multimodal emotion recognition. Your task is to synthesize a set of clues from different modalities into a coherent and insightful emotional analysis. Reason about the connections between the clues to infer the subject's emotional state, and the likely cause.
+        return """You are an expert psychologist and behavioral analyst specializing in multimodal emotion recognition. Your mission is to synthesize a comprehensive analysis from a set of multimodal clues. You will construct a narrative of the subject's emotional journey and provide a final, conclusive assessment.
 
-Here are the clues you've gathered:
+Here are the clues you've gathered from the video recording:
 ---
 {context}
 ---
 
-Based on these clues, provide a single-paragraph summary of the person's emotional experience. YOU HAVE TO DESCRIBE THE CLUES PROVIDED IN THE CONTEXT, DO NOT ANSWER IN A HIGH AND ABSTRACT WAY, BUT IN A VERY DETAILED AND SPECIFIC WAY. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION.
+Based exclusively on the clues provided, structure your analysis in two distinct parts:
+
+**Part 1: Emotional Narrative**
+Analyze the "Chronological Emotion Peaks" to narrate the subject's emotional journey over time. Weave a story that explains the transitions and their context. Your narrative must:
+1.  **Correlate emotional shifts with other clues.** For example, "The subject began in a neutral state, but at the 3.14s mark, their expression shifted to 'strong happy' and 'moderate surprise'. This directly corresponds with the subtitle 'I got the job!' and a noticeable rise in vocal pitch noted in the 'audio_tone'". IMPORTANT: IF THERE IS NO DIRECT CORRELATION (OR NO SUBTITLE, AUDIO, etc.), DO NOT MAKE ONE UP. ONLY USE THE PROVIDED CLUES.
+2.  **Highlight consistencies or contradictions between modalities.** Pay close attention to whether facial expressions, vocal tone, and spoken words align. For example, if the face is smiling (`visual_expression_at_peak`) but the voice is tense (`audio_tone`), point this out and analyze the potential meaning (e.g., masking true feelings, a polite but forced reaction).
+
+**Part 2: Overall Assessment**
+After narrating the journey, provide a concluding summary. This summary must:
+1.  **Infer the subject's most likely overall emotional state(s).** Be specific (e.g., "Joyful Excitement," "Anxious Grief," "Conflicted Relief").
+2.  **Propose the likely cause for this emotional state.** You must ground your inference in specific evidence from the "subtitles," "video_content," or "visual_objective_at_peak" clues. For example, "The overall state of 'Joyful Excitement' was likely caused by receiving a long-awaited job offer, as explicitly stated in the subtitles."
+
+**Constraint Checklist:**
+- Ground your entire analysis *only* in the provided clues.
+- Adhere strictly to the two-part structure.
+- Be detailed and specific, avoiding abstract generalizations.
+- Provide only the raw text of your two-part analysis. Do not include any introductory phrases like "Here is my analysis."
 """

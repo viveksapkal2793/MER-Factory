@@ -1,29 +1,39 @@
 {
     "video_id": "xxx",
-    "source_video": "xxx.mp4",
-    "detected_emotions": [
-        "sad",
-        "surprise",
-        "fear",
-        "angry"
+    "source_video": "video/xxx.mp4",
+    "chronological_emotion_peaks": [
+        "Peak at 0.27s: angry (strong), contempt (strong), fear (moderate), happy (slight), sad (slight)",
+        "Peak at 0.87s: angry (strong), contempt (strong), sad (moderate), fear (moderate)",
+        "Peak at 1.40s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
+        "Peak at 1.94s: angry (strong), contempt (strong), fear (moderate), sad (moderate), surprise (moderate)",
+        "Peak at 2.47s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
+        "Peak at 3.17s: angry (strong), contempt (strong), sad (moderate), fear (slight)",
+        "Peak at 3.77s: contempt (strong), happy (strong), angry (moderate), sad (moderate), fear (moderate), surprise (moderate)",
+        "Peak at 4.34s: angry (strong), contempt (strong), sad (strong), fear (slight), happy (slight)",
+        "Peak at 5.00s: fear (strong), surprise (strong), sad (strong), contempt (moderate), angry (moderate), happy (moderate)"
     ],
-    "peak_frame_info": {
-        "frame_number": 36,
-        "timestamp": 1.4,
+    "overall_peak_frame_info": {
+        "frame_number": 151,
+        "timestamp": 5.005,
         "top_aus_intensities": {
-            "AU04_r": 0.58,
-            "AU05_r": 0.06,
-            "AU45_r": 0.17,
-            "AU26_r": 0.33,
-            "AU23_r": 0.21
+            "AU01_r": 5.0,
+            "AU02_r": 4.23,
+            "AU04_r": 0.6,
+            "AU06_r": 0.55,
+            "AU10_r": 1.05,
+            "AU12_r": 0.8,
+            "AU14_r": 0.32,
+            "AU25_r": 0.42,
+            "AU26_r": 0.57,
+            "AU45_r": 0.39
         }
     },
-    "coarse_descriptions": {
-        "visual_expression": "Brow lowerer, Jaw drop, Lip tightener",
-        "visual_objective": "The main subject is a woman. She appears to be middle-aged. She is wearing a green jacket with floral embroidery, a black collar with floral details, and ornate earrings. Her hair is styled in an elaborate updo with decorative headwear. The background features a wooden structure with decorative panels, a chair, and a small clock. Text is present at the bottom of the image. The woman's expression is neutral.",
-        "audio_tone": "The speaker's tone is slightly surprised and possibly amused. The pitch is moderate, and the speed is normal. There is no significant background noise.",
-        "subtitles": "他还记得这个妹妹啊。",
-        "video_content": "A woman is sitting in a room. She is wearing a green jacket with floral embroidery and a decorative headpiece. She is looking forward and speaking. The room has ornate wooden panels and a clock. She appears to be speaking with a slight smile."
+    "coarse_descriptions_at_peak": {
+        "visual_expression": "Inner brow raiser (intensity: 5.00), Outer brow raiser (intensity: 4.23), Brow lowerer (intensity: 0.60), Cheek raiser (intensity: 0.55), Upper lip raiser (intensity: 1.05), Lip corner puller (smile) (intensity: 0.80), Dimpler (intensity: 0.32), Lips part (intensity: 0.42), Jaw drop (intensity: 0.57), Blink (intensity: 0.39)",
+        "visual_objective": "The main subject is an older man. He appears to be male. He is wearing a dark hat with gold trim, a dark robe with red trim, and has a long, dark beard. The background includes a lit candle and a dark, indistinct interior. He is holding a thin, gold rod with red fabric hanging from it. His left hand is raised.",
+        "audio_tone": "The speaker's tone is generally calm and conversational. The pitch is moderate. The speed is slow to moderate. There is a slight vocal fry at the end of the first utterance. There is a brief, high-pitched sound at the end, possibly a sigh or a vocalization.",
+        "subtitles": "十七。 十七好啊。 啊。",
+        "video_content": "An older man with a long beard and a hat is speaking. He is wearing a dark robe. He is in a dimly lit room with a candle burning in the background. He is speaking and gesturing with his hand."
     },
-    "final_summary": "The woman, appearing middle-aged and dressed in a green jacket with floral embroidery, a black collar with floral details, and elaborate headwear, is likely experiencing a complex emotional state. The facial expression clues, including a brow lowerer, jaw drop, and lip tightener, suggest a potential for surprise, fear, or even anger, despite her neutral expression in the visual context. The audio tone, described as slightly surprised and possibly amused, with a moderate pitch and normal speed, supports this ambiguity. The subtitles, \"他还记得这个妹妹啊,\" which translates to \"He still remembers this younger sister,\" provide crucial context. The video content, showing the woman speaking with a slight smile in an ornate room, further complicates the analysis. The combination of the facial clues, the audio tone, and the subtitles suggests that the woman is likely experiencing a mix of surprise and perhaps a touch of amusement or even a hint of sadness, possibly triggered by the unexpected memory of her younger sister. The ornate setting and her elaborate attire might indicate a special occasion or a formal setting, adding another layer to the emotional complexity."
+    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a complex mix of feelings at 0.27s: strong anger and contempt, moderate fear, and slight happiness and sadness. This initial state suggests a potential conflict or frustration. At 0.87s, the anger and contempt remain strong, with moderate sadness and fear, indicating the conflict persists and is causing distress. The pattern continues at 1.40s and 1.94s, with anger and contempt remaining dominant, accompanied by moderate fear and surprise, and slight or moderate sadness. The surprise element suggests an unexpected event or realization within the context of the anger and contempt. This pattern is repeated at 2.47s. At 3.17s, the anger and contempt are still strong, but the fear is reduced to slight, and sadness is moderate. This could indicate a slight lessening of the perceived threat, but the underlying negative emotions persist. At 3.77s, a significant shift occurs. Contempt and happiness become strong, while anger is moderate, and sadness, fear, and surprise are moderate. This suggests a potential shift in perspective, perhaps a moment of triumph or satisfaction, but with lingering negative emotions. At 4.34s, the anger and contempt return to strong, with strong sadness and slight happiness and fear. This suggests a return to a more negative emotional state, possibly due to a setback or a reminder of the initial conflict. Finally, at 5.00s, the emotional peak is reached. Fear and surprise are strong, sadness is strong, contempt is moderate, anger is moderate, and happiness is moderate. This complex mix of emotions, coupled with the facial expression clues, suggests a moment of intense emotional processing. The facial expression at the peak shows inner and outer brow raising, indicating surprise and possibly fear, along with lip corner pulling (smile) and cheek raising, suggesting a degree of happiness. The jaw drop and lips part further support the surprise element.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is one of **Conflicted Apprehension**. This is inferred from the consistent presence of strong anger and contempt throughout the emotional peaks, coupled with the fluctuating presence of fear, sadness, and surprise. The facial expression at the peak, with its combination of surprise, fear, and a slight smile, further supports this assessment. The visual context, including the dark setting, the older man's attire, and the gold rod, suggests a ritualistic or ceremonial context. The subtitles, \"十七。 十七好啊。 啊。\" (Seventeen. Seventeen is good. Ah.) provide a potential clue. The subject is likely reacting to the number \"seventeen\" in some way. The combination of the visual context, the subtitles, and the emotional peaks suggests that the subject is experiencing a complex emotional response to a significant event or revelation within a ritualistic or ceremonial context."
 }
