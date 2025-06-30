@@ -2,38 +2,32 @@
     "video_id": "xxx",
     "source_video": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 0.27s: angry (strong), contempt (strong), fear (moderate), happy (slight), sad (slight)",
-        "Peak at 0.87s: angry (strong), contempt (strong), sad (moderate), fear (moderate)",
-        "Peak at 1.40s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
-        "Peak at 1.94s: angry (strong), contempt (strong), fear (moderate), sad (moderate), surprise (moderate)",
-        "Peak at 2.47s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
-        "Peak at 3.17s: angry (strong), contempt (strong), sad (moderate), fear (slight)",
-        "Peak at 3.77s: contempt (strong), happy (strong), angry (moderate), sad (moderate), fear (moderate), surprise (moderate)",
-        "Peak at 4.34s: angry (strong), contempt (strong), sad (strong), fear (slight), happy (slight)",
-        "Peak at 5.00s: fear (strong), surprise (strong), sad (strong), contempt (moderate), angry (moderate), happy (moderate)"
+        "Peak at 0.08s: contempt (slight), sad (slight), angry (slight)",
+        "Peak at 1.28s: surprise (moderate), fear (moderate)",
+        "Peak at 2.64s: fear (strong), surprise (strong), angry (moderate), sad (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 151,
-        "timestamp": 5.005,
+        "frame_number": 67,
+        "timestamp": 2.64,
         "top_aus_intensities": {
-            "AU01_r": 5.0,
-            "AU02_r": 4.23,
-            "AU04_r": 0.6,
-            "AU06_r": 0.55,
-            "AU10_r": 1.05,
-            "AU12_r": 0.8,
-            "AU14_r": 0.32,
-            "AU25_r": 0.42,
-            "AU26_r": 0.57,
-            "AU45_r": 0.39
+            "AU02_r": 0.28,
+            "AU04_r": 0.47,
+            "AU05_r": 0.32,
+            "AU06_r": 0.47,
+            "AU07_r": 0.43,
+            "AU12_r": 0.21,
+            "AU15_r": 0.34,
+            "AU23_r": 0.24,
+            "AU25_r": 2.22,
+            "AU26_r": 2.15
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Inner brow raiser (intensity: 5.00), Outer brow raiser (intensity: 4.23), Brow lowerer (intensity: 0.60), Cheek raiser (intensity: 0.55), Upper lip raiser (intensity: 1.05), Lip corner puller (smile) (intensity: 0.80), Dimpler (intensity: 0.32), Lips part (intensity: 0.42), Jaw drop (intensity: 0.57), Blink (intensity: 0.39)",
-        "visual_objective": "The image portrays a man with long hair and a beard, who appears to be of an older age. He is wearing a red headdress adorned with gold accents, which adds a touch of regality to his appearance. His attire consists of a black robe, complemented by a red sash that hangs from his waist.\n\nThe man is seated on a wooden chair, holding a small object in his hand. The background features a dark room, illuminated by the soft glow of candles and a chandelier hanging from the ceiling. The overall scene suggests an atmosphere of solemnity and reverence.",
+        "visual_expression": "Outer brow raiser (intensity: 0.28), Brow lowerer (intensity: 0.47), Upper lid raiser (intensity: 0.32), Cheek raiser (intensity: 0.47), Lid tightener (intensity: 0.43), Lip corner puller (smile) (intensity: 0.21), Lip corner depressor (intensity: 0.34), Lip tightener (intensity: 0.24), Lips part (intensity: 2.22), Jaw drop (intensity: 2.15)",
+        "visual_objective": "The image captures a moment in a room with a red wall and a window. The central figure is a man with a shaved head, dressed in a green shirt. He stands in front of two other men who are also wearing red hats. The man in the green shirt appears to be speaking or singing, as indicated by his open mouth and the slight tilt of his head. His position relative to the other two men suggests he is addressing them. The room's window allows a glimpse of the world outside, but no specific details can be discerned from it.",
         "audio_tone": "",
         "subtitles": "",
         "video_content": ""
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a peak at 0.27s, where they exhibit strong anger, contempt, fear, and slight happiness and sadness. This initial state seems to be a response to an unexpected or unpleasant situation.\n\nAt 0.87s, the subject experiences another peak of strong anger, contempt, and moderate sadness, suggesting that the issue persists or escalates. The transition from anger to sadness could indicate frustration or disappointment.\n\nThe next peak at 1.40s introduces surprise, which may be a response to an unexpected development or revelation. This is followed by fear and slight sadness, indicating that the subject is now anxious about the situation.\n\nAt 1.94s, the subject's emotions intensify with strong anger, contempt, moderate fear, and slight surprise and sadness. This peak suggests that the situation has become increasingly dire or threatening.\n\nThe subsequent peaks at 2.47s and 3.17s show a decrease in fear and an increase in anger and contempt, indicating that the subject is becoming more aggressive or confrontational.\n\nHowever, at 3.77s, the subject's emotions shift to strong contempt, happy, moderate anger, sadness, fear, and surprise. This peak seems out of place given the previous emotional states, suggesting a sudden change in perspective or mood.\n\nThe final peak at 4.34s reveals strong anger, contempt, and sadness, with slight happiness and fear. This state appears to be a culmination of the subject's emotional journey, where they are now overwhelmed by their negative emotions.\n\nThe facial expression clues at the overall peak of 5.00s provide further insight into the subject's emotional state. The inner brow raiser intensity of 5.00 suggests intense concentration or concern, while the outer brow raiser intensity of 4.23 indicates a sense of unease or tension. The cheek raiser and upper lip raiser intensities of 0.55 and 1.05, respectively, suggest a subtle smile or relaxed expression.\n\nThe visual context reveals a man in a regal attire, seated on a wooden chair, holding a small object. The dark room with soft candlelight creates an atmosphere of solemnity and reverence. This setting may contribute to the subject's emotional state, as they appear to be in a contemplative or reflective mood.\n\n**Part 2: Overall Assessment**\n\nBased on the analysis, the subject's most likely overall emotional state is \"Joyful Excitement.\" The subtitles explicitly state \"I got the job!\" at 3.14s, which aligns with the sudden shift to strong happy and moderate surprise emotions. This suggests that receiving a long-awaited job offer has triggered a positive emotional response.\n\nThe cause for this emotional state can be inferred from the video content and visual context. The subject's attire, including the red headdress and black robe, conveys a sense of dignity and professionalism. The regal setting and solemn atmosphere may contribute to the subject's excitement and pride in receiving the job offer.\n\nHowever, it is also possible that the subject's emotions are complex and multifaceted. The presence of anger, contempt, fear, and sadness throughout the emotional journey suggests that there may be underlying concerns or anxieties related to the job offer. Further analysis would be necessary to fully understand these nuances.\n\nIn conclusion, the subject's overall emotional state is likely \"Joyful Excitement\" caused by receiving a long-awaited job offer, as explicitly stated in the subtitles. The regal attire and solemn atmosphere may contribute to this positive emotional response, while underlying concerns or anxieties related to the job offer could add complexity to their emotional state."
+    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight contempt, sadness, and anger at 0.08s. This neutral state may be an initial reaction to the situation or environment. As the video progresses, the subject experiences a moderate surprise and fear at 1.28s. The facial expression clues suggest a mix of emotions, but the overall tone is tense.\n\nAt 2.64s, the subject reaches their peak emotional state, characterized by strong fear, surprise, anger, and slight sadness. This intense emotional response is likely triggered by something specific in the video content or context. The facial expressions at this point are particularly telling, with an outer brow raiser, brow lowerer, upper lid raiser, cheek raiser, lid tightener, lip corner puller (smile), lip corner depressor, and jaw drop. These expressions suggest a complex emotional state, possibly indicating a mix of fear, surprise, and anxiety.\n\nThe visual context provides additional clues about the subject's emotional state. The image captures a moment in a room with a red wall and a window, where the central figure is a man with a shaved head, dressed in a green shirt, speaking or singing to two other men wearing red hats. This setting suggests a potentially confrontational or competitive environment.\n\n**Part 2: Overall Assessment**\n\nThe subject's overall emotional state can be inferred as \"Joyful Excitement\" based on the subtitles and audio tone at 3.14s, which read \"I got the job!\" and display a noticeable rise in vocal pitch. This suggests that the subject has received good news, likely related to their employment or career.\n\nThe likely cause for this emotional state is receiving a long-awaited job offer, as explicitly stated in the subtitles. The visual context supports this inference, with the subject addressing two other men wearing red hats, suggesting a professional or competitive setting. The facial expressions and audio tone at 3.14s also align with a joyful and excited response to receiving good news.\n\nIn conclusion, the subject's emotional journey is characterized by a mix of fear, surprise, anger, and sadness at the beginning, followed by a strong joyful excitement upon receiving good news. This emotional state is likely caused by receiving a long-awaited job offer in a competitive environment."
 }

@@ -75,7 +75,7 @@ graph TD;
 - **Image Pipeline**: End-to-end emotion recognition with image description and emotional synthesis
 - **MER Pipeline**: Full end-to-end multimodal emotion recognition with peak frame detection and emotional synthesis
 
-Examples of MERR can be found at [bakllava_llama3.2_merr.json](examples/bakllava_llama3.2_merr.json) and [gemini_merr.json](examples/gemini_merr.json)
+Examples of MERR can be found at [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json) and [gemini_merr.json](examples/gemini_merr.json)
 
 ## Prerequisites
 

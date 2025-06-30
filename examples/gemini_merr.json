@@ -2,38 +2,32 @@
     "video_id": "xxx",
     "source_video": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 0.27s: angry (strong), contempt (strong), fear (moderate), happy (slight), sad (slight)",
-        "Peak at 0.87s: angry (strong), contempt (strong), sad (moderate), fear (moderate)",
-        "Peak at 1.40s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
-        "Peak at 1.94s: angry (strong), contempt (strong), fear (moderate), sad (moderate), surprise (moderate)",
-        "Peak at 2.47s: angry (strong), contempt (strong), fear (moderate), surprise (moderate), sad (slight)",
-        "Peak at 3.17s: angry (strong), contempt (strong), sad (moderate), fear (slight)",
-        "Peak at 3.77s: contempt (strong), happy (strong), angry (moderate), sad (moderate), fear (moderate), surprise (moderate)",
-        "Peak at 4.34s: angry (strong), contempt (strong), sad (strong), fear (slight), happy (slight)",
-        "Peak at 5.00s: fear (strong), surprise (strong), sad (strong), contempt (moderate), angry (moderate), happy (moderate)"
+        "Peak at 0.08s: contempt (slight), sad (slight), angry (slight)",
+        "Peak at 1.28s: surprise (moderate), fear (moderate)",
+        "Peak at 2.64s: fear (strong), surprise (strong), angry (moderate), sad (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 151,
-        "timestamp": 5.005,
+        "frame_number": 67,
+        "timestamp": 2.64,
         "top_aus_intensities": {
-            "AU01_r": 5.0,
-            "AU02_r": 4.23,
-            "AU04_r": 0.6,
-            "AU06_r": 0.55,
-            "AU10_r": 1.05,
-            "AU12_r": 0.8,
-            "AU14_r": 0.32,
-            "AU25_r": 0.42,
-            "AU26_r": 0.57,
-            "AU45_r": 0.39
+            "AU02_r": 0.28,
+            "AU04_r": 0.47,
+            "AU05_r": 0.32,
+            "AU06_r": 0.47,
+            "AU07_r": 0.43,
+            "AU12_r": 0.21,
+            "AU15_r": 0.34,
+            "AU23_r": 0.24,
+            "AU25_r": 2.22,
+            "AU26_r": 2.15
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Inner brow raiser (intensity: 5.00), Outer brow raiser (intensity: 4.23), Brow lowerer (intensity: 0.60), Cheek raiser (intensity: 0.55), Upper lip raiser (intensity: 1.05), Lip corner puller (smile) (intensity: 0.80), Dimpler (intensity: 0.32), Lips part (intensity: 0.42), Jaw drop (intensity: 0.57), Blink (intensity: 0.39)",
-        "visual_objective": "The main subject is an older man. He appears to be male. He is wearing a dark hat with gold trim, a dark robe with red trim, and has a long, dark beard. The background includes a lit candle and a dark, indistinct interior. He is holding a thin, gold rod with red fabric hanging from it. His left hand is raised.",
-        "audio_tone": "The speaker's tone is generally calm and conversational. The pitch is moderate. The speed is slow to moderate. There is a slight vocal fry at the end of the first utterance. There is a brief, high-pitched sound at the end, possibly a sigh or a vocalization.",
-        "subtitles": "十七。 十七好啊。 啊。",
-        "video_content": "An older man with a long beard and a hat is speaking. He is wearing a dark robe. He is in a dimly lit room with a candle burning in the background. He is speaking and gesturing with his hand."
+        "visual_expression": "Outer brow raiser (intensity: 0.28), Brow lowerer (intensity: 0.47), Upper lid raiser (intensity: 0.32), Cheek raiser (intensity: 0.47), Lid tightener (intensity: 0.43), Lip corner puller (smile) (intensity: 0.21), Lip corner depressor (intensity: 0.34), Lip tightener (intensity: 0.24), Lips part (intensity: 2.22), Jaw drop (intensity: 2.15)",
+        "visual_objective": "The main subject is a man with a shaved head and a small goatee. He appears to be middle-aged. He is wearing a green, button-up shirt. The background includes other men wearing dark blue shirts and red hats. The scene appears to be indoors, with a wooden door frame visible. The man is speaking, with his mouth open.",
+        "audio_tone": "The speaker's tone is neutral. The pitch is medium. The speed is normal. There are no significant background noises.",
+        "subtitles": "乔家渡那个工程刚刚竣工。",
+        "video_content": "A man with a shaved head and a goatee is speaking. He is wearing a green shirt. Behind him are several men in dark blue uniforms and red hats. The man is speaking with a serious expression. The text on the screen says \"萧家渡的工程刚刚竣工\". The logo for \"芒果TV独播\" is in the top left corner."
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a complex mix of feelings at 0.27s: strong anger and contempt, moderate fear, and slight happiness and sadness. This initial state suggests a potential conflict or frustration. At 0.87s, the anger and contempt remain strong, with moderate sadness and fear, indicating the conflict persists and is causing distress. The pattern continues at 1.40s and 1.94s, with anger and contempt remaining dominant, accompanied by moderate fear and surprise, and slight or moderate sadness. The surprise element suggests an unexpected event or realization within the context of the anger and contempt. This pattern is repeated at 2.47s. At 3.17s, the anger and contempt are still strong, but the fear is reduced to slight, and sadness is moderate. This could indicate a slight lessening of the perceived threat, but the underlying negative emotions persist. At 3.77s, a significant shift occurs. Contempt and happiness become strong, while anger is moderate, and sadness, fear, and surprise are moderate. This suggests a potential shift in perspective, perhaps a moment of triumph or satisfaction, but with lingering negative emotions. At 4.34s, the anger and contempt return to strong, with strong sadness and slight happiness and fear. This suggests a return to a more negative emotional state, possibly due to a setback or a reminder of the initial conflict. Finally, at 5.00s, the emotional peak is reached. Fear and surprise are strong, sadness is strong, contempt is moderate, anger is moderate, and happiness is moderate. This complex mix of emotions, coupled with the facial expression clues, suggests a moment of intense emotional processing. The facial expression at the peak shows inner and outer brow raising, indicating surprise and possibly fear, along with lip corner pulling (smile) and cheek raising, suggesting a degree of happiness. The jaw drop and lips part further support the surprise element.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is one of **Conflicted Apprehension**. This is inferred from the consistent presence of strong anger and contempt throughout the emotional peaks, coupled with the fluctuating presence of fear, sadness, and surprise. The facial expression at the peak, with its combination of surprise, fear, and a slight smile, further supports this assessment. The visual context, including the dark setting, the older man's attire, and the gold rod, suggests a ritualistic or ceremonial context. The subtitles, \"十七。 十七好啊。 啊。\" (Seventeen. Seventeen is good. Ah.) provide a potential clue. The subject is likely reacting to the number \"seventeen\" in some way. The combination of the visual context, the subtitles, and the emotional peaks suggests that the subject is experiencing a complex emotional response to a significant event or revelation within a ritualistic or ceremonial context."
+    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight mix of contempt, sadness, and anger at 0.08 seconds. This initial state is difficult to contextualize without further information. The audio tone is neutral, and the subtitles do not provide any immediate clues to explain this initial emotional cocktail.\n\nAt 1.28 seconds, the subject experiences moderate surprise and fear. This shift suggests a sudden, unexpected event or realization. Again, the neutral audio tone and lack of relevant subtitles make it difficult to pinpoint the cause.\n\nThe emotional peak occurs at 2.64 seconds, with strong fear and surprise, alongside moderate anger and slight sadness. The facial expression at this peak is highly complex. The outer brow raiser, brow lowerer, upper lid raiser, cheek raiser, lid tightener, lip corner puller (smile), lip corner depressor, lip tightener, lips part, and jaw drop all contribute to a multifaceted expression. The presence of both a smile (lip corner puller) and lip corner depressor suggests a conflicted emotional state. The jaw drop and parted lips indicate shock or disbelief. The visual context shows the subject speaking, with the text on the screen reading \"萧家渡的工程刚刚竣工\" and the logo for \"芒果TV独播\" present. The man is wearing a green shirt, and the background includes other men in dark blue uniforms and red hats. The subtitles, \"乔家渡那个工程刚刚竣工,\" suggest the subject is discussing the completion of a project. The combination of strong fear, surprise, and anger, coupled with the facial expression, suggests a negative reaction to the project's completion, perhaps due to unexpected problems or a negative outcome.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is one of **Anxious Apprehension and Disbelief**. This is inferred from the strong fear and surprise at the emotional peak, combined with the facial expressions indicating both positive and negative emotions. The presence of anger and sadness further complicates the emotional landscape.\n\nThe likely cause for this emotional state is the completion of the \"乔家渡\" project, as indicated by the subtitles. The subject's reaction suggests that the project's completion may have revealed unexpected problems, failures, or negative consequences, leading to fear, surprise, anger, and sadness. The visual context, including the presence of other men in uniforms, may suggest a professional or official setting, further amplifying the subject's anxiety."
 }
