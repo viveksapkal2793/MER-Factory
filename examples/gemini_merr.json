@@ -2,32 +2,30 @@
     "video_id": "xxx",
     "source_video": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 0.08s: contempt (slight), sad (slight), angry (slight)",
-        "Peak at 1.28s: surprise (moderate), fear (moderate)",
-        "Peak at 2.64s: fear (strong), surprise (strong), angry (moderate), sad (slight)"
+        "Peak at 4.44s: contempt (slight)",
+        "Peak at 5.40s: sad (slight), contempt (slight), angry (slight)",
+        "Peak at 6.36s: surprise (slight)",
+        "Peak at 7.04s: contempt (slight), sad (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 67,
-        "timestamp": 2.64,
+        "frame_number": 136,
+        "timestamp": 5.4,
         "top_aus_intensities": {
-            "AU02_r": 0.28,
-            "AU04_r": 0.47,
-            "AU05_r": 0.32,
-            "AU06_r": 0.47,
-            "AU07_r": 0.43,
-            "AU12_r": 0.21,
-            "AU15_r": 0.34,
-            "AU23_r": 0.24,
-            "AU25_r": 2.22,
-            "AU26_r": 2.15
+            "AU02_r": 0.91,
+            "AU04_r": 2.82,
+            "AU05_r": 0.97,
+            "AU09_r": 0.93,
+            "AU10_r": 1.14,
+            "AU14_r": 2.33,
+            "AU23_r": 0.84
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Outer brow raiser (intensity: 0.28), Brow lowerer (intensity: 0.47), Upper lid raiser (intensity: 0.32), Cheek raiser (intensity: 0.47), Lid tightener (intensity: 0.43), Lip corner puller (smile) (intensity: 0.21), Lip corner depressor (intensity: 0.34), Lip tightener (intensity: 0.24), Lips part (intensity: 2.22), Jaw drop (intensity: 2.15)",
-        "visual_objective": "The main subject is a man with a shaved head and a small goatee. He appears to be middle-aged. He is wearing a green, button-up shirt. The background includes other men wearing dark blue shirts and red hats. The scene appears to be indoors, with a wooden door frame visible. The man is speaking, with his mouth open.",
-        "audio_tone": "The speaker's tone is neutral. The pitch is medium. The speed is normal. There are no significant background noises.",
-        "subtitles": "乔家渡那个工程刚刚竣工。",
-        "video_content": "A man with a shaved head and a goatee is speaking. He is wearing a green shirt. Behind him are several men in dark blue uniforms and red hats. The man is speaking with a serious expression. The text on the screen says \"萧家渡的工程刚刚竣工\". The logo for \"芒果TV独播\" is in the top left corner."
+        "visual_expression": "Outer brow raiser (intensity: 0.91), Brow lowerer (intensity: 2.82), Upper lid raiser (intensity: 0.97), Nose wrinkler (intensity: 0.93), Upper lip raiser (intensity: 1.14), Dimpler (intensity: 2.33), Lip tightener (intensity: 0.84)",
+        "visual_objective": "Two people are in the image. The person on the left appears to be a middle-aged male with a shaved head. He is wearing a dark shirt and a plaid jacket. The person on the right appears to be a female with long dark hair pulled back in a ponytail. She is wearing a light blue sweater. The background includes a window and a wall with a framed picture. Text is present at the bottom of the image.",
+        "audio_tone": "The speaker's tone is apologetic and slightly pleading. The pitch is moderate. The speed of speech is relatively slow. There are no significant background noises.",
+        "subtitles": "你在哪儿我还不知道？ 我是来向你道歉的，昨天晚上真的是太了。 对不起，好吗？",
+        "video_content": "A man and a woman are standing in front of a window. The man is bald and wearing a black shirt with a plaid shirt over it. The woman has her back to the camera and is wearing a light blue sweater. The man is speaking and appears to be apologizing. The woman is looking down. There is a picture on the wall."
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight mix of contempt, sadness, and anger at 0.08 seconds. This initial state is difficult to contextualize without further information. The audio tone is neutral, and the subtitles do not provide any immediate clues to explain this initial emotional cocktail.\n\nAt 1.28 seconds, the subject experiences moderate surprise and fear. This shift suggests a sudden, unexpected event or realization. Again, the neutral audio tone and lack of relevant subtitles make it difficult to pinpoint the cause.\n\nThe emotional peak occurs at 2.64 seconds, with strong fear and surprise, alongside moderate anger and slight sadness. The facial expression at this peak is highly complex. The outer brow raiser, brow lowerer, upper lid raiser, cheek raiser, lid tightener, lip corner puller (smile), lip corner depressor, lip tightener, lips part, and jaw drop all contribute to a multifaceted expression. The presence of both a smile (lip corner puller) and lip corner depressor suggests a conflicted emotional state. The jaw drop and parted lips indicate shock or disbelief. The visual context shows the subject speaking, with the text on the screen reading \"萧家渡的工程刚刚竣工\" and the logo for \"芒果TV独播\" present. The man is wearing a green shirt, and the background includes other men in dark blue uniforms and red hats. The subtitles, \"乔家渡那个工程刚刚竣工,\" suggest the subject is discussing the completion of a project. The combination of strong fear, surprise, and anger, coupled with the facial expression, suggests a negative reaction to the project's completion, perhaps due to unexpected problems or a negative outcome.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is one of **Anxious Apprehension and Disbelief**. This is inferred from the strong fear and surprise at the emotional peak, combined with the facial expressions indicating both positive and negative emotions. The presence of anger and sadness further complicates the emotional landscape.\n\nThe likely cause for this emotional state is the completion of the \"乔家渡\" project, as indicated by the subtitles. The subject's reaction suggests that the project's completion may have revealed unexpected problems, failures, or negative consequences, leading to fear, surprise, anger, and sadness. The visual context, including the presence of other men in uniforms, may suggest a professional or official setting, further amplifying the subject's anxiety."
+    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight expression of contempt at 4.44s. This initial display of contempt, without further context, is difficult to interpret. At 5.40s, the emotional landscape becomes more complex. The subject experiences a peak of sadness, contempt, and anger, all at a slight intensity. This is the overall peak of emotional intensity. The facial expression at this moment is particularly revealing. The outer brow raiser, brow lowerer, upper lid raiser, nose wrinkler, upper lip raiser, dimpler, and lip tightener all contribute to a complex expression. The brow lowerer and nose wrinkler suggest anger or frustration, while the upper lip raiser and dimpler could indicate contempt or even a suppressed smile. The combination of these facial features, coupled with the sadness, suggests a state of internal conflict, possibly stemming from a situation that evokes multiple negative emotions. At 6.36s, a slight surprise is registered. This could be a reaction to something said or done by the other person in the scene. Finally, at 7.04s, the subject again displays slight contempt and sadness. This suggests a continuation of the negative emotional state, possibly a lingering resentment or disappointment. The audio tone, which is apologetic and pleading, and the subtitles, which include an apology, suggest that the man is the speaker and is trying to make amends. The woman's posture, with her back to the camera and looking down, suggests she is either listening to the apology or is feeling shame or sadness.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is a combination of sadness, anger, and contempt, possibly tinged with a degree of surprise. The likely cause for this emotional state is a conflict or disagreement, as suggested by the man's apology in the subtitles (\"我是来向你道歉的，昨天晚上真的是太了。 对不起，好吗？\"). The man's apology, coupled with the woman's posture and the negative emotions displayed, suggests that the woman is the recipient of the apology and is experiencing a range of negative emotions related to the event being apologized for. The presence of contempt suggests a lingering resentment or a feeling of being wronged."
 }

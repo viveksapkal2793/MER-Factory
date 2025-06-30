@@ -1,4 +1,5 @@
 import json
+from httpx import get
 from rich.console import Console
 from pathlib import Path
 import pandas as pd
@@ -72,69 +73,6 @@ async def run_au_extraction(state):
     return {"au_data_path": au_data_path}
 
 
-async def map_au_to_text(state):
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Mapping Action Units to text...")
-    au_data_path = Path(state["au_data_path"])
-    try:
-        df = await asyncio.to_thread(pd.read_csv, au_data_path)
-        df.columns = df.columns.str.strip()
-    except FileNotFoundError:
-        return {"error": f"AU data file not found at {au_data_path}"}
-
-    au_presence_cols = [
-        c for c in df.columns if c.startswith("AU") and c.endswith("_c")
-    ]
-    if not au_presence_cols:
-        return {"error": "No AU presence columns found in CSV."}
-
-    au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
-    top_intensities = [c.replace("_c", "_r") for c in au_frequencies.head(5).index]
-    valid_top_intensities = [
-        au for au in top_intensities if au in AU_TO_TEXT_MAP and au in df.columns
-    ]
-
-    if not valid_top_intensities:
-        return {"au_text_description": "Neutral expression."}
-
-    df["peak_score"] = df[valid_top_intensities].sum(axis=1)
-    peak_frame_index = df["peak_score"].idxmax()
-    peak_frame_data = df.loc[peak_frame_index]
-
-    active_aus = {
-        au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.8
-    }
-    if not active_aus:
-        desc = "Neutral expression."
-    else:
-        desc = ", ".join(
-            [
-                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
-                for au, i in active_aus.items()
-            ]
-        )
-    if verbose:
-        console.log(f"Detected peak expression: [yellow]{desc}[/yellow]")
-    return {"au_text_description": desc}
-
-
-async def generate_au_description(state):
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Generating LLM description for facial expression...")
-    models: LLMModels = state["models"]
-    au_text = state["au_text_description"]
-
-    if "Neutral expression" in au_text:
-        llm_description = "A neutral facial expression was detected."
-    else:
-        llm_description = await models.describe_facial_expression(au_text)
-    if verbose:
-        console.log(f"LLM Description: [cyan]{llm_description}[/cyan]")
-    return {"llm_au_description": llm_description}
-
-
 async def save_au_results(state):
     verbose = state.get("verbose", True)
     if verbose:
@@ -144,8 +82,7 @@ async def save_au_results(state):
     )
     result_data = {
         "video_id": state["video_id"],
-        "peak_au_text": state["au_text_description"],
-        "llm_facial_summary": state["llm_au_description"],
+        "chronological_emotion_peaks": state.get("detected_emotions", []),
     }
 
     def _save():
@@ -158,7 +95,7 @@ async def save_au_results(state):
     return {}
 
 
-async def run_audio_extraction_and_analysis(state):
+async def generate_audio_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Audio Analysis[/bold]")
@@ -179,7 +116,8 @@ async def run_audio_extraction_and_analysis(state):
 async def save_audio_results(state):
     verbose = state.get("verbose", True)
     results = state["audio_analysis_results"]
-    if verbose:
+
+    if verbose and (results.get("transcript") or results.get("tone_description")):
         console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
         console.print(f"[bold]Transcript:[/bold] {results.get('transcript', 'N/A')}")
         console.print(
@@ -199,14 +137,14 @@ async def save_audio_results(state):
     return {}
 
 
-async def run_video_analysis(state):
+async def generate_video_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     models: LLMModels = state["models"]
     video_description = await models.describe_video(video_path)
-    if verbose:
+    if verbose and video_description:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
 
@@ -289,7 +227,7 @@ async def filter_by_emotion(state):
             console.log(
                 "😐 No significant emotional peaks found, classifying as Neutral."
             )
-        return {"is_expressive": True, "detected_emotions": ["neutral"]}
+        return {"detected_emotions": ["neutral"]}
 
     # --- Step 2: Analyze the emotions at each peak ---
     emotion_threshold = state.get("threshold", 0.8)
@@ -355,7 +293,6 @@ async def filter_by_emotion(state):
             console.log("😐 Not expressive enough for multi-peak analysis.")
 
     return {
-        "is_expressive": is_expressive,
         "detected_emotions": detected_emotions_summary_list,
     }
 
@@ -408,12 +345,29 @@ async def find_peak_frame(state):
     return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
 
 
-async def generate_full_descriptions(state):
+async def generate_peak_frame_visual_description(state):
+    """Generates a visual description for the peak frame image."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Generating full multimodal descriptions...")
+        console.log("Generating visual description for peak frame...")
     models: LLMModels = state["models"]
+    peak_frame_path = Path(state["peak_frame_path"])
 
+    visual_obj_desc = await models.describe_image(peak_frame_path)
+
+    if verbose:
+        console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
+    return {"image_visual_description": visual_obj_desc}
+
+
+async def generate_peak_frame_au_description(state):
+    """Generates an AU-based description for the peak frame."""
+    # NOTE: Here we pass the original AU other than using LLM to convert it to text.
+    # This is because the MER pipeline has other modalities can provide context,
+    # we give LLM the raw AU data to avoid any potential misinterpretation.
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Generating AU description for peak frame...")
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
     active_aus = {
         au: i for au, i in peak_aus.items() if i > 0.8 and au in AU_TO_TEXT_MAP
@@ -427,29 +381,9 @@ async def generate_full_descriptions(state):
         )
         or "Neutral expression at the overall peak frame."
     )
-
-    # Run LLM calls concurrently
-    if models.model_type == "huggingface":
-        visual_obj_desc = await models.describe_image(Path(state["peak_frame_path"]))
-        audio_analysis = await models.analyze_audio(Path(state["audio_path"]))
-        video_desc = await models.describe_video(Path(state["video_path"]))
-
-    else:
-        visual_obj_desc_task = models.describe_image(Path(state["peak_frame_path"]))
-        audio_analysis_task = models.analyze_audio(Path(state["audio_path"]))
-        video_desc_task = models.describe_video(Path(state["video_path"]))
-        visual_obj_desc, audio_analysis, video_desc = await asyncio.gather(
-            visual_obj_desc_task, audio_analysis_task, video_desc_task
-        )
-
-    descriptions = {
-        "visual_expression": visual_expr_desc,
-        "visual_objective": visual_obj_desc,
-        "audio_tone": audio_analysis.get("tone_description", "N/A"),
-        "subtitles": audio_analysis.get("transcript", "N/A"),
-        "video_content": video_desc,
-    }
-    return {"descriptions": descriptions}
+    if verbose:
+        console.log(f"Peak Frame AU Description: [yellow]{visual_expr_desc}[/yellow]")
+    return {"peak_frame_au_description": visual_expr_desc}
 
 
 async def synthesize_summary(state):
@@ -457,15 +391,16 @@ async def synthesize_summary(state):
     if verbose:
         console.log("Synthesizing final MER summary...")
     models: LLMModels = state["models"]
-    desc = state["descriptions"]
+
+    audio_analysis = state.get("audio_analysis_results", {})
 
     coarse_summary = (
         f"- Chronological Emotion Peaks: {'; '.join(state.get('detected_emotions', ['N/A']))}\n"
-        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {desc['visual_expression']}\n"
-        f"- Visual Context (at overall peak): {desc['visual_objective']}\n"
-        f"- Audio Tone: {desc['audio_tone']}\n"
-        f"- Subtitles: {desc['subtitles']}\n"
-        f"- Video Content: {desc['video_content']}"
+        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {state.get('peak_frame_au_description', 'N/A')}\n"
+        f"- Visual Context (at overall peak): {state.get('image_visual_description', 'N/A')}\n"
+        f"- Audio Tone: {audio_analysis.get('tone_description', 'N/A')}\n"
+        f"- Subtitles: {audio_analysis.get('transcript', 'N/A')}\n"
+        f"- Video Content: {state.get('video_description', 'N/A')}"
     )
     final_summary = await models.synthesize_summary(coarse_summary)
     return {"final_summary": final_summary}
@@ -478,12 +413,22 @@ async def save_mer_results(state):
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_merr_data.json"
     )
+
+    audio_analysis = state.get("audio_analysis_results", {})
+    descriptions = {
+        "visual_expression": state.get("peak_frame_au_description", "N/A"),
+        "visual_objective": state.get("image_visual_description", "N/A"),
+        "audio_tone": audio_analysis.get("tone_description", "N/A"),
+        "subtitles": audio_analysis.get("transcript", "N/A"),
+        "video_content": state.get("video_description", "N/A"),
+    }
+
     result_data = {
         "video_id": state["video_id"],
         "source_video": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
         "overall_peak_frame_info": state["peak_frame_info"],
-        "coarse_descriptions_at_peak": state["descriptions"],
+        "coarse_descriptions_at_peak": descriptions,
         "final_summary": state["final_summary"],
     }
 
@@ -571,8 +516,11 @@ async def run_image_analysis(state):
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
 
+    async def get_precomputed_value(value):
+        return value
+
     if au_text_desc == "Neutral expression.":
-        llm_au_desc_task = asyncio.completed_future(
+        llm_au_desc_task = get_precomputed_value(
             "A neutral facial expression was detected."
         )
     else:

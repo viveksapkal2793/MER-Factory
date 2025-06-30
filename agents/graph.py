@@ -24,7 +24,6 @@ class MERRState(TypedDict, total=False):
     au_text_description: str
     llm_au_description: str
     final_summary: str
-    is_expressive: bool
     peak_frame_info: Dict[str, Any]
     peak_frame_path: Path
     audio_path: Path
@@ -37,6 +36,7 @@ class MERRState(TypedDict, total=False):
 
     # Image-Specific State
     image_visual_description: str
+    peak_frame_au_description: str
 
 
 def route_by_processing_type(state: MERRState) -> str:
@@ -59,13 +59,40 @@ def route_by_processing_type(state: MERRState) -> str:
     return "handle_error"
 
 
-def should_continue_full_pipeline(state: MERRState) -> str:
-    """Router for the full pipeline after the emotion filter."""
+def route_after_emotion_filter(state: MERRState) -> str:
+    """Routes flow after emotion filtering based on the pipeline."""
     if state.get("error"):
         return "handle_error"
-    if state.get("is_expressive"):
-        return "continue_processing"
-    return "end_processing"
+    proc_type = state["processing_type"]
+    if proc_type == "AU":
+        return "save_au_results"
+    elif proc_type == "MER":
+        return "find_peak_frame"
+    return "handle_error"
+
+
+def route_after_audio_generation(state: MERRState) -> str:
+    """Routes flow after audio description generation based on the pipeline."""
+    if state.get("error"):
+        return "handle_error"
+    proc_type = state["processing_type"]
+    if proc_type == "audio":
+        return "save_audio_results"
+    elif proc_type == "MER":
+        return "generate_video_description"
+    return "handle_error"
+
+
+def route_after_video_generation(state: MERRState) -> str:
+    """Routes flow after video description generation based on the pipeline."""
+    if state.get("error"):
+        return "handle_error"
+    proc_type = state["processing_type"]
+    if proc_type == "video":
+        return "save_video_results"
+    elif proc_type == "MER":
+        return "generate_peak_frame_visual_description"
+    return "handle_error"
 
 
 def create_graph(use_sync_nodes: bool = False):
@@ -89,20 +116,25 @@ def create_graph(use_sync_nodes: bool = False):
     workflow.add_node("handle_error", nodes.handle_error)
     # AU Pipeline
     workflow.add_node("run_au_extraction", nodes.run_au_extraction)
-    workflow.add_node("map_au_to_text", nodes.map_au_to_text)
-    workflow.add_node("generate_au_description", nodes.generate_au_description)
     workflow.add_node("save_au_results", nodes.save_au_results)
     # Audio Pipeline
-    workflow.add_node("run_audio_analysis", nodes.run_audio_extraction_and_analysis)
+    workflow.add_node("generate_audio_description", nodes.generate_audio_description)
     workflow.add_node("save_audio_results", nodes.save_audio_results)
     # Video Pipeline
-    workflow.add_node("run_video_analysis", nodes.run_video_analysis)
+    workflow.add_node("generate_video_description", nodes.generate_video_description)
     workflow.add_node("save_video_results", nodes.save_video_results)
     # MER Pipeline
     workflow.add_node("extract_full_features", nodes.extract_full_features)
     workflow.add_node("filter_by_emotion", nodes.filter_by_emotion)
     workflow.add_node("find_peak_frame", nodes.find_peak_frame)
-    workflow.add_node("generate_full_descriptions", nodes.generate_full_descriptions)
+    workflow.add_node(
+        "generate_peak_frame_visual_description",
+        nodes.generate_peak_frame_visual_description,
+    )
+    workflow.add_node(
+        "generate_peak_frame_au_description",
+        nodes.generate_peak_frame_au_description,
+    )
     workflow.add_node("synthesize_summary", nodes.synthesize_summary)
     workflow.add_node("save_mer_results", nodes.save_mer_results)
     # Image Pipeline
@@ -113,56 +145,76 @@ def create_graph(use_sync_nodes: bool = False):
     # --- Define Graph Structure ---
     workflow.set_entry_point("setup_paths")
 
-    # 1. Main router
+    # 1. Main router from setup to pipeline entry points
     workflow.add_conditional_edges(
         "setup_paths",
         route_by_processing_type,
         {
             "au_pipeline": "run_au_extraction",
-            "audio_pipeline": "run_audio_analysis",
-            "video_pipeline": "run_video_analysis",
+            "audio_pipeline": "generate_audio_description",
+            "video_pipeline": "generate_video_description",
             "full_pipeline": "extract_full_features",
             "image_pipeline": "run_image_analysis",
             "handle_error": "handle_error",
         },
     )
 
-    # 2. AU pipeline
-    workflow.add_edge("run_au_extraction", "map_au_to_text")
-    workflow.add_edge("map_au_to_text", "generate_au_description")
-    workflow.add_edge("generate_au_description", "save_au_results")
-    workflow.add_edge("save_au_results", END)
-
-    # 3. Audio pipeline
-    workflow.add_edge("run_audio_analysis", "save_audio_results")
-    workflow.add_edge("save_audio_results", END)
-
-    # 4. Video pipeline
-    workflow.add_edge("run_video_analysis", "save_video_results")
-    workflow.add_edge("save_video_results", END)
-
-    # 5. Full MER pipeline
+    # 2. Define shared paths and routers
+    # Both AU and MER pipelines run emotion filtering.
+    workflow.add_edge("run_au_extraction", "filter_by_emotion")
     workflow.add_edge("extract_full_features", "filter_by_emotion")
+
+    # After emotion filtering, route based on the original pipeline choice.
     workflow.add_conditional_edges(
         "filter_by_emotion",
-        should_continue_full_pipeline,
+        route_after_emotion_filter,
         {
-            "continue_processing": "find_peak_frame",
-            "end_processing": END,
+            "save_au_results": "save_au_results",
+            "find_peak_frame": "find_peak_frame",
             "handle_error": "handle_error",
         },
     )
-    workflow.add_edge("find_peak_frame", "generate_full_descriptions")
-    workflow.add_edge("generate_full_descriptions", "synthesize_summary")
-    workflow.add_edge("synthesize_summary", "save_mer_results")
-    workflow.add_edge("save_mer_results", END)
 
-    # 6. Image pipeline
+    # After audio generation, route based on the original pipeline choice.
+    workflow.add_conditional_edges(
+        "generate_audio_description",
+        route_after_audio_generation,
+        {
+            "save_audio_results": "save_audio_results",
+            "generate_video_description": "generate_video_description",
+            "handle_error": "handle_error",
+        },
+    )
+
+    # After video generation, route based on the original pipeline choice.
+    workflow.add_conditional_edges(
+        "generate_video_description",
+        route_after_video_generation,
+        {
+            "save_video_results": "save_video_results",
+            "generate_peak_frame_visual_description": "generate_peak_frame_visual_description",
+            "handle_error": "handle_error",
+        },
+    )
+
+    # 3. Define MER pipeline sequence
+    workflow.add_edge("find_peak_frame", "generate_audio_description")
+    workflow.add_edge(
+        "generate_peak_frame_visual_description", "generate_peak_frame_au_description"
+    )
+    workflow.add_edge("generate_peak_frame_au_description", "synthesize_summary")
+    workflow.add_edge("synthesize_summary", "save_mer_results")
+
+    # 4. Define Image pipeline sequence
     workflow.add_edge("run_image_analysis", "synthesize_image_summary")
     workflow.add_edge("synthesize_image_summary", "save_image_results")
-    workflow.add_edge("save_image_results", END)
 
-    # 7. Shared error handler
+    # 5. Define terminal nodes for all pipelines
+    workflow.add_edge("save_au_results", END)
+    workflow.add_edge("save_audio_results", END)
+    workflow.add_edge("save_video_results", END)
+    workflow.add_edge("save_mer_results", END)
+    workflow.add_edge("save_image_results", END)
     workflow.add_edge("handle_error", END)
 
     app = workflow.compile()

@@ -2,32 +2,30 @@
     "video_id": "xxx",
     "source_video": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 0.08s: contempt (slight), sad (slight), angry (slight)",
-        "Peak at 1.28s: surprise (moderate), fear (moderate)",
-        "Peak at 2.64s: fear (strong), surprise (strong), angry (moderate), sad (slight)"
+        "Peak at 4.44s: contempt (slight)",
+        "Peak at 5.40s: sad (slight), contempt (slight), angry (slight)",
+        "Peak at 6.36s: surprise (slight)",
+        "Peak at 7.04s: contempt (slight), sad (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 67,
-        "timestamp": 2.64,
+        "frame_number": 136,
+        "timestamp": 5.4,
         "top_aus_intensities": {
-            "AU02_r": 0.28,
-            "AU04_r": 0.47,
-            "AU05_r": 0.32,
-            "AU06_r": 0.47,
-            "AU07_r": 0.43,
-            "AU12_r": 0.21,
-            "AU15_r": 0.34,
-            "AU23_r": 0.24,
-            "AU25_r": 2.22,
-            "AU26_r": 2.15
+            "AU02_r": 0.91,
+            "AU04_r": 2.82,
+            "AU05_r": 0.97,
+            "AU09_r": 0.93,
+            "AU10_r": 1.14,
+            "AU14_r": 2.33,
+            "AU23_r": 0.84
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Outer brow raiser (intensity: 0.28), Brow lowerer (intensity: 0.47), Upper lid raiser (intensity: 0.32), Cheek raiser (intensity: 0.47), Lid tightener (intensity: 0.43), Lip corner puller (smile) (intensity: 0.21), Lip corner depressor (intensity: 0.34), Lip tightener (intensity: 0.24), Lips part (intensity: 2.22), Jaw drop (intensity: 2.15)",
-        "visual_objective": "The image captures a moment in a room with a red wall and a window. The central figure is a man with a shaved head, dressed in a green shirt. He stands in front of two other men who are also wearing red hats. The man in the green shirt appears to be speaking or singing, as indicated by his open mouth and the slight tilt of his head. His position relative to the other two men suggests he is addressing them. The room's window allows a glimpse of the world outside, but no specific details can be discerned from it.",
+        "visual_expression": "Outer brow raiser (intensity: 0.91), Brow lowerer (intensity: 2.82), Upper lid raiser (intensity: 0.97), Nose wrinkler (intensity: 0.93), Upper lip raiser (intensity: 1.14), Dimpler (intensity: 2.33), Lip tightener (intensity: 0.84)",
+        "visual_objective": "The image captures a moment between two individuals in what appears to be an office setting. The person on the left is bald and dressed in a black shirt, while the person on the right has dark hair and is wearing a blue sweater. They are standing in front of a window that offers a view of a cityscape. The text \"你好\" is visible in the image, which translates to \"Hello\" in English. This suggests that the photo might have been taken during a greeting or introduction.",
         "audio_tone": "",
         "subtitles": "",
         "video_content": ""
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight contempt, sadness, and anger at 0.08s. This neutral state may be an initial reaction to the situation or environment. As the video progresses, the subject experiences a moderate surprise and fear at 1.28s. The facial expression clues suggest a mix of emotions, but the overall tone is tense.\n\nAt 2.64s, the subject reaches their peak emotional state, characterized by strong fear, surprise, anger, and slight sadness. This intense emotional response is likely triggered by something specific in the video content or context. The facial expressions at this point are particularly telling, with an outer brow raiser, brow lowerer, upper lid raiser, cheek raiser, lid tightener, lip corner puller (smile), lip corner depressor, and jaw drop. These expressions suggest a complex emotional state, possibly indicating a mix of fear, surprise, and anxiety.\n\nThe visual context provides additional clues about the subject's emotional state. The image captures a moment in a room with a red wall and a window, where the central figure is a man with a shaved head, dressed in a green shirt, speaking or singing to two other men wearing red hats. This setting suggests a potentially confrontational or competitive environment.\n\n**Part 2: Overall Assessment**\n\nThe subject's overall emotional state can be inferred as \"Joyful Excitement\" based on the subtitles and audio tone at 3.14s, which read \"I got the job!\" and display a noticeable rise in vocal pitch. This suggests that the subject has received good news, likely related to their employment or career.\n\nThe likely cause for this emotional state is receiving a long-awaited job offer, as explicitly stated in the subtitles. The visual context supports this inference, with the subject addressing two other men wearing red hats, suggesting a professional or competitive setting. The facial expressions and audio tone at 3.14s also align with a joyful and excited response to receiving good news.\n\nIn conclusion, the subject's emotional journey is characterized by a mix of fear, surprise, anger, and sadness at the beginning, followed by a strong joyful excitement upon receiving good news. This emotional state is likely caused by receiving a long-awaited job offer in a competitive environment."
+    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight peak in contempt at 4.44s, which may indicate some initial frustration or annoyance. However, this emotion quickly shifts to a slight feeling of sadness and anger at 5.40s, suggesting that the subject is experiencing some form of disappointment or frustration.\n\nAt 6.36s, the subject experiences a brief moment of surprise, which could be related to an unexpected development in their situation. This surprise is followed by another peak in contempt at 7.04s, indicating that the subject may still be feeling frustrated or annoyed.\n\nThroughout this emotional journey, there are consistencies and contradictions between modalities. For example, the facial expression peaks at 5.40s show a mix of emotions, including an outer brow raiser (intensity: 0.91), brow lowerer (intensity: 2.82), upper lid raiser (intensity: 0.97), nose wrinkler (intensity: 0.93), and lip tightener (intensity: 0.84). These facial expressions suggest that the subject is feeling a mix of emotions, including frustration, disappointment, and possibly even anger.\n\n**Part 2: Overall Assessment**\n\nThe subject's overall emotional state appears to be one of \"Joyful Excitement\" at the peak moment in the video recording (5.40s). This inference is grounded in the subtitles, which explicitly state \"I got the job!\" and the audio tone, which shows a noticeable rise in vocal pitch.\n\nThe likely cause for this emotional state is receiving a long-awaited job offer, as suggested by the subtitles. The visual context of the image also supports this inference, with the subject standing in front of a window that offers a view of a cityscape, suggesting a sense of possibility and new beginnings."
 }

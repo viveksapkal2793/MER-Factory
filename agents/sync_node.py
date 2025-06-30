@@ -32,7 +32,7 @@ def run_au_extraction(state):
     """Synchronous version of run_au_extraction."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold]Executing: Action Unit (AU) Extraction (Sync)[/bold]")
+        console.rule("[bold]Executing: Action Unit (AU) Extraction[/bold]")
 
     au_data_path = Path(state["au_data_path"])
     if not au_data_path.exists():
@@ -42,85 +42,17 @@ def run_au_extraction(state):
     return {"au_data_path": au_data_path}
 
 
-def map_au_to_text(state):
-    """Synchronous version of map_au_to_text."""
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Mapping Action Units to text (Sync)...")
-    au_data_path = Path(state["au_data_path"])
-    try:
-        df = pd.read_csv(au_data_path)
-        df.columns = df.columns.str.strip()
-    except FileNotFoundError:
-        return {"error": f"AU data file not found at {au_data_path}"}
-
-    au_presence_cols = [
-        c for c in df.columns if c.startswith("AU") and c.endswith("_c")
-    ]
-    if not au_presence_cols:
-        return {"error": "No AU presence columns found in CSV."}
-
-    au_frequencies = (df[au_presence_cols] > 0.5).sum().sort_values(ascending=False)
-    top_intensities = [c.replace("_c", "_r") for c in au_frequencies.head(5).index]
-    valid_top_intensities = [
-        au for au in top_intensities if au in AU_TO_TEXT_MAP and au in df.columns
-    ]
-
-    if not valid_top_intensities:
-        return {"au_text_description": "Neutral expression."}
-
-    df["peak_score"] = df[valid_top_intensities].sum(axis=1)
-    peak_frame_index = df["peak_score"].idxmax()
-    peak_frame_data = df.loc[peak_frame_index]
-
-    active_aus = {
-        au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.8
-    }
-    desc = (
-        ", ".join(
-            [
-                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
-                for au, i in active_aus.items()
-            ]
-        )
-        or "Neutral expression."
-    )
-    if verbose:
-        console.log(f"Detected peak expression (Sync): [yellow]{desc}[/yellow]")
-    return {"au_text_description": desc}
-
-
-def generate_au_description(state):
-    """Generates a description from AU text using the sync HF model."""
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Generating LLM description for facial expression (Sync)...")
-
-    hf_model = state["models"].hf_model_instance
-    au_text = state["au_text_description"]
-
-    if "Neutral expression" in au_text:
-        llm_description = "A neutral facial expression was detected."
-    else:
-        llm_description = hf_model.describe_facial_expression(au_text)
-
-    if verbose:
-        console.log(f"LLM Description (Sync): [cyan]{llm_description}[/cyan]")
-    return {"llm_au_description": llm_description}
-
-
 def save_au_results(state):
-    """Synchronous version of save_au_results."""
+    """Saves the results of the AU analysis pipeline."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold green]✅ AU Analysis Complete (Sync)[/bold green]")
+        console.rule("[bold green]✅ AU Analysis Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_au_analysis.json"
     )
     result_data = {
         "video_id": state["video_id"],
-        "peak_au_text": state["au_text_description"],
-        "llm_facial_summary": state["llm_au_description"],
+        "chronological_emotion_peaks": state.get("detected_emotions", []),
     }
     with open(output_path, "w") as f:
         json.dump(result_data, f, indent=4)
@@ -129,11 +61,11 @@ def save_au_results(state):
     return {}
 
 
-def run_audio_extraction_and_analysis(state):
+def generate_audio_description(state):
     """Analyzes an audio file using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold]Executing: Audio Analysis (Sync)[/bold]")
+        console.rule("[bold]Executing: Audio Analysis[/bold]")
 
     audio_path = Path(state["audio_path"])
     if not audio_path.exists():
@@ -152,7 +84,7 @@ def save_audio_results(state):
     verbose = state.get("verbose", True)
     results = state["audio_analysis_results"]
     if verbose:
-        console.rule("[bold green]✅ Audio Analysis Complete (Sync)[/bold green]")
+        console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
         console.print(f"[bold]Transcript:[/bold] {results.get('transcript', 'N/A')}")
         console.print(
             f"[bold]Tone Description:[/bold] {results.get('tone_description', 'N/A')}"
@@ -167,16 +99,16 @@ def save_audio_results(state):
     return {}
 
 
-def run_video_analysis(state):
+def generate_video_description(state):
     """Generates a description for a video file using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold]Executing: Video Content Analysis (Sync)[/bold]")
+        console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     hf_model = state["models"].hf_model_instance
     video_description = hf_model.describe_video(video_path)
     if verbose:
-        console.log(f"Video Description (Sync): [cyan]{video_description}[/cyan]")
+        console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
 
 
@@ -184,7 +116,7 @@ def save_video_results(state):
     """Saves video analysis results synchronously."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold green]✅ Video Analysis Complete (Sync)[/bold green]")
+        console.rule("[bold green]✅ Video Analysis Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_video_analysis.json"
     )
@@ -203,7 +135,7 @@ def extract_full_features(state):
     """Synchronous version of extract_full_features."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold]Executing: Full MER Feature Extraction (Sync)[/bold]")
+        console.rule("[bold]Executing: Full MER Feature Extraction[/bold]")
     audio_path = Path(state["audio_path"])
     au_data_path = Path(state["au_data_path"])
     if not audio_path.exists():
@@ -250,7 +182,7 @@ def filter_by_emotion(state):
             console.log(
                 "😐 No significant emotional peaks found, classifying as Neutral."
             )
-        return {"is_expressive": True, "detected_emotions": ["neutral"]}
+        return {"detected_emotions": ["neutral"]}
 
     # --- Step 2: Analyze the emotions at each peak ---
     emotion_threshold = state.get("threshold", 0.8)
@@ -316,7 +248,6 @@ def filter_by_emotion(state):
             console.log("😐 Not expressive enough for multi-peak analysis.")
 
     return {
-        "is_expressive": is_expressive,
         "detected_emotions": detected_emotions_summary_list,
     }
 
@@ -370,12 +301,27 @@ def find_peak_frame(state):
     return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
 
 
-def generate_full_descriptions(state):
-    """Generates all multimodal descriptions using the sync HF model."""
+def generate_peak_frame_visual_description(state):
+    """Generates a visual description for the peak frame image."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Generating full multimodal descriptions (Sync)...")
+        console.log("Generating visual description for peak frame...")
     hf_model = state["models"].hf_model_instance
+    peak_frame_path = Path(state["peak_frame_path"])
+    visual_obj_desc = hf_model.describe_image(peak_frame_path)
+    if verbose:
+        console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
+    return {"image_visual_description": visual_obj_desc}
+
+
+def generate_peak_frame_au_description(state):
+    """Generates an AU-based description for the peak frame."""
+    # NOTE: Here we pass the original AU other than using LLM to convert it to text.
+    # This is because the MER pipeline has other modalities can provide context,
+    # we give LLM the raw AU data to avoid any potential misinterpretation.
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Generating AU description for peak frame...")
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
     active_aus = {
         au: i for au, i in peak_aus.items() if i > 0.8 and au in AU_TO_TEXT_MAP
@@ -389,35 +335,27 @@ def generate_full_descriptions(state):
         )
         or "Neutral expression at the overall peak frame."
     )
-
-    visual_obj_desc = hf_model.describe_image(Path(state["peak_frame_path"]))
-    audio_analysis = hf_model.analyze_audio(Path(state["audio_path"]))
-    video_desc = hf_model.describe_video(Path(state["video_path"]))
-
-    descriptions = {
-        "visual_expression": visual_expr_desc,
-        "visual_objective": visual_obj_desc,
-        "audio_tone": audio_analysis.get("tone_description", "N/A"),
-        "subtitles": audio_analysis.get("transcript", "N/A"),
-        "video_content": video_desc,
-    }
-    return {"descriptions": descriptions}
+    if verbose:
+        console.log(f"Peak Frame AU Description: [yellow]{visual_expr_desc}[/yellow]")
+    return {"peak_frame_au_description": visual_expr_desc}
 
 
 def synthesize_summary(state):
     """Synthesizes a final summary from coarse clues using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Synthesizing final MER summary (Sync)...")
+        console.log("Synthesizing final MER summary...")
     hf_model = state["models"].hf_model_instance
-    desc = state["descriptions"]
+
+    audio_analysis = state.get("audio_analysis_results", {})
+
     coarse_summary = (
         f"- Chronological Emotion Peaks: {'; '.join(state.get('detected_emotions', ['N/A']))}\n"
-        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {desc['visual_expression']}\n"
-        f"- Visual Context (at overall peak): {desc['visual_objective']}\n"
-        f"- Audio Tone: {desc['audio_tone']}\n"
-        f"- Subtitles: {desc['subtitles']}\n"
-        f"- Video Content: {desc['video_content']}"
+        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {state.get('peak_frame_au_description', 'N/A')}\n"
+        f"- Visual Context (at overall peak): {state.get('image_visual_description', 'N/A')}\n"
+        f"- Audio Tone: {audio_analysis.get('tone_description', 'N/A')}\n"
+        f"- Subtitles: {audio_analysis.get('transcript', 'N/A')}\n"
+        f"- Video Content: {state.get('video_description', 'N/A')}"
     )
     final_summary = hf_model.synthesize_summary(coarse_summary)
     return {"final_summary": final_summary}
@@ -427,16 +365,26 @@ def save_mer_results(state):
     """Saves full MER results synchronously."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold green]✅ Full MER Pipeline Complete (Sync)[/bold green]")
+        console.rule("[bold green]✅ Full MER Pipeline Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_merr_data.json"
     )
+
+    audio_analysis = state.get("audio_analysis_results", {})
+    descriptions = {
+        "visual_expression": state.get("peak_frame_au_description", "N/A"),
+        "visual_objective": state.get("image_visual_description", "N/A"),
+        "audio_tone": audio_analysis.get("tone_description", "N/A"),
+        "subtitles": audio_analysis.get("transcript", "N/A"),
+        "video_content": state.get("video_description", "N/A"),
+    }
+
     result_data = {
         "video_id": state["video_id"],
         "source_video": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
         "overall_peak_frame_info": state["peak_frame_info"],
-        "coarse_descriptions_at_peak": state["descriptions"],
+        "coarse_descriptions_at_peak": descriptions,
         "final_summary": state["final_summary"],
     }
     with open(output_path, "w", encoding="utf-8") as f:
@@ -467,7 +415,7 @@ def run_image_analysis(state):
     """Runs the full analysis for an image using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold]Executing: Image Analysis (Sync)[/bold]")
+        console.rule("[bold]Executing: Image Analysis[/bold]")
 
     hf_model = state["models"].hf_model_instance
     image_path = Path(state["video_path"])
@@ -517,10 +465,8 @@ def run_image_analysis(state):
     image_visual_description = hf_model.describe_image(image_path)
 
     if verbose:
-        console.log(f"LLM AU Description (Sync): [cyan]{llm_au_description}[/cyan]")
-        console.log(
-            f"LLM Visual Description (Sync): [cyan]{image_visual_description}[/cyan]"
-        )
+        console.log(f"LLM AU Description: [cyan]{llm_au_description}[/cyan]")
+        console.log(f"LLM Visual Description: [cyan]{image_visual_description}[/cyan]")
 
     return {
         "au_text_description": au_text_desc,
@@ -533,7 +479,7 @@ def synthesize_image_summary(state):
     """Synthesizes the final summary for an image using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Synthesizing final image summary (Sync)...")
+        console.log("Synthesizing final image summary...")
     hf_model = state["models"].hf_model_instance
     context = (
         f"- Facial Expression Clues: {state['llm_au_description']}\n"
@@ -541,7 +487,7 @@ def synthesize_image_summary(state):
     )
     final_summary = hf_model.synthesize_summary(context)
     if verbose:
-        console.log(f"Final Summary (Sync): [magenta]{final_summary}[/magenta]")
+        console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
     return {"final_summary": final_summary}
 
 
@@ -549,7 +495,7 @@ def save_image_results(state):
     """Saves image analysis results synchronously."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.rule("[bold green]✅ Image Analysis Complete (Sync)[/bold green]")
+        console.rule("[bold green]✅ Image Analysis Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_image_analysis.json"
     )
