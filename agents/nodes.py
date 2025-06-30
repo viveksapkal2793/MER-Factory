@@ -96,9 +96,7 @@ async def map_au_to_text(state):
     ]
 
     if not valid_top_intensities:
-        return {
-            "au_text_description": "No significant Action Units detected in the video."
-        }
+        return {"au_text_description": "Neutral expression."}
 
     df["peak_score"] = df[valid_top_intensities].sum(axis=1)
     peak_frame_index = df["peak_score"].idxmax()
@@ -108,7 +106,7 @@ async def map_au_to_text(state):
         au: i for au, i in peak_frame_data[valid_top_intensities].items() if i > 0.8
     }
     if not active_aus:
-        desc = "No prominent facial action units were detected at the emotional peak."
+        desc = "Neutral expression."
     else:
         desc = ", ".join(
             [
@@ -128,12 +126,8 @@ async def generate_au_description(state):
     models: LLMModels = state["models"]
     au_text = state["au_text_description"]
 
-    if (
-        "No prominent facial action units" in au_text
-        or "No Action Units detected" in au_text
-        or "No significant Action Units detected" in au_text
-    ):
-        llm_description = "Could not generate a description as no strong facial actions were detected."
+    if "Neutral expression" in au_text:
+        llm_description = "A neutral facial expression was detected."
     else:
         llm_description = await models.describe_facial_expression(au_text)
     if verbose:
@@ -292,8 +286,10 @@ async def filter_by_emotion(state):
 
     if peak_indices.size == 0:
         if verbose:
-            console.log("😐 No significant emotional peaks found based on thresholds.")
-        return {"is_expressive": False, "detected_emotions": []}
+            console.log(
+                "😐 No significant emotional peaks found, classifying as Neutral."
+            )
+        return {"is_expressive": True, "detected_emotions": ["neutral"]}
 
     # --- Step 2: Analyze the emotions at each peak ---
     emotion_threshold = state.get("threshold", 0.8)
@@ -429,7 +425,7 @@ async def generate_full_descriptions(state):
                 for au, i in active_aus.items()
             ]
         )
-        or "No strong facial clues at the overall peak frame."
+        or "Neutral expression at the overall peak frame."
     )
 
     # Run LLM calls concurrently
@@ -564,7 +560,7 @@ async def run_image_analysis(state):
     }
 
     if not active_aus:
-        au_text_desc = "No prominent facial action units were detected in the image."
+        au_text_desc = "Neutral expression."
     else:
         au_text_desc = ", ".join(
             [
@@ -575,9 +571,9 @@ async def run_image_analysis(state):
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
 
-    if "No prominent facial action units" in au_text_desc:
+    if au_text_desc == "Neutral expression.":
         llm_au_desc_task = asyncio.completed_future(
-            "Could not generate a description as no strong facial actions were detected."
+            "A neutral facial expression was detected."
         )
     else:
         llm_au_desc_task = models.describe_facial_expression(au_text_desc)

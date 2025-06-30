@@ -6,7 +6,6 @@ import typer
 from pathlib import Path
 from dotenv import load_dotenv
 from rich.console import Console
-from typing import Optional
 from enum import Enum
 from rich.progress import (
     Progress,
@@ -135,12 +134,15 @@ async def _run_processing_loop_async(
     concurrency: int,
     verbose: bool,
 ):
-    """Asynchronous processing loop for Gemini/Ollama."""
+    """Asynchronous processing loop for Gemini/Ollama with real-time progress."""
     results = {"success": 0, "failure": 0}
     total_files = len(files_to_process)
     semaphore = asyncio.Semaphore(concurrency)
 
-    async def process_file(file_path, progress_task=None):
+    async def process_file(
+        file_path: Path, task_id: TaskID, progress: Progress
+    ) -> Path:
+        """Processes a single file and returns its path upon completion."""
         nonlocal results
         async with semaphore:
             try:
@@ -150,20 +152,19 @@ async def _run_processing_loop_async(
                     results["failure"] += 1
                 else:
                     results["success"] += 1
+                if progress and task_id is not None:
+                    progress.update(
+                        task_id,
+                        advance=1,
+                        description=f"Finished [cyan]{file_path.name}[/cyan]",
+                    )
             except Exception as e:
                 results["failure"] += 1
                 console.print(
                     f"[bold red]FATAL ERROR processing {file_path.name}: {e}[/bold red]"
                 )
                 traceback.print_exc()
-
-            if progress_task:
-                progress.update(
-                    progress_task,
-                    advance=1,
-                    description=f"Finished [cyan]{file_path.name}[/cyan]",
-                )
-            return file_path
+        return file_path
 
     if not verbose:
         with Progress(
@@ -176,10 +177,10 @@ async def _run_processing_loop_async(
             transient=False,
         ) as progress:
             task = progress.add_task("Processing files...", total=total_files)
-            tasks = [process_file(fp, task) for fp in files_to_process]
+            tasks = [process_file(fp, task, progress) for fp in files_to_process]
             await asyncio.gather(*tasks)
     else:  # Verbose mode, no progress bar
-        tasks = [process_file(fp) for fp in files_to_process]
+        tasks = [process_file(fp, None, None) for fp in files_to_process]
         await asyncio.gather(*tasks)
 
     return results
@@ -353,7 +354,12 @@ async def _run_feature_extraction(
         else 0
     )
 
-    async def run_job(file_path, openface_task_id, ffmpeg_task_id, progress):
+    async def run_job(
+        file_path: Path,
+        openface_task_id: TaskID,
+        ffmpeg_task_id: TaskID,
+        progress: Progress,
+    ):
         async with extraction_semaphore:
             file_output_dir = output_dir / file_path.stem
             file_output_dir.mkdir(exist_ok=True)
@@ -447,7 +453,7 @@ def process(
         ProcessingType.mer, "--type", "-t", case_sensitive=False
     ),
     threshold: float = typer.Option(
-        0.45, "--threshold", "-th", min=0.0, max=1.0, help="AU presence threshold."
+        0.8, "--threshold", "-th", min=0.0, max=5.0, help="Emotion detection threshold."
     ),
     peak_distance_frames: int = typer.Option(
         15, "--peak_dis", "-pd", min=8, help="The steps between peak frame detection."

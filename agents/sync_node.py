@@ -67,7 +67,7 @@ def map_au_to_text(state):
     ]
 
     if not valid_top_intensities:
-        return {"au_text_description": "No significant Action Units detected."}
+        return {"au_text_description": "Neutral expression."}
 
     df["peak_score"] = df[valid_top_intensities].sum(axis=1)
     peak_frame_index = df["peak_score"].idxmax()
@@ -83,7 +83,7 @@ def map_au_to_text(state):
                 for au, i in active_aus.items()
             ]
         )
-        or "No prominent facial action units detected."
+        or "Neutral expression."
     )
     if verbose:
         console.log(f"Detected peak expression (Sync): [yellow]{desc}[/yellow]")
@@ -99,8 +99,8 @@ def generate_au_description(state):
     hf_model = state["models"].hf_model_instance
     au_text = state["au_text_description"]
 
-    if "No prominent" in au_text or "No significant" in au_text:
-        llm_description = "Could not generate a description as no strong facial actions were detected."
+    if "Neutral expression" in au_text:
+        llm_description = "A neutral facial expression was detected."
     else:
         llm_description = hf_model.describe_facial_expression(au_text)
 
@@ -247,11 +247,13 @@ def filter_by_emotion(state):
 
     if peak_indices.size == 0:
         if verbose:
-            console.log("😐 No significant emotional peaks found based on thresholds.")
-        return {"is_expressive": False, "detected_emotions": []}
+            console.log(
+                "😐 No significant emotional peaks found, classifying as Neutral."
+            )
+        return {"is_expressive": True, "detected_emotions": ["neutral"]}
 
     # --- Step 2: Analyze the emotions at each peak ---
-    emotion_threshold = state.get("emotion_score_threshold", 0.8)
+    emotion_threshold = state.get("threshold", 0.8)
     detected_emotions_summary_list = []
 
     for peak_idx in peak_indices:
@@ -260,25 +262,31 @@ def filter_by_emotion(state):
 
         emotions_at_peak = []
         for emotion, au_list_c in EMOTION_TO_AU_MAP.items():
-            au_list_r = [au.replace("_c", "_r") for au in au_list_c]
-            available_aus_r = [au for au in au_list_r if au in peak_frame]
-
-            if not available_aus_r:
+            available_aus_c = [au for au in au_list_c if au in peak_frame]
+            if not all(au in peak_frame for au in au_list_c):
                 continue
+            present_aus_c = [au for au in available_aus_c if peak_frame[au] == 1]
+            if len(present_aus_c) >= 0.5 * len(au_list_c):
 
-            # Calculate the score for this emotion at this specific peak frame
-            score = peak_frame[available_aus_r].sum()
+                au_list_r = [au.replace("_c", "_r") for au in au_list_c]
+                available_aus_r = [au for au in au_list_r if au in peak_frame]
 
-            if score >= emotion_threshold:
-                # Classify strength for better description
-                strength = (
-                    "strong"
-                    if score >= 3 * emotion_threshold
-                    else "moderate" if score >= 1.5 * emotion_threshold else "slight"
-                )
-                emotions_at_peak.append(
-                    {"emotion": emotion, "score": score, "strength": strength}
-                )
+                if not available_aus_r:
+                    continue
+
+                # Calculate the score for this emotion at this specific peak frame
+                score = peak_frame[available_aus_r].mean()
+
+                if score >= emotion_threshold:
+                    # Classify strength for better description
+                    strength = (
+                        "strong"
+                        if score >= 3.0 * emotion_threshold
+                        else "moderate" if score >= 2 * emotion_threshold else "slight"
+                    )
+                    emotions_at_peak.append(
+                        {"emotion": emotion, "score": score, "strength": strength}
+                    )
 
         if not emotions_at_peak:
             continue
@@ -379,7 +387,7 @@ def generate_full_descriptions(state):
                 for au, i in active_aus.items()
             ]
         )
-        or "No strong facial clues at the overall peak frame."
+        or "Neutral expression at the overall peak frame."
     )
 
     visual_obj_desc = hf_model.describe_image(Path(state["peak_frame_path"]))
@@ -496,14 +504,14 @@ def run_image_analysis(state):
                 for au, i in active_aus.items()
             ]
         )
-        or "No prominent facial action units detected."
+        or "Neutral expression."
     )
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
 
     llm_au_description = (
-        "Could not generate a description as no strong facial actions were detected."
-        if "No prominent" in au_text_desc
+        "A neutral facial expression was detected."
+        if "Neutral expression" in au_text_desc
         else hf_model.describe_facial_expression(au_text_desc)
     )
     image_visual_description = hf_model.describe_image(image_path)
