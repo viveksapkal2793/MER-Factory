@@ -1,8 +1,25 @@
 # Multimodal Emotion Recognition Reasoning Dataset Builder
 
-A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image anlysis, and full multimodal emotion recognition pipeline.
+A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image analysis, and full multimodal emotion recognition pipeline.
 
 This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset construction strategy.
+
+## Table of Contents
+
+- [Pipeline Structure](#pipeline-structure)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+  - [1. FFmpeg](#1-ffmpeg)
+  - [2. OpenFace](#2-openface)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basic Command Structure](#basic-command-structure)
+  - [Examples](#examples)
+  - [Command Line Options](#command-line-options)
+  - [Processing Types](#processing-types)
+  - [Model Support](#model-support)
+- [Testing Tools](#testing-tools)
+- [Troubleshooting](#troubleshooting)
 
 ## Pipeline Structure
 
@@ -140,19 +157,48 @@ pip install -r requirements.txt
    ```
 
 2. Edit the `.env` file and configure your settings:
-
+   - `GOOGLE_API_KEY`: Your Google API key for Gemini models (optional if using other models)
+   - `OPENFACE_EXECUTABLE`: Path to OpenFace FeatureExtraction executable (required for AU and MER pipelines)
 
 ## Usage
 
 ### Basic Command Structure
 ```bash
-python main.py [[VIDEO_FILE] | [VIDEO_DIR]] [OUTPUT_DIR] [OPTIONS]
-python main.py path_to_video/ output/ --type MER --silent --threshold 0.45 # using gemini by default
-python main.py path_to_video/ output/ --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent # support local ollama running
-python main.py path_to_video/ output/ --type MER --huggingface-model google/gemma-3n-E4B-it --silent # huggingface model
+python main.py [INPUT_PATH] [OUTPUT_DIR] [OPTIONS]
 ```
 
-Note: run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only support peak frame & AU analysis for now.
+### Examples
+```bash
+# Full MER pipeline with Gemini (default)
+python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
+
+# MER pipeline with custom threshold  
+python main.py path_to_video/ output/ --type MER --silent --threshold 0.45
+
+# Using local Ollama models
+python main.py path_to_video/ output/ --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent
+
+# Using Hugging Face model
+python main.py path_to_video/ output/ --type MER --huggingface-model google/gemma-3n-E4B-it --silent
+
+# Process images instead of videos
+python main.py ./images ./output --type MER
+```
+
+Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only supports peak frame & AU analysis for now.
+
+### Command Line Options
+
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--type` | `-t` | Processing type (AU, audio, video, image, MER) | MER |
+| `--threshold` | `-th` | Emotion detection threshold (0.0-5.0) | 0.8 |
+| `--peak_dis` | `-pd` | Steps between peak frame detection (min 8) | 15 |
+| `--silent` | `-s` | Run with minimal output | False |
+| `--concurrency` | `-c` | Concurrent files for async processing (min 1) | 4 |
+| `--ollama-vision-model` | `-ovm` | Ollama vision model name | None |
+| `--ollama-text-model` | `-otm` | Ollama text model name | None |
+| `--huggingface-model` | `-hfm` | Hugging Face model ID | None |
 
 ### Processing Types
 
@@ -175,18 +221,29 @@ python main.py video.mp4 output/ --type video
 ```
 
 #### 4. Image Analysis
-Runs the pipeline with images input:
+Runs the pipeline with image input:
 ```bash
-python main.py ./images ./output --type MER
+python main.py ./images ./output --type image
+# Note: Image files will automatically use image pipeline regardless of --type setting
 ```
 
-#### 4. Full MER Pipeline (Default)
+#### 5. Full MER Pipeline (Default)
 Runs the complete multimodal emotion recognition pipeline:
 ```bash
 python main.py video.mp4 output/ --type MER
 # or simply:
 python main.py video.mp4 output/
 ```
+
+### Model Support
+
+The tool supports three types of models:
+
+1. **Google Gemini** (default): Requires `GOOGLE_API_KEY` in `.env`
+2. **Ollama**: Local models, specify with `--ollama-vision-model` and `--ollama-text-model`
+3. **Hugging Face**: Currently supports multimodal models like `google/gemma-3n-E4B-it`
+
+**Note**: If using Hugging Face models, concurrency is automatically set to 1 for synchronous processing.
 
 ## Testing Tools
 
