@@ -104,10 +104,10 @@ def create_graph(use_sync_nodes: bool = False):
         console.log(
             "Creating a [bold yellow]synchronous[/bold yellow] graph for Hugging Face model."
         )
-        from . import sync_node as nodes
+        from .nodes import sync_nodes as nodes
     else:
         console.log("Creating an [bold green]asynchronous[/bold green] graph.")
-        from . import nodes
+        from .nodes import async_nodes as nodes
 
     workflow = StateGraph(MERRState)
 

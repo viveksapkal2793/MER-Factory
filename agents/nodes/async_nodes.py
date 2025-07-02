@@ -5,7 +5,7 @@ import asyncio
 
 
 from tools.ffmpeg_adapter import FFMpegAdapter
-from .models import LLMModels
+from ..models import LLMModels
 from tools.emotion_analyzer import EmotionAnalyzer
 from tools.facial_analyzer import FacialAnalyzer
 
