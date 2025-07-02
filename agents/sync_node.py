@@ -5,8 +5,8 @@ import pandas as pd
 from scipy.signal import find_peaks
 
 from tools.ffmpeg_adapter import FFMpegAdapter
-
-from .nodes import AU_TO_TEXT_MAP, EMOTION_TO_AU_MAP
+from tools.emotion_analyzer import EmotionAnalyzer
+from tools.facial_analyzer import FacialAnalyzer
 
 console = Console(stderr=True)
 
@@ -156,100 +156,30 @@ def filter_by_emotion(state):
     if verbose:
         console.log("Finding all emotional peaks and analyzing mixed emotions...")
     au_data_path = Path(state["au_data_path"])
+
     try:
-        df = pd.read_csv(au_data_path)
-        df.columns = df.columns.str.strip()
-    except FileNotFoundError:
-        return {"error": f"OpenFace output not found at {au_data_path}"}
-
-    au_intensity_cols = [c for c in df.columns if c.endswith("_r")]
-    if not au_intensity_cols:
-        return {"error": "No AU intensity columns ('_r') found in the data."}
-
-    # Calculate an overall emotional intensity score for each frame
-    df["overall_intensity"] = df[au_intensity_cols].sum(axis=1)
-
-    # Use scipy to find peaks in the overall intensity
-    # These parameters are tunable to control sensitivity
-    peak_indices, _ = find_peaks(
-        df["overall_intensity"],
-        height=state.get("threshold", 0.8),  # Min intensity to be a peak
-        distance=state.get("peak_distance_frames", 20),  # Min frames between peaks
-    )
-
-    if peak_indices.size == 0:
-        if verbose:
-            console.log(
-                "😐 No significant emotional peaks found, classifying as Neutral."
-            )
-        return {"detected_emotions": ["neutral"]}
-
-    # --- Step 2: Analyze the emotions at each peak ---
-    emotion_threshold = state.get("threshold", 0.8)
-    detected_emotions_summary_list = []
-
-    for peak_idx in peak_indices:
-        peak_frame = df.iloc[peak_idx]
-        peak_timestamp = peak_frame["timestamp"]
-
-        emotions_at_peak = []
-        for emotion, au_list_c in EMOTION_TO_AU_MAP.items():
-            available_aus_c = [au for au in au_list_c if au in peak_frame]
-            if not all(au in peak_frame for au in au_list_c):
-                continue
-            present_aus_c = [au for au in available_aus_c if peak_frame[au] == 1]
-            if len(present_aus_c) >= 0.5 * len(au_list_c):
-
-                au_list_r = [au.replace("_c", "_r") for au in au_list_c]
-                available_aus_r = [au for au in au_list_r if au in peak_frame]
-
-                if not available_aus_r:
-                    continue
-
-                # Calculate the score for this emotion at this specific peak frame
-                score = peak_frame[available_aus_r].mean()
-
-                if score >= emotion_threshold:
-                    # Classify strength for better description
-                    strength = (
-                        "strong"
-                        if score >= 3.0 * emotion_threshold
-                        else "moderate" if score >= 2 * emotion_threshold else "slight"
-                    )
-                    emotions_at_peak.append(
-                        {"emotion": emotion, "score": score, "strength": strength}
-                    )
-
-        if not emotions_at_peak:
-            continue
-
-        # Sort emotions at this peak by score to find the primary one
-        emotions_at_peak.sort(key=lambda x: x["score"], reverse=True)
-
-        # Format the description string for this peak
-        peak_desc_parts = [
-            f"{e['emotion']} ({e['strength']})" for e in emotions_at_peak
-        ]
-        peak_summary_str = (
-            f"Peak at {peak_timestamp:.2f}s: {', '.join(peak_desc_parts)}"
+        analyzer = FacialAnalyzer(au_data_path)
+        summary_list, is_expressive = analyzer.get_chronological_emotion_summary(
+            peak_height=state.get("threshold", 0.8),
+            peak_distance=state.get("peak_distance_frames", 20),
+            emotion_threshold=state.get("threshold", 0.8),
         )
-        detected_emotions_summary_list.append(peak_summary_str)
+    except (FileNotFoundError, ValueError) as e:
+        return {"error": f"Failed to analyze facial data: {e}"}
 
-        if verbose:
-            console.log(f"  - {peak_summary_str}")
-
-    is_expressive = bool(detected_emotions_summary_list)
     if verbose:
         if is_expressive:
             console.log(
-                f"😊 Expressive. Found {len(detected_emotions_summary_list)} distinct emotional peaks."
+                f"😊 Expressive. Found {len(summary_list)} distinct emotional peaks."
             )
+            for peak_summary in summary_list:
+                console.log(f"  - {peak_summary}")
         else:
-            console.log("😐 Not expressive enough for multi-peak analysis.")
+            console.log(
+                "😐 Not expressive enough for multi-peak analysis, classifying as Neutral."
+            )
 
-    return {
-        "detected_emotions": detected_emotions_summary_list,
-    }
+    return {"detected_emotions": summary_list}
 
 
 def find_peak_frame(state):
@@ -258,21 +188,14 @@ def find_peak_frame(state):
     if verbose:
         console.log("Finding overall peak frame for representative image...")
     au_data_path = Path(state["au_data_path"])
-    df = pd.read_csv(au_data_path)
-    df.columns = df.columns.str.strip()
 
-    au_intensity_cols = [c for c in df.columns if c.endswith("_r")]
-    if not au_intensity_cols:
-        return {"error": "No AU intensity columns ('_r') found in the data."}
+    try:
+        analyzer = FacialAnalyzer(au_data_path)
+        peak_frame_info = analyzer.get_overall_peak_frame_info()
+    except (FileNotFoundError, ValueError) as e:
+        return {"error": f"Failed to find peak frame: {e}"}
 
-    if "overall_intensity" not in df.columns:
-        df["overall_intensity"] = df[au_intensity_cols].sum(axis=1)
-
-    # Find the single most intense frame in the entire video
-    peak_frame_idx = df["overall_intensity"].idxmax()
-    peak_frame_data = df.loc[peak_frame_idx]
-    peak_timestamp = peak_frame_data["timestamp"]
-
+    peak_timestamp = peak_frame_info["timestamp"]
     video_path = Path(state["video_path"])
     peak_frame_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_peak_frame.png"
@@ -283,17 +206,6 @@ def find_peak_frame(state):
     ):
         return {"error": f"Failed to extract peak frame at timestamp {peak_timestamp}."}
 
-    top_aus_intensities = {
-        au: peak_frame_data.get(au, 0)
-        for au in au_intensity_cols
-        if peak_frame_data.get(au, 0) > 0.8
-    }
-
-    peak_frame_info = {
-        "frame_number": int(peak_frame_data["frame"]),
-        "timestamp": peak_timestamp,
-        "top_aus_intensities": top_aus_intensities,
-    }
     if verbose:
         console.log(
             f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail."
@@ -316,25 +228,15 @@ def generate_peak_frame_visual_description(state):
 
 def generate_peak_frame_au_description(state):
     """Generates an AU-based description for the peak frame."""
-    # NOTE: Here we pass the original AU other than using LLM to convert it to text.
-    # This is because the MER pipeline has other modalities can provide context,
-    # we give LLM the raw AU data to avoid any potential misinterpretation.
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating AU description for peak frame...")
     peak_aus = state["peak_frame_info"]["top_aus_intensities"]
-    active_aus = {
-        au: i for au, i in peak_aus.items() if i > 0.8 and au in AU_TO_TEXT_MAP
-    }
-    visual_expr_desc = (
-        ", ".join(
-            [
-                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
-                for au, i in active_aus.items()
-            ]
-        )
-        or "Neutral expression at the overall peak frame."
-    )
+
+    visual_expr_desc = EmotionAnalyzer.extract_au_description(peak_aus)
+    if "Neutral expression" in visual_expr_desc:
+        visual_expr_desc = "Neutral expression at the overall peak frame."
+
     if verbose:
         console.log(f"Peak Frame AU Description: [yellow]{visual_expr_desc}[/yellow]")
     return {"peak_frame_au_description": visual_expr_desc}
@@ -347,16 +249,48 @@ def synthesize_summary(state):
         console.log("Synthesizing final MER summary...")
     hf_model = state["models"].hf_model_instance
 
-    audio_analysis = state.get("audio_analysis_results", {})
+    # Dynamically build the context based on available data
+    clues = []
 
-    coarse_summary = (
-        f"- Chronological Emotion Peaks: {'; '.join(state.get('detected_emotions', ['N/A']))}\n"
-        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {state.get('peak_frame_au_description', 'N/A')}\n"
-        f"- Visual Context (at overall peak): {state.get('image_visual_description', 'N/A')}\n"
-        f"- Audio Tone: {audio_analysis.get('tone_description', 'N/A')}\n"
-        f"- Subtitles: {audio_analysis.get('transcript', 'N/A')}\n"
-        f"- Video Content: {state.get('video_description', 'N/A')}"
-    )
+    # Chronological emotions
+    detected_emotions = state.get("detected_emotions")
+    if detected_emotions:
+        clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
+
+    # Peak frame facial expression
+    peak_frame_au_desc = state.get("peak_frame_au_description")
+    if peak_frame_au_desc:
+        timestamp = state.get("peak_frame_info", {}).get("timestamp", 0)
+        clues.append(
+            f"- Facial Expression Clues (at overall peak {timestamp:.2f}s): {peak_frame_au_desc}"
+        )
+
+    # Peak frame visual context
+    image_visual_desc = state.get("image_visual_description")
+    if image_visual_desc:
+        clues.append(f"- Visual Context (at overall peak): {image_visual_desc}")
+
+    # Audio analysis
+    audio_analysis = state.get("audio_analysis_results", {})
+    audio_tone = audio_analysis.get("tone_description", "N/A")
+    transcript = audio_analysis.get("transcript", "N/A")
+    if audio_tone and audio_tone.strip() and audio_tone != "N/A":
+        clues.append(f"- Audio Tone: {audio_tone}")
+    if transcript and transcript.strip() and transcript != "N/A":
+        clues.append(f"- Subtitles: {transcript}")
+
+    # Video description
+    video_description = state.get("video_description", "N/A")
+    if video_description and video_description.strip() and video_description != "N/A":
+        clues.append(f"- Video Content Overview: {video_description}")
+
+    coarse_summary = "\n".join(clues)
+
+    if verbose:
+        console.log("--- Sending Following Clues to LLM for Synthesis ---")
+        console.log(coarse_summary)
+        console.log("----------------------------------------------------")
+
     final_summary = hf_model.synthesize_summary(coarse_summary)
     return {"final_summary": final_summary}
 
@@ -427,33 +361,11 @@ def run_image_analysis(state):
         console.log(f"Confirmed OpenFace output at [green]{au_data_path}[/green]")
 
     try:
-        df = pd.read_csv(au_data_path)
-        df.columns = df.columns.str.strip()
-    except FileNotFoundError:
-        return {"error": f"AU data file not found at {au_data_path}"}
+        analyzer = FacialAnalyzer(au_data_path)
+        au_text_desc = analyzer.get_frame_au_summary(threshold=0.8)
+    except (FileNotFoundError, ValueError) as e:
+        return {"error": f"Failed to analyze image facial data: {e}"}
 
-    if df.empty:
-        return {"error": "OpenFace produced an empty CSV for the image."}
-
-    image_frame_data = df.iloc[0]
-    au_intensity_cols = [
-        c for c in df.columns if c.startswith("AU") and c.endswith("_r")
-    ]
-    active_aus = {
-        au: i
-        for au, i in image_frame_data[au_intensity_cols].items()
-        if i > 0.8 and au in AU_TO_TEXT_MAP
-    }
-
-    au_text_desc = (
-        ", ".join(
-            [
-                f"{AU_TO_TEXT_MAP.get(au, au)} (intensity: {i:.2f})"
-                for au, i in active_aus.items()
-            ]
-        )
-        or "Neutral expression."
-    )
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
 
