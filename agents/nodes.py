@@ -129,7 +129,7 @@ async def save_audio_results(state):
 
     def _save():
         with open(output_path, "w") as f:
-            json.dump(results, f, indent=4)
+            json.dump(results, f, indent=4, ensure_ascii=False)
 
     await asyncio.to_thread(_save)
     if verbose:
@@ -291,6 +291,7 @@ async def filter_by_emotion(state):
             )
         else:
             console.log("😐 Not expressive enough for multi-peak analysis.")
+            return {"detected_emotions": ["neutral"]}
 
     return {
         "detected_emotions": detected_emotions_summary_list,
@@ -392,16 +393,45 @@ async def synthesize_summary(state):
         console.log("Synthesizing final MER summary...")
     models: LLMModels = state["models"]
 
-    audio_analysis = state.get("audio_analysis_results", {})
+    # Dynamically build the context based on available data
+    clues = []
 
-    coarse_summary = (
-        f"- Chronological Emotion Peaks: {'; '.join(state.get('detected_emotions', ['N/A']))}\n"
-        f"- Facial Expression Clues (at overall peak {state['peak_frame_info']['timestamp']:.2f}s): {state.get('peak_frame_au_description', 'N/A')}\n"
-        f"- Visual Context (at overall peak): {state.get('image_visual_description', 'N/A')}\n"
-        f"- Audio Tone: {audio_analysis.get('tone_description', 'N/A')}\n"
-        f"- Subtitles: {audio_analysis.get('transcript', 'N/A')}\n"
-        f"- Video Content: {state.get('video_description', 'N/A')}"
+    # Chronological emotions
+    detected_emotions = state.get("detected_emotions")
+    clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
+
+    # Peak frame facial expression
+    peak_frame_au_desc = state.get("peak_frame_au_description")
+    timestamp = state.get("peak_frame_info", {}).get("timestamp")
+
+    clues.append(
+        f"- Facial Expression Clues (at overall peak {timestamp:.2f}s): {peak_frame_au_desc}"
     )
+    # Peak frame visual context
+    image_visual_desc = state.get("image_visual_description")
+    clues.append(f"- Visual Context (at overall peak): {image_visual_desc}")
+
+    # Audio analysis
+    audio_analysis = state.get("audio_analysis_results", {})
+    audio_tone = audio_analysis.get("tone_description")
+    transcript = audio_analysis.get("transcript")
+    if audio_tone and audio_tone.strip() and audio_tone != "N/A":
+        clues.append(f"- Audio Tone: {audio_tone}")
+    if transcript and transcript.strip() and transcript != "N/A":
+        clues.append(f"- Subtitles: {transcript}")
+
+    # Video description
+    video_description = state.get("video_description")
+    if video_description and video_description.strip() and video_description != "N/A":
+        clues.append(f"- Video Content Overview: {video_description}")
+
+    coarse_summary = "\n".join(clues)
+
+    if verbose:
+        console.log("--- Sending Following Clues to LLM for Synthesis ---")
+        console.log(coarse_summary)
+        console.log("----------------------------------------------------")
+
     final_summary = await models.synthesize_summary(coarse_summary)
     return {"final_summary": final_summary}
 

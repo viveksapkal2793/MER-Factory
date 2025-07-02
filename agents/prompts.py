@@ -25,7 +25,7 @@ Example: If the AUs are 'inner brow raised, lip corners pulled up', a good descr
     def analyze_audio():
         """Returns the prompt for analyzing audio."""
         return """Analyze this audio file. Perform two tasks:
-1. Transcribe the speech into text. If there is no speech, state "No speech detected".
+1. Transcribe the speech into text. If there is no speech, state "".
 2. Describe the audio characteristics. Include descriptions of the speaker's tone (e.g., cheerful, angry, calm), pitch, speed, and any background noises.
 
 Provide the output as a single, raw JSON object string with two keys: "transcript" and "tone_description". Do not wrap it in markdown backticks or other formatting.
@@ -37,8 +37,41 @@ Provide the output as a single, raw JSON object string with two keys: "transcrip
         return "Describe the content of this video. What is happening? Describe the scene, any people, any emotion, and their actions. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION."
 
     @staticmethod
-    def synthesize_summary():
-        """Returns the prompt for synthesizing an emotional summary."""
+    def synthesize_summary(provider: str = None):
+        """
+        Returns the prompt for synthesizing an emotional summary.
+        Accepts an optional 'provider' argument to tailor the prompt for specific model capabilities.
+        """
+        if provider == "ollama":
+            # TODO: This prompt is simplified for models like Ollama that currently excel at visual analysis
+            # but do not support audio or direct video content analysis. The analysis will be based
+            # solely on facial expressions (AUs), chronological emotional data, and image descriptions.
+            # We would update when we integrate a multimodal model that can handle audio and video with ollama.
+            return """You are an expert psychologist and behavioral analyst specializing in multimodal emotion recognition. Your mission is to synthesize a comprehensive analysis from a set of visual and chronological clues.
+
+Here are the available analytical clues:
+---
+{context}
+---
+
+Based exclusively on the clues provided, structure your analysis in two distinct parts:
+
+**Part 1: Emotional Narrative**
+Analyze the "Chronological Emotion Peaks" to narrate the subject's emotional journey over time. Correlate these emotional shifts with the "Facial Expression Clues" and the "Visual Context" from the peak frame. Weave a story that explains the transitions based only on the visual evidence. DO NOT MAKE ONE UP. ONLY USE THE PROVIDED CLUES
+
+**Part 2: Overall Assessment**
+After narrating the journey, provide a concluding summary. This summary must:
+1.  Infer the subject's most likely overall emotional state(s) based on the visual evidence.
+2.  Propose the likely cause for this emotional state, if it can be inferred from the "Visual Context" clue. If not, state that the cause cannot be determined from the visual information alone.
+
+**Constraint Checklist:**
+- Ground your entire analysis *only* in the provided clues.
+- Adhere strictly to the two-part structure.
+- Be detailed and specific, avoiding abstract generalizations.
+- Provide only the raw text of your two-part analysis. Do not include any introductory phrases like "Here is my analysis."
+"""
+
+        # Default, full-featured prompt for multimodal models
         return """You are an expert psychologist and behavioral analyst specializing in multimodal emotion recognition. Your mission is to synthesize a comprehensive analysis from a set of multimodal clues. You will construct a narrative of the subject's emotional journey and provide a final, conclusive assessment.
 
 Here are the clues you've gathered from the video recording:
@@ -56,7 +89,7 @@ Analyze the "Chronological Emotion Peaks" to narrate the subject's emotional jou
 **Part 2: Overall Assessment**
 After narrating the journey, provide a concluding summary. This summary must:
 1.  **Infer the subject's most likely overall emotional state(s).** Be specific (e.g., "Joyful Excitement," "Anxious Grief," "Conflicted Relief").
-2.  **Propose the likely cause for this emotional state.** You must ground your inference in specific evidence from the "subtitles," "video_content," or "visual_objective_at_peak" clues. For example, "The overall state of 'Joyful Excitement' was likely caused by receiving a long-awaited job offer, as explicitly stated in the subtitles."
+2.  **Propose the likely cause for this emotional state.** You must ground your inference in specific evidence from the "subtitles," "video_content," or "visual_objective_at_peak" clues. For example, "The overall state of 'Joyful Excitement' was likely caused by receiving a long-awaited job offer, as explicitly stated in the subtitles". Treat the multimodal clues as a cohesive narrative, not isolated fragments.
 
 **Constraint Checklist:**
 - Ground your entire analysis *only* in the provided clues.

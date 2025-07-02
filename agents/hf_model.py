@@ -244,7 +244,13 @@ class HuggingFaceModel:
 
             prompt = PromptTemplates.describe_video()
             content = [{"type": "text", "text": prompt}]
-            frame_files = sorted(list(frames_dir.glob("*.jpg")))[:15]
+            frame_files = sorted(list(frames_dir.glob("*.jpg")))
+            if len(frame_files) > 15:
+                # Take 15 frames evenly distributed across the video
+                step = len(frame_files) / 15
+                frame_files = [frame_files[int(i * step)] for i in range(15)]
+            else:
+                frame_files = frame_files[:15]
             for f in frame_files:
                 content.append({"type": "image", "url": str(f)})
             if audio_clip_path.exists() and audio_clip_path.stat().st_size > 0:
@@ -253,8 +259,7 @@ class HuggingFaceModel:
             messages = [{"role": "user", "content": content}]
             return self._run_pipeline(messages, 512)
 
-    def synthesize_summary(self, context: str) -> str:
+    def synthesize_summary(self, prompt: str) -> str:
         """Synthesizes a final summary from context."""
-        prompt = PromptTemplates.synthesize_summary().format(context=context)
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
-        return self._run_pipeline(messages, 512)
+        return self._run_pipeline(messages, 1024)

@@ -230,14 +230,15 @@ class LLMModels:
     async def synthesize_summary(self, context: str) -> str:
         if self.verbose:
             console.log("Generating fine-grained summary...")
-
+        prompt = PromptTemplates.synthesize_summary(provider=self.model_type).format(
+            context=context
+        )
         if self.model_type == "huggingface":
-            return self.hf_model_instance.synthesize_summary(context)
+            return self.hf_model_instance.synthesize_summary(prompt)
 
         if not self.text_model:
             return "Error: Text model not initialized."
         try:
-            prompt = PromptTemplates.synthesize_summary().format(context=context)
             chain = self.text_model | StrOutputParser()
             return await chain.ainvoke(prompt)
         except Exception as e:

@@ -338,7 +338,7 @@ async def _run_feature_extraction(
     files_to_process, output_dir, processing_type, verbose
 ):
     """Asynchronous feature extraction for OpenFace and FFmpeg with progress bars."""
-    extraction_semaphore = asyncio.Semaphore(8)
+    extraction_semaphore = asyncio.Semaphore(4)
 
     video_files = [f for f in files_to_process if f.suffix.lower() in VIDEO_EXTENSIONS]
     image_files = [f for f in files_to_process if f.suffix.lower() in IMAGE_EXTENSIONS]
