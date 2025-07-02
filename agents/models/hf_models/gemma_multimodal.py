@@ -6,21 +6,17 @@ import tempfile
 import subprocess
 import json
 from typing import List, Dict, Any
+from transformers import AutoProcessor, AutoModelForImageTextToText
 
-from .prompts import PromptTemplates
+from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
 
-class HuggingFaceModel:
-    """
-    A class to encapsulate all interactions with a Hugging Face multimodal model.
-    This version uses synchronous methods for all model interactions.
-    """
-
+class GemmaMultimodalModel:
     def __init__(self, model_id: str, verbose: bool = True):
         """
-        Initializes the HuggingFaceModel by loading the model and processor.
+        Initializes the model by loading the model and processor.
 
         Args:
             model_id (str): The ID of the Hugging Face model to load.
@@ -37,9 +33,7 @@ class HuggingFaceModel:
         if self.verbose:
             console.log(f"Initializing Hugging Face pipeline for '{self.model_id}'...")
         try:
-            from transformers import AutoProcessor, AutoModelForImageTextToText
 
-            # Currently only supporting these multimodal models
             assert self.model_id in [
                 "google/gemma-3n-E4B-it",
                 "google/gemma-3n-E2B-it",

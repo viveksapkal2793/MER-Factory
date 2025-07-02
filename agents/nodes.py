@@ -72,7 +72,7 @@ async def generate_audio_description(state):
             "error": f"Audio file not found at {audio_path}. The background FFMpeg task may have failed."
         }
 
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
     if verbose:
         console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
     audio_analysis = await models.analyze_audio(audio_path)
@@ -108,7 +108,7 @@ async def generate_video_description(state):
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
     video_description = await models.describe_video(video_path)
     if verbose and video_description:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
@@ -231,7 +231,7 @@ async def generate_peak_frame_visual_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating visual description for peak frame...")
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
     peak_frame_path = Path(state["peak_frame_path"])
 
     visual_obj_desc = await models.describe_image(peak_frame_path)
@@ -264,7 +264,7 @@ async def synthesize_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final MER summary...")
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
 
     # Dynamically build the context based on available data
     clues = []
@@ -374,7 +374,7 @@ async def run_image_analysis(state):
     if verbose:
         console.rule("[bold]Executing: Image Analysis[/bold]")
 
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
     image_path = Path(
         state["video_path"]
     )  # for simplicity, we use video_path for image_path
@@ -430,7 +430,7 @@ async def synthesize_image_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final image summary...")
-    models: LLMModels = state["models"]
+    models: LLMModels = state["models"].model_instance
 
     context = (
         f"- Facial Expression Clues: {state['llm_au_description']}\n"
