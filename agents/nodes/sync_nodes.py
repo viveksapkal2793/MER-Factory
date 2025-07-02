@@ -1,8 +1,7 @@
 import json
 from rich.console import Console
 from pathlib import Path
-import pandas as pd
-from scipy.signal import find_peaks
+
 
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.emotion_analyzer import EmotionAnalyzer
