@@ -5,6 +5,8 @@ from pathlib import Path
 from rich.console import Console
 import base64
 import mimetypes
+import torch
+from transformers import pipeline
 import asyncio
 
 from agents.prompts import PromptTemplates
@@ -14,21 +16,33 @@ console = Console(stderr=True)
 
 class OllamaModel:
     """
-    A class to handle all interactions with Ollama models.
-    Supports separate text and vision models, or a single vision model
-    acting as both.
+    A class to handle all interactions with Ollama models and Hugging Face models.
+    Supports separate text and vision models from Ollama, and audio/video
+    models from Hugging Face. Ollama calls are asynchronous, Hugging Face calls are synchronous.
     """
 
     def __init__(
         self,
         text_model_name: str = None,
         vision_model_name: str = None,
+        audio_model_name: str = "openai/whisper-base",
         verbose: bool = True,
     ):
+        """
+        Initializes the models.
+
+        Args:
+            text_model_name (str, optional): The name of the Ollama text model.
+            vision_model_name (str, optional): The name of the Ollama vision model.
+            audio_model_name (str, optional): The name of the Hugging Face audio model.
+            verbose (bool, optional): Whether to print status messages.
+        """
         self.verbose = verbose
         self.text_model = None
         self.vision_model = None
+        self.audio_pipeline = None
 
+        # --- Ollama Model Initialization ---
         if vision_model_name:
             self.vision_model = ChatOllama(
                 model=vision_model_name, temperature=0, num_predict=512
@@ -49,9 +63,36 @@ class OllamaModel:
                 console.log("Ollama vision model will also be used for text tasks.")
 
         if not self.text_model and not self.vision_model:
-            raise ValueError(
-                "At least one Ollama model (text or vision) must be specified."
+            # If no Ollama models are specified, we can still proceed if HF models are available.
+            console.log(
+                "[yellow]Warning: No Ollama text or vision model specified.[/yellow]"
             )
+
+        # --- Hugging Face Model Initialization ---
+        device = (
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps" if torch.backends.mps.is_available() else "cpu"
+        )
+        if self.verbose:
+            console.log(f"Using device: '{device}' for Hugging Face models.")
+
+        if audio_model_name:
+            try:
+                self.audio_pipeline = pipeline(
+                    "automatic-speech-recognition",
+                    model=audio_model_name,
+                    device=device,
+                    trust_remote_code=True,
+                )
+                if self.verbose:
+                    console.log(
+                        f"Hugging Face audio model '{audio_model_name}' initialized."
+                    )
+            except Exception as e:
+                console.log(
+                    f"[bold red]❌ Error initializing audio model: {e}[/bold red]"
+                )
 
     async def describe_facial_expression(self, au_text: str) -> str:
         """Generates a description from AU text using Ollama."""
@@ -91,15 +132,38 @@ class OllamaModel:
             return await chain.ainvoke([message])
         except Exception as e:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
-            return f"Error: {e}"
+            return ""
 
     async def analyze_audio(self, audio_path: Path) -> dict:
-        """Audio analysis is not supported for Ollama models."""
-        if self.verbose:
-            console.log(
-                "[yellow]Warning: Audio analysis is not supported for Ollama models.[/yellow]"
-            )
-        return {"transcript": "", "tone_description": ""}
+        return self._analyze_audio(audio_path)
+
+    def _analyze_audio(self, audio_path: Path) -> dict:
+        """
+        Analyzes an audio file to transcribe the speech using a Hugging Face model.
+
+        Args:
+            audio_path (Path): The path to the audio file.
+
+        Returns:
+            A dictionary containing the transcript.
+        """
+        if not self.audio_pipeline:
+            return {
+                "transcript": "",
+                "tone_description": "",
+            }
+
+        try:
+            if self.verbose:
+                console.log(f"Analyzing audio file: {audio_path}")
+            result = self.audio_pipeline(str(audio_path))
+            transcript = result.get("text", "")
+            if self.verbose:
+                console.log(f"Audio transcript: '{transcript}'")
+            return {"transcript": transcript, "tone_description": ""}
+        except Exception as e:
+            console.log(f"[bold red]❌ Error analyzing audio: {e}[/bold red]")
+            return {"transcript": "", "tone_description": ""}
 
     async def describe_video(self, video_path: Path) -> str:
         """Video analysis is not supported for Ollama models."""
@@ -118,4 +182,4 @@ class OllamaModel:
             return await chain.ainvoke(prompt)
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
-            return f"Error: {e}"
+            return ""

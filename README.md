@@ -1,5 +1,8 @@
 # Multimodal Emotion Recognition Reasoning Dataset Builder
 
+![Multimodal Emotion Reasoning](https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red) 
+![Multimodal Emotion Recognition](https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red) 
+
 A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image analysis, and full multimodal emotion recognition pipeline.
 
 This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset construction strategy.
@@ -185,7 +188,7 @@ python main.py path_to_video/ output/ --type MER --huggingface-model google/gemm
 python main.py ./images ./output --type MER
 ```
 
-Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama only supports peak frame & AU analysis for now.
+Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not support video analysis for now.
 
 ### Command Line Options
 

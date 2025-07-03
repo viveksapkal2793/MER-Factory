@@ -115,7 +115,7 @@ class GeminiModel:
             return await chain.ainvoke([message])
         except Exception as e:
             console.log(f"[bold red]❌ Error describing video: {e}[/bold red]")
-            return f"Error: {e}"
+            return ""
 
     async def synthesize_summary(self, prompt: str) -> str:
         """Synthesizes a final summary from context using Gemini."""
@@ -124,4 +124,4 @@ class GeminiModel:
             return await chain.ainvoke(prompt)
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
-            return f"Error: {e}"
+            return ""
