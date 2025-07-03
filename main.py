@@ -196,13 +196,24 @@ def _process_wrapper(
     concurrency: int,
     ollama_text_model_name: str,
     ollama_vision_model_name: str,
+    chatgpt_model_name: str,
     huggingface_model_id: str,
 ):
     """
     Main logic wrapper that decides whether to run sync or async processing.
     """
     load_dotenv()
-    api_key = os.getenv("GOOGLE_API_KEY")
+    # If a ChatGPT model is specified, use the OpenAI key. Otherwise, fall back to the Google key for Gemini.
+    api_key = None
+    if chatgpt_model_name:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            console.print(
+                "[bold red]Error: --chatgpt-model was provided, but OPENAI_API_KEY was not found in the .env file.[/bold red]"
+            )
+            raise typer.Exit(code=1)
+    else:
+        api_key = os.getenv("GOOGLE_API_KEY")
 
     if processing_type in [ProcessingType.mer, ProcessingType.au]:
         openface_executable = os.getenv("OPENFACE_EXECUTABLE")
@@ -224,11 +235,12 @@ def _process_wrapper(
             huggingface_model_id,
             ollama_text_model_name,
             ollama_vision_model_name,
-            api_key,
+            chatgpt_model_name,
+            (api_key and not chatgpt_model_name),  # Gemini
         ]
     ):
         console.print(
-            "[bold red]Error: A model must be provided via --huggingface-model, --ollama-..., or GOOGLE_API_KEY.[/bold red]"
+            "[bold red]Error: A model must be provided via --huggingface-model, --ollama-..., --chatgpt-model, or a GOOGLE_API_KEY in the .env file.[/bold red]"
         )
         raise typer.Exit(code=1)
 
@@ -242,6 +254,7 @@ def _process_wrapper(
             api_key=api_key,
             ollama_text_model_name=ollama_text_model_name,
             ollama_vision_model_name=ollama_vision_model_name,
+            chatgpt_model_name=chatgpt_model_name,
             huggingface_model_id=huggingface_model_id,
             verbose=verbose,
         )
@@ -277,7 +290,10 @@ def _process_wrapper(
         error_logs_dir=error_logs_dir,
     )
 
-    if huggingface_model_id:
+    # Use the model type from the initialized model to determine sync/async execution
+    is_sync_model = models.model_type == "huggingface"
+
+    if is_sync_model:
         if concurrency > 1 and not silent:
             console.log(
                 "[yellow]Concurrency set to 1 for synchronous Hugging Face model.[/yellow]"
@@ -470,9 +486,9 @@ def process(
     ollama_text_model: str = typer.Option(
         None, "--ollama-text-model", "-otm", help="Ollama text model name."
     ),
-    # TODO: Add support for Hugging Face models
-    # Currently only supports multimodal models like google/gemma-3n-E4B-it
-    # and google/gemma-3n-E2B-it.
+    chatgpt_model: str = typer.Option(
+        None, "--chatgpt-model", "-cgm", help="ChatGPT model name (e.g., gpt-4o)."
+    ),
     huggingface_model_id: str = typer.Option(
         None, "--huggingface-model", "-hfm", help="Hugging Face model ID."
     ),
@@ -488,6 +504,7 @@ def process(
         concurrency=concurrency,
         ollama_text_model_name=ollama_text_model,
         ollama_vision_model_name=ollama_vision_model,
+        chatgpt_model_name=chatgpt_model,
         huggingface_model_id=huggingface_model_id,
     )
 
