@@ -1,7 +1,8 @@
 # Multimodal Emotion Recognition Reasoning Dataset Builder
 
-![Multimodal Emotion Reasoning](https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red) 
-![Multimodal Emotion Recognition](https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red) 
+<p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
+
+<p align="center"> <img src="https://github.com/user-attachments/assets/8b328f72-75ca-45d9-8cb2-8412f6686183" width="400"> </p>
 
 A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image analysis, and full multimodal emotion recognition pipeline.
 

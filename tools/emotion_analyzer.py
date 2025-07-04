@@ -30,6 +30,7 @@ EMOTION_TO_AU_MAP = {
     "angry": ["AU04_c", "AU05_c", "AU07_c", "AU23_c", "AU10_c", "AU17_c"],
     "contempt": ["AU12_c", "AU10_c", "AU14_c", "AU17_c"],
     "worried": ["AU28_c", "AU20_c"],
+    "disgust": ["AU09_c", "AU15_c"],
 }
 
 
