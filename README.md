@@ -1,12 +1,12 @@
-# Multimodal Emotion Recognition Reasoning Dataset Builder
+# 👉🏻 MER-Factory 👈🏻
+
+<p align="center">
+  <strong>Your automated factory for constructing Multimodal Emotion Recognition and Reasoning (MERR) datasets.</strong>
+</p>
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
 
 <p align="center"> <img src="https://github.com/user-attachments/assets/8b328f72-75ca-45d9-8cb2-8412f6686183" width="400"> </p>
-
-A modular CLI tool for constructing multimodal emotion recognition reasoning (MERR) datasets from video/image files. This tool provides four different processing modes: Action Unit (AU) extraction, audio analysis, video analysis, image analysis, and full multimodal emotion recognition pipeline.
-
-This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/paper_files/paper/2024/hash/c7f43ada17acc234f568dc66da527418-Abstract-Conference.html) @ NeurIPS 2024** MERR dataset construction strategy.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ This is the implementation of **[Emotion-LLaMA](https://proceedings.neurips.cc/p
 - [Testing Tools](#testing-tools)
 - [Troubleshooting](#troubleshooting)
 
-## Pipeline Structure
+## 🏗️ Pipeline Structure
 
 <details>
 <summary>Click here to expand/collapse</summary>
@@ -90,19 +90,19 @@ graph TD;
 
 </details>
 
-## Features
+## ✨ Features
 
-- **AU Pipeline**: Extract facial Action Units and generate natural language descriptions
-- **Audio Pipeline**: Extract audio, transcribe speech, and analyze tone
-- **Video Pipeline**: Generate comprehensive video content descriptions  
-- **Image Pipeline**: End-to-end emotion recognition with image description and emotional synthesis
-- **MER Pipeline**: Full end-to-end multimodal emotion recognition with peak frame detection and emotional synthesis
+-   **Action Unit (AU) Pipeline**: Extracts facial Action Units (AUs) and translates them into descriptive natural language.
+-   **Audio Analysis Pipeline**: Extracts audio, transcribes speech, and performs detailed tonal analysis.
+-   **Video Analysis Pipeline**: Generates comprehensive descriptions of video content and context.
+-   **Image Analysis Pipeline**: Provides end-to-end emotion recognition for static images, complete with visual descriptions and emotional synthesis.
+-   **Full MER Pipeline**: An end-to-end multimodal pipeline that identifies peak emotional moments, analyzes all modalities (visual, audio, facial), and synthesizes a holistic emotional reasoning summary.
 
-Examples of MERR can be found at [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json) and [gemini_merr.json](examples/gemini_merr.json)
+Check out example outputs here:
+-   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
+-   [gemini_merr.json](examples/gemini_merr.json)
 
-## Prerequisites
-
-
+## 🛠️ Prerequisites
 
 ### 1. FFmpeg
 FFmpeg is required for video and audio processing.
@@ -142,14 +142,14 @@ OpenFace is needed for facial Action Unit extraction.
 
 </details>
 
-## Installation
+## 🚀 Installation
 
 ```bash
-git clone git@github.com:Lum1104/MER-Dataset-Builder.git
-cd MER-Dataset-Builder
+git clone git@github.com:Lum1104/MER-Factory.git
+cd MER-Factory
 
-conda create -n mer_dataset_builder python=3.12
-conda activate mer_dataset_builder
+conda create -n mer-factory python=3.12
+conda activate mer-factory
 
 pip install -r requirements.txt
 ```
@@ -162,9 +162,10 @@ pip install -r requirements.txt
 
 2. Edit the `.env` file and configure your settings:
    - `GOOGLE_API_KEY`: Your Google API key for Gemini models (optional if using other models)
+   - `OPENAI_API_KEY`: Your OpenAI API key for ChatGPT models (optional if using other models)
    - `OPENFACE_EXECUTABLE`: Path to OpenFace FeatureExtraction executable (required for AU and MER pipelines)
 
-## Usage
+## ⚙️ Usage
 
 ### Basic Command Structure
 ```bash
@@ -176,8 +177,11 @@ python main.py [INPUT_PATH] [OUTPUT_DIR] [OPTIONS]
 # Full MER pipeline with Gemini (default)
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
 
-# MER pipeline with custom threshold  
+# MER pipeline with custom threshold
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.45
+
+# Using ChatGPT models
+python main.py path_to_video/ output/ --type MER --chatgpt-model gpt-4o --silent
 
 # Using local Ollama models
 python main.py path_to_video/ output/ --type MER --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent
@@ -202,6 +206,7 @@ Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not
 | `--concurrency` | `-c` | Concurrent files for async processing (min 1) | 4 |
 | `--ollama-vision-model` | `-ovm` | Ollama vision model name | None |
 | `--ollama-text-model` | `-otm` | Ollama text model name | None |
+| `--chatgpt-model` | `-cgm` | ChatGPT model name (e.g., gpt-4o) | None |
 | `--huggingface-model` | `-hfm` | Hugging Face model ID | None |
 
 ### Processing Types
@@ -239,49 +244,51 @@ python main.py video.mp4 output/ --type MER
 python main.py video.mp4 output/
 ```
 
-### Model Support
+### 🤖 Model Support
 
-The tool supports three types of models:
+The tool supports four types of models:
 
 1. **Google Gemini** (default): Requires `GOOGLE_API_KEY` in `.env`
-2. **Ollama**: Local models, specify with `--ollama-vision-model` and `--ollama-text-model`
-3. **Hugging Face**: Currently supports multimodal models like `google/gemma-3n-E4B-it`
+2. **OpenAI ChatGPT**: Requires `OPENAI_API_KEY` in `.env`, specify with `--chatgpt-model`
+3. **Ollama**: Local models, specify with `--ollama-vision-model` and `--ollama-text-model`
+4. **Hugging Face**: Currently supports multimodal models like `google/gemma-3n-E4B-it`
 
 **Note**: If using Hugging Face models, concurrency is automatically set to 1 for synchronous processing.
 
-## Testing Tools
+## ✅ Testing & Troubleshooting
 
-Verify your installation of FFmpeg and OpenFace:
+### Installation Verification
+Use these scripts to ensure your dependencies are correctly configured.
 
 <details>
-<summary>Click here to expand/collapse</summary>
+<summary>Click to see testing commands</summary>
 
-### Test FFmpeg Integration
+**Test FFmpeg Integration**:
 ```bash
-python test_ffmpeg.py video_file.mp4 test_output/
+python test_ffmpeg.py your_video.mp4 test_output/
 ```
 
-### Test OpenFace Integration
+**Test OpenFace Integration**:
 ```bash
-python test_openface.py video_file.mp4 test_output/
+python test_openface.py your_video.mp4 test_output/
 ```
 
 </details>
 
-## Troubleshooting
-
 ### Common Issues
 
-1. **FFmpeg not found:**
-   - Ensure FFmpeg is installed and in your system PATH
-   - Test with: `ffmpeg -version`
+1.  **FFmpeg not found**:
+    -   **Symptom**: `FileNotFoundError` related to `ffmpeg` or `ffprobe`.
+    -   **Solution**: Ensure FFmpeg is installed correctly and that its location is included in your system's `PATH` environment variable. Verify with `ffmpeg -version`.
 
-2. **OpenFace executable not found:**
-   - Ensure OPENFACE_EXECUTABLE is set in your .env file
-   - Verify the path points to the correct FeatureExtraction executable
-   - Ensure the executable has proper permissions
-   - Test with the provided `test_openface.py` script
+2.  **OpenFace executable not found**:
+    -   **Symptom**: Errors indicating the `FeatureExtraction` executable cannot be found.
+    -   **Solution**: Double-check the `OPENFACE_EXECUTABLE` path in your `.env` file. It must be an **absolute path** to the executable. Ensure the file has execute permissions (`chmod +x FeatureExtraction`).
 
-3. **Google API errors:**
-   - Verify your API key is correct in the `.env` file
-   - Check your API quotas and billing in Google Cloud Console
+3.  **API Key Errors (Google/OpenAI)**:
+    -   **Symptom**: `401 Unauthorized` or `PermissionDenied` errors.
+    -   **Solution**: Verify that the API keys in your `.env` file are correct and do not have extra spaces or characters. Ensure the associated account has billing enabled and sufficient quota.
+
+4.  **Ollama Model Not Found**:
+    -   **Symptom**: Errors mentioning the model is not available.
+    -   **Solution**: Make sure you have pulled the model locally using `ollama pull <model_name>`.

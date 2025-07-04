@@ -81,7 +81,9 @@ class GemmaMultimodalModel:
             inputs[key] = tensor
         return inputs
 
-    def _run_pipeline(self, messages: List[Dict[str, Any]], max_new_tokens: int) -> str:
+    def _run_generation(
+        self, messages: List[Dict[str, Any]], max_new_tokens: int
+    ) -> str:
         """
         Internal synchronous method to run the generation pipeline.
         """
@@ -148,7 +150,7 @@ class GemmaMultimodalModel:
         """Generates a description from AU text."""
         prompt = PromptTemplates.describe_facial_expression().format(au_text=au_text)
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
-        return self._run_pipeline(messages, 256)
+        return self._run_generation(messages, 256)
 
     def describe_image(self, image_path: Path) -> str:
         """Generates a description for an image file."""
@@ -162,7 +164,7 @@ class GemmaMultimodalModel:
                 ],
             }
         ]
-        return self._run_pipeline(messages, 512)
+        return self._run_generation(messages, 512)
 
     def analyze_audio(self, audio_path: Path) -> dict:
         """Analyzes an audio file and returns a structured dictionary."""
@@ -176,7 +178,7 @@ class GemmaMultimodalModel:
                 ],
             }
         ]
-        str_response = self._run_pipeline(messages, 512)
+        str_response = self._run_generation(messages, 512)
         try:
             cleaned_response = (
                 str_response.replace("```json", "").replace("```", "").strip()
@@ -251,9 +253,9 @@ class GemmaMultimodalModel:
                 content.append({"type": "audio", "audio": str(audio_clip_path)})
 
             messages = [{"role": "user", "content": content}]
-            return self._run_pipeline(messages, 512)
+            return self._run_generation(messages, 512)
 
     def synthesize_summary(self, prompt: str) -> str:
         """Synthesizes a final summary from context."""
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
-        return self._run_pipeline(messages, 1024)
+        return self._run_generation(messages, 1024)

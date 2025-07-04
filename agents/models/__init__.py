@@ -3,7 +3,7 @@ from rich.console import Console
 from .api_models.gemini import GeminiModel
 from .api_models.ollama import OllamaModel
 from .api_models.chatgpt import ChatGptModel
-from .hf_models.gemma_multimodal import GemmaMultimodalModel
+from .hf_models import get_hf_model_class
 
 
 console = Console(stderr=True)
@@ -35,6 +35,13 @@ class LLMModels:
         self.model_instance = None
         self.model_type = None
 
+        hf_model_class = None
+        if huggingface_model_id:
+            try:
+                hf_model_class = get_hf_model_class(huggingface_model_id)
+            except ValueError as e:
+                raise e
+
         model_factory = {
             "chatgpt": {
                 "condition": chatgpt_model_name and api_key,
@@ -46,8 +53,8 @@ class LLMModels:
                 },
             },
             "huggingface": {
-                "condition": huggingface_model_id,
-                "class": GemmaMultimodalModel,
+                "condition": huggingface_model_id and hf_model_class,
+                "class": hf_model_class,
                 "args": {"model_id": huggingface_model_id, "verbose": verbose},
             },
             "ollama": {
