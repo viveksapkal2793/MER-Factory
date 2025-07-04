@@ -38,7 +38,9 @@ class Qwen2AudioModel:
         try:
             self.model = Qwen2AudioForConditionalGeneration.from_pretrained(
                 self.model_id,
-                torch_dtype="auto",
+                torch_dtype=(
+                    torch.bfloat16 if torch.cuda.is_available() else torch.float32
+                ),
                 device_map="auto" if torch.cuda.is_available() else "cpu",
             )
             self.processor = AutoProcessor.from_pretrained(self.model_id)
@@ -102,7 +104,7 @@ class Qwen2AudioModel:
             console.log(
                 f"[bold red]❌ Error during Qwen2-Audio generation: {e}[/bold red]"
             )
-            return f"Error during generation: {e}"
+            return f""
 
     def describe_facial_expression(self, au_text: str) -> str:
         """Not supported by this model."""
@@ -140,20 +142,7 @@ class Qwen2AudioModel:
         ]
 
         str_response = self._run_generation(conversation)
-        try:
-            cleaned_response = (
-                str_response.replace("```json", "").replace("```", "").strip()
-            )
-            return json.loads(cleaned_response)
-        except json.JSONDecodeError:
-            if self.verbose:
-                console.log(
-                    "[bold red]❌ Failed to parse JSON from Hugging Face model.[/bold red]"
-                )
-            return {
-                "transcript": "",
-                "tone_description": str_response,
-            }
+        return str_response
 
     def describe_video(self, video_path: Path) -> str:
         """Not supported by this model."""

@@ -108,10 +108,7 @@ class ChatGptModel:
     async def analyze_audio(self, audio_path: Path) -> dict:
         """Analyzes an audio file and returns a structured dictionary using ChatGPT."""
         if not self.audio_model:
-            return {
-                "transcript": "",
-                "tone_description": "",
-            }
+            return ""
         try:
             audio_data = await asyncio.to_thread(
                 lambda: base64.b64encode(audio_path.read_bytes()).decode("utf-8")
@@ -131,16 +128,7 @@ class ChatGptModel:
             )
             chain = self.audio_model | StrOutputParser()
             str_response = await chain.ainvoke([message])
-            try:
-                cleaned_response = (
-                    str_response.replace("```json", "").replace("```", "").strip()
-                )
-                return json.loads(cleaned_response)
-            except json.JSONDecodeError:
-                console.log(
-                    f"[bold red]❌ Failed to parse JSON response from LLM.[/bold red]"
-                )
-                return {"transcript": "", "tone_description": str_response}
+            return str_response
         except Exception as e:
             console.log(f"[bold red]❌ Error analyzing audio: {e}[/bold red]")
             return {"transcript": "", "tone_description": ""}

@@ -144,7 +144,7 @@ class GemmaMultimodalModel:
             console.log(
                 f"[bold red]❌ Error during Hugging Face pipeline execution: {e}[/bold red]"
             )
-            return f"Error during pipeline execution: {e}"
+            return ""
 
     def describe_facial_expression(self, au_text: str) -> str:
         """Generates a description from AU text."""
@@ -179,19 +179,7 @@ class GemmaMultimodalModel:
             }
         ]
         str_response = self._run_generation(messages, 512)
-        try:
-            cleaned_response = (
-                str_response.replace("```json", "").replace("```", "").strip()
-            )
-            return json.loads(cleaned_response)
-        except json.JSONDecodeError:
-            console.log(
-                "[bold red]❌ Failed to parse JSON from Hugging Face model.[/bold red]"
-            )
-            return {
-                "transcript": "",
-                "tone_description": str_response,
-            }
+        return str_response
 
     def describe_video(self, video_path: Path) -> str:
         """Generates a description for a video by processing its frames and audio."""

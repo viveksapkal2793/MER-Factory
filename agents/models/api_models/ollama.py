@@ -148,10 +148,7 @@ class OllamaModel:
             A dictionary containing the transcript.
         """
         if not self.audio_pipeline:
-            return {
-                "transcript": "",
-                "tone_description": "",
-            }
+            return ""
 
         try:
             if self.verbose:
@@ -160,7 +157,9 @@ class OllamaModel:
             transcript = result.get("text", "")
             if self.verbose:
                 console.log(f"Audio transcript: '{transcript}'")
-            return {"transcript": transcript, "tone_description": ""}
+            if transcript:
+                return f"The audio transcript is: '{transcript}'"
+            return ""
         except Exception as e:
             console.log(f"[bold red]❌ Error analyzing audio: {e}[/bold red]")
             return {"transcript": "", "tone_description": ""}

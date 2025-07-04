@@ -36,6 +36,16 @@ class Qwen2_5OmniModel:
         self.verbose = verbose
         self.processor = None
         self.model = None
+        self.system_prompt = {
+            "role": "system",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech.",
+                }
+            ],
+        }
+
         self._initialize_pipeline()
 
     def _initialize_pipeline(self):
@@ -45,7 +55,9 @@ class Qwen2_5OmniModel:
         try:
             self.model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
                 self.model_id,
-                torch_dtype="auto",
+                torch_dtype=(
+                    torch.bfloat16 if torch.cuda.is_available() else torch.float32
+                ),
                 device_map="auto" if torch.cuda.is_available() else "cpu",
             )
             self.processor = Qwen2_5OmniProcessor.from_pretrained(self.model_id)
@@ -93,7 +105,7 @@ class Qwen2_5OmniModel:
             with torch.inference_mode():
                 # The model can generate both text and audio.
                 text_ids, audio_output = self.model.generate(
-                    **inputs, use_audio_in_video=use_audio_in_video, max_new_tokens=1024
+                    **inputs, use_audio_in_video=use_audio_in_video, max_new_tokens=512
                 )
 
             generated_text = self.processor.batch_decode(
@@ -106,7 +118,7 @@ class Qwen2_5OmniModel:
             console.log(
                 f"[bold red]❌ Error during Qwen2.5-Omni generation: {e}[/bold red]"
             )
-            return f"Error during generation: {e}"
+            return f""
 
     def describe_facial_expression(self, au_text: str) -> str:
         """Generates a description from AU text."""
@@ -118,13 +130,14 @@ class Qwen2_5OmniModel:
         """Generates a description for an image file."""
         prompt = PromptTemplates.describe_image()
         conversation = [
+            self.system_prompt,
             {
                 "role": "user",
                 "content": [
                     {"type": "image", "image": str(image_path)},
                     {"type": "text", "text": prompt},
                 ],
-            }
+            },
         ]
         return self._run_generation(conversation)
 
@@ -132,44 +145,37 @@ class Qwen2_5OmniModel:
         """Analyzes an audio file and returns a structured dictionary."""
         prompt = PromptTemplates.analyze_audio()
         conversation = [
+            self.system_prompt,
             {
                 "role": "user",
                 "content": [
                     {"type": "audio", "audio": str(audio_path)},
                     {"type": "text", "text": prompt},
                 ],
-            }
+            },
         ]
         str_response = self._run_generation(conversation)
-        try:
-            cleaned_response = (
-                str_response.replace("```json", "").replace("```", "").strip()
-            )
-            return json.loads(cleaned_response)
-        except json.JSONDecodeError:
-            console.log("[bold red]❌ Failed to parse JSON from Qwen model.[/bold red]")
-            return {
-                "transcript": "",
-                "tone_description": str_response,
-            }
+        return str_response
 
     def describe_video(self, video_path: Path) -> str:
         """Generates a description for a video."""
         prompt = PromptTemplates.describe_video()
         conversation = [
+            self.system_prompt,
             {
                 "role": "user",
                 "content": [
                     {"type": "video", "video": str(video_path)},
                     {"type": "text", "text": prompt},
                 ],
-            }
+            },
         ]
         return self._run_generation(conversation, use_audio_in_video=True)
 
     def synthesize_summary(self, prompt: str) -> str:
         """Synthesizes a final summary from a text prompt."""
         conversation = [
+            self.system_prompt,
             {"role": "user", "content": [{"type": "text", "text": prompt}]},
         ]
         return self._run_generation(conversation)

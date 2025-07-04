@@ -25,10 +25,10 @@ Example: If the AUs are 'inner brow raised, lip corners pulled up', a good descr
     def analyze_audio():
         """Returns the prompt for analyzing audio."""
         return """Analyze this audio file. Perform two tasks:
-1. Transcribe the speech into text. If there is no speech, state "".
+1. Transcribe the speech into text. If there is no speech, state that.
 2. Describe the audio characteristics. Include descriptions of the speaker's tone (e.g., cheerful, angry, calm), pitch, speed, and any background noises.
 
-Provide the output as a single, raw JSON object string with two keys: "transcript" and "tone_description". Do not wrap it in markdown backticks or other formatting.
+Provide the output as raw text. Do not include any other explanatory text or formatting.
 """
 
     @staticmethod

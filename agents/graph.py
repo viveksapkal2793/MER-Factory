@@ -27,7 +27,7 @@ class MERRState(TypedDict, total=False):
     peak_frame_info: Dict[str, Any]
     peak_frame_path: Path
     audio_path: Path
-    audio_analysis_results: dict
+    audio_analysis_results: str
     video_description: str
     descriptions: Dict[str, str]
     threshold: float

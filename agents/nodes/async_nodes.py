@@ -85,10 +85,7 @@ async def save_audio_results(state):
 
     if verbose and (results.get("transcript") or results.get("tone_description")):
         console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
-        console.print(f"[bold]Transcript:[/bold] {results.get('transcript', 'N/A')}")
-        console.print(
-            f"[bold]Tone Description:[/bold] {results.get('tone_description', 'N/A')}"
-        )
+        console.print(f"[bold]Tone Description:[/bold] {results}")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
@@ -285,13 +282,9 @@ async def synthesize_summary(state):
     clues.append(f"- Visual Context (at overall peak): {image_visual_desc}")
 
     # Audio analysis
-    audio_analysis = state.get("audio_analysis_results", {})
-    audio_tone = audio_analysis.get("tone_description", "N/A")
-    transcript = audio_analysis.get("transcript", "N/A")
-    if audio_tone and audio_tone.strip() and audio_tone != "N/A":
-        clues.append(f"- Audio Tone: {audio_tone}")
-    if transcript and transcript.strip() and transcript != "N/A":
-        clues.append(f"- Subtitles: {transcript}")
+    audio_analysis = state.get("audio_analysis_results", "")
+    if audio_analysis:
+        clues.append(f"- Audio clues: {audio_analysis}")
 
     # Video description
     video_description = state.get("video_description", "N/A")
@@ -317,12 +310,10 @@ async def save_mer_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_merr_data.json"
     )
 
-    audio_analysis = state.get("audio_analysis_results", {})
     descriptions = {
         "visual_expression": state.get("peak_frame_au_description", "N/A"),
         "visual_objective": state.get("image_visual_description", "N/A"),
-        "audio_tone": audio_analysis.get("tone_description", "N/A"),
-        "subtitles": audio_analysis.get("transcript", "N/A"),
+        "audio_tone": state.get("audio_analysis_results", ""),
         "video_content": state.get("video_description", "N/A"),
     }
 

@@ -107,7 +107,7 @@ class AudioReasonerModel:
             console.log(
                 f"[bold red]❌ Error during Swift engine execution: {e}[/bold red]"
             )
-            return f"Error during pipeline execution: {e}"
+            return f""
 
     def _get_message(self, audiopath: Path, prompt: str) -> List[Dict[str, Any]]:
         """Constructs the message dictionary for the Swift engine."""
@@ -141,20 +141,7 @@ class AudioReasonerModel:
         messages = self._get_message(audio_path, prompt)
         str_response = self._run_generation(messages)
 
-        try:
-            cleaned_response = (
-                str_response.replace("```json", "").replace("```", "").strip()
-            )
-            return json.loads(cleaned_response)
-        except json.JSONDecodeError:
-            if self.verbose:
-                console.log(
-                    "[bold red]❌ Failed to parse JSON from Hugging Face model.[/bold red]"
-                )
-            return {
-                "transcript": "",
-                "tone_description": str_response,
-            }
+        return str_response
 
     def describe_facial_expression(self, au_text: str) -> str:
         """Not supported by this audio-focused model."""
