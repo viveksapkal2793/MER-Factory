@@ -107,9 +107,13 @@ class Qwen2_5OmniModel:
                 text_ids, audio_output = self.model.generate(
                     **inputs, use_audio_in_video=use_audio_in_video, max_new_tokens=512
                 )
+            input_len = inputs.input_ids.shape[1]
+            response_ids = text_ids[:, input_len:]
 
             generated_text = self.processor.batch_decode(
-                text_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
+                response_ids,
+                skip_special_tokens=True,
+                clean_up_tokenization_spaces=False,
             )[0]
 
             return generated_text.strip()

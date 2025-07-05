@@ -1,4 +1,8 @@
 # 👉🏻 MER-Factory 👈🏻
+<p align="left">
+        <a href="README_zh.md">中文</a> &nbsp｜ &nbsp English&nbsp&nbsp
+</p>
+<br>
 
 <p align="center">
   <strong>Your automated factory for constructing Multimodal Emotion Recognition and Reasoning (MERR) datasets.</strong>
@@ -22,6 +26,7 @@
   - [Command Line Options](#command-line-options)
   - [Processing Types](#processing-types)
   - [Model Support](#model-support)
+  - [Model Recommendations](#model-recommendations)
 - [Testing Tools](#testing-tools)
 - [Troubleshooting](#troubleshooting)
 
@@ -254,6 +259,56 @@ The tool supports four types of models:
 4. **Hugging Face**: Currently supports multimodal models like `google/gemma-3n-E4B-it`
 
 **Note**: If using Hugging Face models, concurrency is automatically set to 1 for synchronous processing.
+
+### 🎯 Model Recommendations
+
+#### When to Use Ollama
+**Recommended for**: Image analysis, Action Unit analysis, text processing, and simple audio transcription tasks.
+
+**Benefits**:
+- ✅ **Async support**: Ollama supports asynchronous calling, making it ideal for processing large datasets efficiently
+- ✅ **Local processing**: No API costs or rate limits
+- ✅ **Wide model selection**: Visit [ollama.com](https://ollama.com/) to explore available models
+- ✅ **Privacy**: All processing happens locally
+
+**Example usage**:
+```bash
+# Process images with Ollama
+python main.py ./images ./output --type image --ollama-vision-model llava-llama3:latest --ollama-text-model llama3.2 --silent
+
+# AU extraction with Ollama
+python main.py video.mp4 output/ --type AU --ollama-text-model llama3.2 --silent
+```
+
+#### When to Use ChatGPT/Gemini
+**Recommended for**: Advanced video analysis, complex multimodal reasoning, and high-quality content generation.
+
+**Benefits**:
+- ✅ **State-of-the-art performance**: Latest GPT-4o and Gemini models offer superior reasoning capabilities
+- ✅ **Advanced video understanding**: Better support for complex video analysis and temporal reasoning
+- ✅ **High-quality outputs**: More nuanced and detailed emotion recognition and reasoning
+- ✅ **Robust multimodal integration**: Excellent performance across text, image, and video modalities
+
+**Example usage**:
+```bash
+python main.py video.mp4 output/ --type MER --chatgpt-model gpt-4o --silent
+
+python main.py video.mp4 output/ --type MER --silent
+```
+
+**Trade-offs**: API costs and rate limits, but typically provides the highest quality results for complex emotion reasoning tasks.
+
+#### When to Use Hugging Face Models
+**Recommended for**: When you need the latest state-of-the-art models or specific features not available in Ollama.
+
+**Custom Model Integration**:
+If you want to use the latest HF models or features that Ollama doesn't support:
+
+1. **Option 1 - Implement yourself**: Navigate to `agents/models/hf_models/__init__.py` to register your own model and implement the needed functions following our existing patterns.
+
+2. **Option 2 - Request support**: Open an issue on our repository to let us know which model you'd like us to support, and we'll consider adding it.
+
+**Current supported models**: `google/gemma-3n-E4B-it` and others listed in the HF models directory.
 
 ## ✅ Testing & Troubleshooting
 
