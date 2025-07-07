@@ -14,20 +14,20 @@
 
 ## Table of Contents
 
-- [🏗️ Pipeline Structure](#🏗️-pipeline-structure)
-- [✨ Features](#✨-features)
-- [🛠️ Prerequisites](#🛠️-prerequisites)
+- [🏗️ Pipeline Structure](#-pipeline-structure)
+- [✨ Features](#-features)
+- [🛠️ Prerequisites](#-prerequisites)
   - [1. FFmpeg](#1-ffmpeg)
   - [2. OpenFace](#2-openface)
-- [🚀 Installation](#🚀-installation)
-- [⚙️ Usage](#⚙️-usage)
+- [🚀 Installation](#-installation)
+- [⚙️ Usage](#-usage)
   - [Basic Command Structure](#basic-command-structure)
   - [Examples](#examples)
   - [Command Line Options](#command-line-options)
   - [Processing Types](#processing-types)
-  - [🤖 Model Support](#🤖-model-support)
-  - [🎯 Model Recommendations](#🎯-model-recommendations)
-- [✅ Testing & Troubleshooting](#✅-testing--troubleshooting)
+  - [🤖 Model Support](#-model-support)
+  - [🎯 Model Recommendations](#-model-recommendations)
+- [✅ Testing & Troubleshooting](#-testing--troubleshooting)
 
 
 ## 🏗️ Pipeline Structure

@@ -2,7 +2,6 @@ import json
 from rich.console import Console
 from pathlib import Path
 
-from agents.models import hf_models
 from agents.prompts import PromptTemplates
 
 from tools.ffmpeg_adapter import FFMpegAdapter
@@ -75,7 +74,17 @@ def generate_audio_description(state):
     hf_model = state["models"].model_instance
     if verbose:
         console.log(f"Analyzing audio with HF model at [green]{audio_path}[/green]")
-    prompt = PromptTemplates.analyze_audio()
+
+    processing_type = state.get("processing_type")
+    ground_truth_label = state.get("ground_truth_label")
+
+    # if processing_type is audio we pass the label to the prompt
+    # otherwise (MER), we do not, because emotion cannot be inferred from audio alone.
+    has_label = bool(ground_truth_label) if processing_type == "audio" else False
+    prompt = PromptTemplates.analyze_audio(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
+
     audio_analysis = hf_model.analyze_audio(audio_path, prompt)
     if verbose:
         console.log(f"Audio Analysis Results: [cyan]{audio_analysis}[/cyan]")
@@ -109,7 +118,16 @@ def generate_video_description(state):
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     hf_model = state["models"].model_instance
-    prompt = PromptTemplates.describe_video()
+
+    processing_type = state.get("processing_type")
+    ground_truth_label = state.get("ground_truth_label")
+    # if processing_type is video, we pass the label to the prompt
+    # otherwise (MER), we do not, because emotion cannot be inferred from video alone.
+    has_label = bool(ground_truth_label) if processing_type == "video" else False
+    prompt = PromptTemplates.describe_video(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
+
     video_description = hf_model.describe_video(video_path, prompt)
     if verbose:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
@@ -224,7 +242,9 @@ def generate_peak_frame_visual_description(state):
         console.log("Generating visual description for peak frame...")
     hf_model = state["models"].model_instance
     peak_frame_path = Path(state["peak_frame_path"])
-    prompt = PromptTemplates.describe_image()
+    prompt = (
+        PromptTemplates.describe_image()
+    )  # No label for peak frame, since this is use for MER.
     visual_obj_desc = hf_model.describe_image(peak_frame_path, prompt)
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
@@ -382,7 +402,11 @@ def run_image_analysis(state):
         if "Neutral expression" in au_text_desc
         else hf_model.describe_facial_expression(prompt)
     )
-    prompt = PromptTemplates.describe_image()
+    ground_truth_label = state.get("ground_truth_label")
+    has_label = bool(ground_truth_label)
+    prompt = PromptTemplates.describe_image(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
     image_visual_description = hf_model.describe_image(image_path, prompt)
 
     if verbose:

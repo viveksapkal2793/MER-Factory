@@ -17,13 +17,22 @@ Example: If the AUs are 'inner brow raised, lip corners pulled up', a good descr
 """
 
     @staticmethod
-    def describe_image():
+    def describe_image(has_label: bool = False):
         """Returns the prompt for describing an image."""
+        if has_label:
+            return """The image's emotion state is labeled as "{label}".\n\nAnalyze this image. Describe the main subject, their apparent age Analyze this image. Describe the main subject, their apparent age and gender, clothing, background scene, and any discernible objects or gestures. Focus only on objective visual elements. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION."""
         return "Analyze this image. Describe the main subject, their apparent age and gender, clothing, background scene, and any discernible objects or gestures. Focus only on objective visual elements. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION."
 
     @staticmethod
-    def analyze_audio():
+    def analyze_audio(has_label: bool = False):
         """Returns the prompt for analyzing audio."""
+        if has_label:
+            return """The audio's emotion state is labeled as "{label}".\n\nAnalyze this audio file. Perform two tasks:
+1. Transcribe the speech into text. If there is no speech, state that.
+2. Describe the audio characteristics. Include descriptions of the speaker's tone (e.g., cheerful, angry, calm), pitch, speed, and any background noises.
+
+Provide the output as raw text. Do not include any other explanatory text or formatting.
+"""
         return """Analyze this audio file. Perform two tasks:
 1. Transcribe the speech into text. If there is no speech, state that.
 2. Describe the audio characteristics. Include descriptions of the speaker's tone (e.g., cheerful, angry, calm), pitch, speed, and any background noises.
@@ -32,8 +41,10 @@ Provide the output as raw text. Do not include any other explanatory text or for
 """
 
     @staticmethod
-    def describe_video():
+    def describe_video(has_label: bool = False):
         """Returns the prompt for describing a video."""
+        if has_label:
+            return """The video is labeled as "{label}".\n\nDescribe the content of this video. What is happening? Describe the scene, any people, their emotions, and their actions. Focus on objective visual elements and behaviors. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION."""
         return "Describe the content of this video. What is happening? Describe the scene, any people, any emotion, and their actions. DO NOT PROVIDE ANY RESPONSE OTHER THAN A RAW TEXT DESCRIPTION."
 
     @staticmethod

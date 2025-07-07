@@ -76,8 +76,20 @@ async def generate_audio_description(state):
     models: LLMModels = state["models"].model_instance
     if verbose:
         console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
-    prompt = PromptTemplates.analyze_audio()
+
+    processing_type = state.get("processing_type")
+    ground_truth_label = state.get("ground_truth_label")
+
+    # if processing_type is audio we pass the label to the prompt
+    # otherwise (MER), we do not, because emotion cannot be inferred from audio alone.
+    has_label = bool(ground_truth_label) if processing_type == "audio" else False
+    prompt = PromptTemplates.analyze_audio(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
+
     audio_analysis = await models.analyze_audio(audio_path, prompt)
+    if verbose:
+        console.log(f"Audio Analysis Results: [cyan]{audio_analysis}[/cyan]")
     return {"audio_analysis_results": audio_analysis}
 
 
@@ -87,7 +99,6 @@ async def save_audio_results(state):
 
     if verbose and results:
         console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
-        console.print(f"[bold]Tone Description:[/bold] {results}")
     results = {
         "video_id": state["video_id"],
         "audio_analysis": results,
@@ -112,7 +123,16 @@ async def generate_video_description(state):
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     models: LLMModels = state["models"].model_instance
-    prompt = PromptTemplates.describe_video()
+
+    processing_type = state.get("processing_type")
+    ground_truth_label = state.get("ground_truth_label")
+    # if processing_type is video, we pass the label to the prompt
+    # otherwise (MER), we do not, because emotion cannot be inferred from video alone.
+    has_label = bool(ground_truth_label) if processing_type == "video" else False
+    prompt = PromptTemplates.describe_video(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
+
     video_description = await models.describe_video(video_path, prompt)
     if verbose and video_description:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
@@ -417,8 +437,12 @@ async def run_image_analysis(state):
         )
     else:
         llm_au_desc_task = models.describe_facial_expression(au_text_desc)
-
-    visual_desc_task = models.describe_image(image_path)
+    ground_truth_label = state.get("ground_truth_label")
+    has_label = bool(ground_truth_label)
+    prompt = PromptTemplates.describe_image(has_label)
+    if has_label:
+        prompt = prompt.format(label=ground_truth_label)
+    visual_desc_task = models.describe_image(image_path, prompt)
 
     llm_au_description, image_visual_description = await asyncio.gather(
         llm_au_desc_task, visual_desc_task
