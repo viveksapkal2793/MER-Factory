@@ -106,16 +106,14 @@ def process_json_file(json_file, file_type):
                 "chronological_emotion_peaks": emotion_peaks_text,
                 "visual_expression": coarse_descriptions.get("visual_expression", ""),
                 "visual_objective": coarse_descriptions.get("visual_objective", ""),
-                "audio_tone": coarse_descriptions.get("audio_tone", ""),
-                "subtitles": coarse_descriptions.get("subtitles", ""),
+                "audio_analysis": coarse_descriptions.get("audio_analysis_results", ""),
                 "video_content": coarse_descriptions.get("video_content", ""),
                 "file_type": file_type,
             }
         elif file_type == "audio":
             return {
                 "video_id": video_id,
-                "transcript": data.get("transcript", ""),
-                "tone_description": data.get("tone_description", ""),
+                "audio_analysis": data.get("audio_analysis_results", ""),
                 "file_type": file_type,
             }
         elif file_type == "video":

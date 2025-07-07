@@ -4,15 +4,14 @@ from typing import List, Dict
 import pandas as pd
 from rich.console import Console
 
-# Use a relative import because this module is now part of the 'utils' package
-from .config import VIDEO_EXTENSIONS, IMAGE_EXTENSIONS
+from .config import VIDEO_EXTENSIONS, IMAGE_EXTENSIONS, AUDIO_EXTENSIONS
 
 console = Console(stderr=True)
 
 
 def find_files_to_process(input_path: Path, verbose: bool = True) -> List[Path]:
     """
-    Finds all valid video or image files from a given input path (file or directory).
+    Finds all valid video, image, or audio files from a given input path.
 
     Args:
         input_path: The path to a single file or a directory.
@@ -25,24 +24,25 @@ def find_files_to_process(input_path: Path, verbose: bool = True) -> List[Path]:
         SystemExit: If the input file is invalid or no files are found.
     """
     files_to_process = []
+    all_extensions = VIDEO_EXTENSIONS.union(IMAGE_EXTENSIONS).union(AUDIO_EXTENSIONS)
+
     if input_path.is_file():
         ext = input_path.suffix.lower()
-        if ext in VIDEO_EXTENSIONS or ext in IMAGE_EXTENSIONS:
+        if ext in all_extensions:
             files_to_process.append(input_path)
         else:
             console.print(
-                f"[bold red]Error: '{input_path}' is not a recognized video/image file.[/bold red]"
+                f"[bold red]Error: '{input_path}' is not a recognized video, image, or audio file.[/bold red]"
             )
             raise SystemExit(1)
     elif input_path.is_dir():
         if verbose:
             console.print(f"Searching for files in [cyan]{input_path}[/cyan]...")
-        all_extensions = VIDEO_EXTENSIONS.union(IMAGE_EXTENSIONS)
         for ext in all_extensions:
             files_to_process.extend(input_path.rglob(f"*{ext}"))
         if not files_to_process:
             console.print(
-                f"[bold red]Error: No video or image files found in '{input_path}'.[/bold red]"
+                f"[bold red]Error: No video, image, or audio files found in '{input_path}'.[/bold red]"
             )
             raise SystemExit(1)
         if verbose:

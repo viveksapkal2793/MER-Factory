@@ -12,6 +12,7 @@ load_dotenv()
 # Define constants for file extensions
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a"}
 
 
 class ProcessingType(str, Enum):

@@ -85,9 +85,13 @@ async def save_audio_results(state):
     verbose = state.get("verbose", True)
     results = state["audio_analysis_results"]
 
-    if verbose and (results.get("transcript") or results.get("tone_description")):
+    if verbose and results:
         console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
         console.print(f"[bold]Tone Description:[/bold] {results}")
+    results = {
+        "video_id": state["video_id"],
+        "audio_analysis": results,
+    }
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
@@ -326,7 +330,7 @@ async def save_mer_results(state):
     descriptions = {
         "visual_expression": state.get("peak_frame_au_description", "N/A"),
         "visual_objective": state.get("image_visual_description", "N/A"),
-        "audio_tone": state.get("audio_analysis_results", ""),
+        "audio_analysis": state.get("audio_analysis_results", ""),
         "video_content": state.get("video_description", "N/A"),
     }
 

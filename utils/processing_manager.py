@@ -16,7 +16,13 @@ from rich.progress import (
 
 from agents.graph import MERRState
 from agents.models import LLMModels
-from .config import AppConfig, VIDEO_EXTENSIONS, IMAGE_EXTENSIONS, ProcessingType
+from .config import (
+    AppConfig,
+    VIDEO_EXTENSIONS,
+    IMAGE_EXTENSIONS,
+    AUDIO_EXTENSIONS,
+    ProcessingType,
+)
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 
@@ -29,11 +35,30 @@ def build_initial_state(
     """Builds the initial state dictionary for a file to be processed by the graph."""
     file_id = file_path.stem
     file_output_dir = config.output_dir / file_id
+    file_output_dir.mkdir(exist_ok=True)
     is_image = file_path.suffix.lower() in IMAGE_EXTENSIONS
-    current_processing_type = "image" if is_image else config.processing_type.value
+    is_audio = file_path.suffix.lower() in AUDIO_EXTENSIONS
+
+    if is_audio:
+        current_processing_type = "audio"
+        video_path = file_path
+        audio_path = file_path
+        au_data_path = None
+    elif is_image:
+        current_processing_type = "image"
+        video_path = file_path
+        audio_path = None
+        au_data_path = file_output_dir / f"{file_id}.csv"
+    else:  # It's a video
+        current_processing_type = config.processing_type.value
+        video_path = file_path
+        audio_path = file_output_dir / f"{file_id}.wav"
+        au_data_path = file_output_dir / f"{file_id}.csv"
 
     state = {
-        "video_path": file_path,
+        "video_path": video_path,
+        "audio_path": audio_path,
+        "au_data_path": au_data_path,
         "output_dir": config.output_dir,
         "processing_type": current_processing_type,
         "models": models,
@@ -43,8 +68,6 @@ def build_initial_state(
         "error_logs_dir": config.error_logs_dir,
         "video_id": file_id,
         "video_output_dir": file_output_dir,
-        "audio_path": file_output_dir / f"{file_id}.wav",
-        "au_data_path": file_output_dir / f"{file_id}.csv",
     }
 
     ground_truth_label = config.labels.get(file_id)
@@ -168,67 +191,56 @@ async def run_feature_extraction(files_to_process: List[Path], config: AppConfig
     """
     Asynchronously runs FFmpeg and OpenFace feature extraction on the files.
     """
-    extraction_semaphore = asyncio.Semaphore(4)  # Limit concurrent external processes
+    extraction_semaphore = asyncio.Semaphore(4)
 
-    async def run_job(
-        file_path: Path,
-        openface_task_id: TaskID,
-        ffmpeg_task_id: TaskID,
-        progress: Progress,
-    ):
+    files_for_openface = [
+        f
+        for f in files_to_process
+        if (
+            f.suffix.lower() in IMAGE_EXTENSIONS or f.suffix.lower() in VIDEO_EXTENSIONS
+        )
+        and config.processing_type in [ProcessingType.MER, ProcessingType.AU]
+    ]
+    files_for_ffmpeg = [
+        f
+        for f in files_to_process
+        if f.suffix.lower() in VIDEO_EXTENSIONS
+        and config.processing_type in [ProcessingType.MER, ProcessingType.AUDIO]
+    ]
+
+    async def run_openface_job(file_path: Path, task_id: TaskID, progress: Progress):
         async with extraction_semaphore:
             file_output_dir = config.output_dir / file_path.stem
             file_output_dir.mkdir(exist_ok=True)
-            is_video = file_path.suffix.lower() in VIDEO_EXTENSIONS
-            is_image = file_path.suffix.lower() in IMAGE_EXTENSIONS
-            needs_openface = is_image or (
-                is_video
-                and config.processing_type in [ProcessingType.MER, ProcessingType.AU]
-            )
-            needs_ffmpeg = is_video and config.processing_type in [
-                ProcessingType.MER,
-                ProcessingType.AUDIO,
-            ]
-
-            try:
-                if (
-                    needs_openface
-                    and not (file_output_dir / f"{file_path.stem}.csv").exists()
-                ):
+            if not (file_output_dir / f"{file_path.stem}.csv").exists():
+                try:
                     await OpenFaceAdapter.run_feature_extraction(
                         file_path, file_output_dir, config.verbose
                     )
-                if (
-                    needs_ffmpeg
-                    and not (file_output_dir / f"{file_path.stem}.wav").exists()
-                ):
+                except Exception as e:
+                    console.log(
+                        f"[bold red]OpenFace extraction failed for {file_path.name}: {e}[/bold red]"
+                    )
+            if progress and task_id is not None:
+                progress.update(task_id, advance=1)
+
+    async def run_ffmpeg_job(file_path: Path, task_id: TaskID, progress: Progress):
+        async with extraction_semaphore:
+            file_output_dir = config.output_dir / file_path.stem
+            file_output_dir.mkdir(exist_ok=True)
+            if not (file_output_dir / f"{file_path.stem}.wav").exists():
+                try:
                     await FFMpegAdapter.extract_audio(
                         file_path,
                         file_output_dir / f"{file_path.stem}.wav",
                         config.verbose,
                     )
-            except Exception as e:
-                console.log(
-                    f"[bold red]Extraction failed for {file_path.name}: {e}[/bold red]"
-                )
-            finally:
-                if needs_openface and progress and openface_task_id is not None:
-                    progress.update(openface_task_id, advance=1)
-                if needs_ffmpeg and progress and ffmpeg_task_id is not None:
-                    progress.update(ffmpeg_task_id, advance=1)
-
-    video_files = [f for f in files_to_process if f.suffix.lower() in VIDEO_EXTENSIONS]
-    image_files = [f for f in files_to_process if f.suffix.lower() in IMAGE_EXTENSIONS]
-    total_openface = len(image_files) + (
-        len(video_files)
-        if config.processing_type in [ProcessingType.MER, ProcessingType.AU]
-        else 0
-    )
-    total_ffmpeg = (
-        len(video_files)
-        if config.processing_type in [ProcessingType.MER, ProcessingType.AUDIO]
-        else 0
-    )
+                except Exception as e:
+                    console.log(
+                        f"[bold red]FFmpeg extraction failed for {file_path.name}: {e}[/bold red]"
+                    )
+            if progress and task_id is not None:
+                progress.update(task_id, advance=1)
 
     with Progress(
         SpinnerColumn(),
@@ -240,18 +252,30 @@ async def run_feature_extraction(files_to_process: List[Path], config: AppConfig
         transient=False,
         disable=config.verbose,
     ) as progress:
-        openface_task_id = (
-            progress.add_task("[bold blue]OpenFace", total=total_openface)
-            if total_openface > 0
-            else None
-        )
-        ffmpeg_task_id = (
-            progress.add_task("[bold green]FFmpeg", total=total_ffmpeg)
-            if total_ffmpeg > 0
-            else None
-        )
-        tasks = [
-            run_job(fp, openface_task_id, ffmpeg_task_id, progress)
-            for fp in files_to_process
-        ]
-        await asyncio.gather(*tasks)
+        tasks = []
+        if files_for_openface:
+            openface_task_id = progress.add_task(
+                "[bold blue]OpenFace", total=len(files_for_openface)
+            )
+            tasks.extend(
+                [
+                    run_openface_job(fp, openface_task_id, progress)
+                    for fp in files_for_openface
+                ]
+            )
+
+        if files_for_ffmpeg:
+            ffmpeg_task_id = progress.add_task(
+                "[bold green]FFmpeg", total=len(files_for_ffmpeg)
+            )
+            tasks.extend(
+                [
+                    run_ffmpeg_job(fp, ffmpeg_task_id, progress)
+                    for fp in files_for_ffmpeg
+                ]
+            )
+
+        if tasks:
+            await asyncio.gather(*tasks)
+        elif not config.silent:
+            console.log("No feature extraction needed for the provided files.")

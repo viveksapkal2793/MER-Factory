@@ -91,6 +91,10 @@ def save_audio_results(state):
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
+    results = {
+        "video_id": state["video_id"],
+        "audio_analysis": results,
+    }
     with open(output_path, "w") as f:
         json.dump(results, f, indent=4)
     if verbose:
@@ -309,7 +313,7 @@ def save_mer_results(state):
     descriptions = {
         "visual_expression": state.get("peak_frame_au_description", "N/A"),
         "visual_objective": state.get("image_visual_description", "N/A"),
-        "audio_tone": state.get("audio_analysis_results", ""),
+        "audio_analysis": state.get("audio_analysis_results", ""),
         "video_content": state.get("video_description", "N/A"),
     }
 
