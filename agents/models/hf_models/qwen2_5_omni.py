@@ -3,7 +3,6 @@ from pathlib import Path
 from rich.console import Console
 from transformers import Qwen2_5OmniForConditionalGeneration, Qwen2_5OmniProcessor
 from typing import List, Dict, Any
-import json
 
 try:
     from qwen_omni_utils import process_mm_info
@@ -13,7 +12,6 @@ except ImportError as e:
         "Please ensure you have the 'qwen-omni-utils' package installed. "
         "You can install it using: pip install qwen-omni-utils"
     ) from e
-from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -124,15 +122,15 @@ class Qwen2_5OmniModel:
             )
             return f""
 
-    def describe_facial_expression(self, au_text: str) -> str:
+    def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text."""
-        prompt = PromptTemplates.describe_facial_expression().format(au_text=au_text)
+
         conversation = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
         return self._run_generation(conversation)
 
-    def describe_image(self, image_path: Path) -> str:
+    def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file."""
-        prompt = PromptTemplates.describe_image()
+
         conversation = [
             self.system_prompt,
             {
@@ -145,9 +143,8 @@ class Qwen2_5OmniModel:
         ]
         return self._run_generation(conversation)
 
-    def analyze_audio(self, audio_path: Path) -> dict:
+    def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """Analyzes an audio file and returns a structured dictionary."""
-        prompt = PromptTemplates.analyze_audio()
         conversation = [
             self.system_prompt,
             {
@@ -161,9 +158,8 @@ class Qwen2_5OmniModel:
         str_response = self._run_generation(conversation)
         return str_response
 
-    def describe_video(self, video_path: Path) -> str:
+    def describe_video(self, video_path: Path, prompt: str) -> str:
         """Generates a description for a video."""
-        prompt = PromptTemplates.describe_video()
         conversation = [
             self.system_prompt,
             {

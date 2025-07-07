@@ -3,12 +3,10 @@ from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from pathlib import Path
 from rich.console import Console
-import json
 import base64
 import mimetypes
 import asyncio
 
-from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -27,12 +25,9 @@ class GeminiModel:
         if self.verbose:
             console.log("Gemini models initialized.")
 
-    async def describe_facial_expression(self, au_text: str) -> str:
+    async def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text using Gemini."""
         try:
-            prompt = PromptTemplates.describe_facial_expression().format(
-                au_text=au_text
-            )
             chain = self.model | StrOutputParser()
             return await chain.ainvoke(prompt)
         except Exception as e:
@@ -41,7 +36,7 @@ class GeminiModel:
             )
             return f"Error generating facial description: {e}"
 
-    async def describe_image(self, image_path: Path) -> str:
+    async def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file using Gemini."""
         try:
             image_data = await asyncio.to_thread(
@@ -50,7 +45,7 @@ class GeminiModel:
             mime_type = mimetypes.guess_type(image_path)[0] or "image/png"
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.describe_image()},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:{mime_type};base64,{image_data}"},
@@ -63,7 +58,7 @@ class GeminiModel:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
             return f"Error: {e}"
 
-    async def analyze_audio(self, audio_path: Path) -> dict:
+    async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """Analyzes an audio file and returns a structured dictionary using Gemini."""
         try:
             audio_data = await asyncio.to_thread(
@@ -72,7 +67,7 @@ class GeminiModel:
             mime_type = mimetypes.guess_type(audio_path)[0] or "audio/wav"
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.analyze_audio()},
+                    {"type": "text", "text": prompt},
                     {"type": "media", "data": audio_data, "mime_type": mime_type},
                 ]
             )
@@ -88,7 +83,7 @@ class GeminiModel:
                 "tone_description": "",
             }
 
-    async def describe_video(self, video_path: Path) -> str:
+    async def describe_video(self, video_path: Path, prompt: str) -> str:
         """Generates a description for a video using Gemini."""
         try:
             video_data = await asyncio.to_thread(
@@ -97,7 +92,7 @@ class GeminiModel:
             mime_type = mimetypes.guess_type(video_path)[0] or "video/mp4"
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.describe_video()},
+                    {"type": "text", "text": prompt},
                     {"type": "media", "data": video_data, "mime_type": mime_type},
                 ]
             )

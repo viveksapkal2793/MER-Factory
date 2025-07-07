@@ -5,8 +5,6 @@ import librosa
 from transformers import Qwen2AudioForConditionalGeneration, AutoProcessor
 from typing import List, Dict, Any
 
-from agents.prompts import PromptTemplates
-
 console = Console(stderr=True)
 
 
@@ -121,14 +119,13 @@ class Qwen2AudioModel:
             )
         return ""
 
-    def analyze_audio(self, audio_path: Path) -> dict:
+    def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """
         Analyzes an audio file to produce a transcript using the conversational model.
         """
         if self.verbose:
             console.log(f"Transcribing audio with '{self.model_id}'...")
 
-        prompt = PromptTemplates.analyze_audio()
         conversation = [
             {"role": "system", "content": "You are a helpful assistant."},
             {

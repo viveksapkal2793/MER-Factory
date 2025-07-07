@@ -4,6 +4,7 @@ from pathlib import Path
 import asyncio
 
 
+from agents.prompts import PromptTemplates
 from tools.ffmpeg_adapter import FFMpegAdapter
 from ..models import LLMModels
 from tools.emotion_analyzer import EmotionAnalyzer
@@ -262,9 +263,14 @@ async def synthesize_summary(state):
     if verbose:
         console.log("Synthesizing final MER summary...")
     models: LLMModels = state["models"].model_instance
+    ground_truth_label = state.get("ground_truth_label")
 
     # Dynamically build the context based on available data
     clues = []
+
+    # If a ground truth label exists, it's the most important clue.
+    if ground_truth_label:
+        clues.append(f"- Ground Truth Label: {ground_truth_label}")
 
     # Chronological emotions
     detected_emotions = state.get("detected_emotions")
@@ -298,7 +304,11 @@ async def synthesize_summary(state):
         console.log(coarse_summary)
         console.log("----------------------------------------------------")
 
-    final_summary = await models.synthesize_summary(coarse_summary)
+    prompt = PromptTemplates.synthesize_summary(
+        has_label=bool(ground_truth_label)
+    ).format(context=coarse_summary)
+
+    final_summary = await models.synthesize_summary(prompt)
     return {"final_summary": final_summary}
 
 
@@ -325,6 +335,10 @@ async def save_mer_results(state):
         "coarse_descriptions_at_peak": descriptions,
         "final_summary": state["final_summary"],
     }
+
+    # Include the ground truth label in the output if it was used
+    if state.get("ground_truth_label"):
+        result_data["ground_truth_label"] = state["ground_truth_label"]
 
     def _save():
         with open(output_path, "w", encoding="utf-8") as f:
@@ -422,13 +436,20 @@ async def synthesize_image_summary(state):
     if verbose:
         console.log("Synthesizing final image summary...")
     models: LLMModels = state["models"].model_instance
+    ground_truth_label = state.get("ground_truth_label")
 
-    context = (
-        f"- Facial Expression Clues: {state['llm_au_description']}\n"
-        f"- Visual Context: {state['image_visual_description']}"
-    )
+    clues = []
+    if ground_truth_label:
+        clues.append(f"- Ground Truth Label: {ground_truth_label}")
 
-    final_summary = await models.synthesize_summary(context)
+    clues.append(f"- Facial Expression Clues: {state['llm_au_description']}")
+    clues.append(f"- Visual Context: {state['image_visual_description']}")
+
+    context = "\n".join(clues)
+    prompt = PromptTemplates.synthesize_summary(
+        has_label=bool(ground_truth_label)
+    ).format(context=context)
+    final_summary = await models.synthesize_summary(prompt)
     if verbose:
         console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
 
@@ -455,6 +476,9 @@ async def save_image_results(state):
         "image_visual_description": state["image_visual_description"],
         "final_summary": state["final_summary"],
     }
+
+    if state.get("ground_truth_label"):
+        result_data["ground_truth_label"] = state["ground_truth_label"]
 
     def _save():
         with open(output_path, "w", encoding="utf-8") as f:

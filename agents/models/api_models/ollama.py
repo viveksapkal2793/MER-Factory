@@ -9,7 +9,6 @@ import torch
 from transformers import pipeline
 import asyncio
 
-from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -94,14 +93,11 @@ class OllamaModel:
                     f"[bold red]❌ Error initializing audio model: {e}[/bold red]"
                 )
 
-    async def describe_facial_expression(self, au_text: str) -> str:
+    async def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text using Ollama."""
         if not self.text_model:
             return "Error: Ollama text model not initialized."
         try:
-            prompt = PromptTemplates.describe_facial_expression().format(
-                au_text=au_text
-            )
             chain = self.text_model | StrOutputParser()
             return await chain.ainvoke(prompt)
         except Exception as e:
@@ -110,7 +106,7 @@ class OllamaModel:
             )
             return f"Error generating facial description: {e}"
 
-    async def describe_image(self, image_path: Path) -> str:
+    async def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file using Ollama."""
         if not self.vision_model:
             return "Error: Ollama vision model not initialized."
@@ -121,7 +117,7 @@ class OllamaModel:
             mime_type = mimetypes.guess_type(image_path)[0] or "image/png"
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.describe_image()},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:{mime_type};base64,{image_data}"},
@@ -134,10 +130,10 @@ class OllamaModel:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
             return ""
 
-    async def analyze_audio(self, audio_path: Path) -> dict:
-        return self._analyze_audio(audio_path)
+    async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
+        return self._analyze_audio(audio_path, prompt)
 
-    def _analyze_audio(self, audio_path: Path) -> dict:
+    def _analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """
         Analyzes an audio file to transcribe the speech using a Hugging Face model.
 

@@ -18,6 +18,8 @@ from rich.progress import (
 import asyncio
 import traceback
 import functools
+import pandas as pd
+from typing import Dict
 
 from agents.graph import create_graph, MERRState
 from agents.models import LLMModels
@@ -73,7 +75,10 @@ def _setup_and_preprocess(input_path: Path, verbose: bool) -> list[Path]:
 
 
 def _run_processing_loop_sync(
-    files_to_process: list[Path], graph_app, initial_state_builder, verbose: bool
+    files_to_process: list[Path],
+    graph_app,
+    initial_state_builder,
+    verbose: bool,
 ):
     """Synchronous processing loop for Hugging Face."""
     results = {"success": 0, "failure": 0}
@@ -198,6 +203,7 @@ def _process_wrapper(
     ollama_vision_model_name: str,
     chatgpt_model_name: str,
     huggingface_model_id: str,
+    label_file: Path,
 ):
     """
     Main logic wrapper that decides whether to run sync or async processing.
@@ -249,6 +255,33 @@ def _process_wrapper(
         f"[bold magenta]MERR CLI - Mode: {processing_type.value}[/bold magenta]"
     )
 
+    # --- Load Labels ---
+    labels: Dict[str, str] = {}
+    if label_file:
+        if not label_file.exists():
+            console.print(
+                f"[bold red]Error: Label file not found at '{label_file}'[/bold red]"
+            )
+            raise typer.Exit(code=1)
+        try:
+            df = pd.read_csv(label_file)
+            # Ensure required columns exist
+            if "name" not in df.columns or "label" not in df.columns:
+                console.print(
+                    "[bold red]Error: Label file must contain 'name' and 'label' columns.[/bold red]"
+                )
+                raise typer.Exit(code=1)
+            labels = pd.Series(df.label.values, index=df.name).to_dict()
+            if verbose:
+                console.log(
+                    f"Successfully loaded {len(labels)} labels from [cyan]{label_file.name}[/cyan]"
+                )
+        except Exception as e:
+            console.print(
+                f"[bold red]Error reading or parsing label file: {e}[/bold red]"
+            )
+            raise typer.Exit(code=1)
+
     try:
         models = LLMModels(
             api_key=api_key,
@@ -288,6 +321,7 @@ def _process_wrapper(
         peak_distance_frames=peak_distance_frames,
         verbose=verbose,
         error_logs_dir=error_logs_dir,
+        labels=labels,
     )
 
     # Use the model type from the initialized model to determine sync/async execution
@@ -327,6 +361,7 @@ def build_initial_state(
     peak_distance_frames: int,
     verbose: bool,
     error_logs_dir: Path,
+    labels: Dict[str, str],
 ) -> MERRState:
     """Builds the initial state dictionary for a file."""
     file_id = file_path.stem
@@ -334,7 +369,7 @@ def build_initial_state(
     is_image = file_path.suffix.lower() in IMAGE_EXTENSIONS
     current_processing_type = "image" if is_image else processing_type.value
 
-    return {
+    state = {
         "video_path": file_path,
         "output_dir": output_dir,
         "processing_type": current_processing_type,
@@ -348,6 +383,17 @@ def build_initial_state(
         "audio_path": file_output_dir / f"{file_id}.wav",
         "au_data_path": file_output_dir / f"{file_id}.csv",
     }
+
+    # Add the ground truth label to the state if it exists in the provided dictionary
+    ground_truth_label = labels.get(file_id)
+    if ground_truth_label:
+        state["ground_truth_label"] = ground_truth_label
+        if verbose:
+            console.log(
+                f"Found ground truth label for {file_id}: [bold yellow]{ground_truth_label}[/bold yellow]"
+            )
+
+    return state
 
 
 async def _run_feature_extraction(
@@ -468,6 +514,12 @@ def process(
     processing_type: ProcessingType = typer.Option(
         ProcessingType.mer, "--type", "-t", case_sensitive=False
     ),
+    label_file: Path = typer.Option(
+        None,
+        "--label-file",
+        "-l",
+        help="Path to a CSV file with 'name' and 'label' columns. Optional, for ground truth labels.",
+    ),
     threshold: float = typer.Option(
         0.8, "--threshold", "-th", min=0.0, max=5.0, help="Emotion detection threshold."
     ),
@@ -506,6 +558,7 @@ def process(
         ollama_vision_model_name=ollama_vision_model,
         chatgpt_model_name=chatgpt_model,
         huggingface_model_id=huggingface_model_id,
+        label_file=label_file,
     )
 
 

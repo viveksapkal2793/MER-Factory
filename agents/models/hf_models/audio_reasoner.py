@@ -1,8 +1,6 @@
 from typing import List, Dict, Any
 from pathlib import Path
 from rich.console import Console
-from agents.prompts import PromptTemplates
-import json
 
 try:
     from swift.llm import PtEngine, InferRequest, RequestConfig
@@ -122,7 +120,7 @@ class AudioReasonerModel:
             },
         ]
 
-    def analyze_audio(self, audio_path: Path) -> dict:
+    def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """
         Analyzes an audio file to produce a structured response by parsing
         the model's output.
@@ -137,7 +135,6 @@ class AudioReasonerModel:
         if self.verbose:
             console.log(f"Analyzing audio with '{self.model_id}'...")
 
-        prompt = PromptTemplates.analyze_audio()
         messages = self._get_message(audio_path, prompt)
         str_response = self._run_generation(messages)
 

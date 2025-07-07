@@ -4,11 +4,9 @@ from pathlib import Path
 from rich.console import Console
 import tempfile
 import subprocess
-import json
 from typing import List, Dict, Any
 from transformers import AutoProcessor, AutoModelForImageTextToText
 
-from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -146,15 +144,13 @@ class GemmaMultimodalModel:
             )
             return ""
 
-    def describe_facial_expression(self, au_text: str) -> str:
+    def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text."""
-        prompt = PromptTemplates.describe_facial_expression().format(au_text=au_text)
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
         return self._run_generation(messages, 256)
 
-    def describe_image(self, image_path: Path) -> str:
+    def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file."""
-        prompt = PromptTemplates.describe_image()
         messages = [
             {
                 "role": "user",
@@ -166,9 +162,8 @@ class GemmaMultimodalModel:
         ]
         return self._run_generation(messages, 512)
 
-    def analyze_audio(self, audio_path: Path) -> dict:
+    def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """Analyzes an audio file and returns a structured dictionary."""
-        prompt = PromptTemplates.analyze_audio()
         messages = [
             {
                 "role": "user",
@@ -181,7 +176,7 @@ class GemmaMultimodalModel:
         str_response = self._run_generation(messages, 512)
         return str_response
 
-    def describe_video(self, video_path: Path) -> str:
+    def describe_video(self, video_path: Path, prompt: str) -> str:
         """Generates a description for a video by processing its frames and audio."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -226,7 +221,6 @@ class GemmaMultimodalModel:
                 console.log(f"[bold red]❌ {err_msg}[/bold red]")
                 return f"Error: {err_msg}"
 
-            prompt = PromptTemplates.describe_video()
             content = [{"type": "text", "text": prompt}]
             frame_files = sorted(list(frames_dir.glob("*.jpg")))
             if len(frame_files) > 15:

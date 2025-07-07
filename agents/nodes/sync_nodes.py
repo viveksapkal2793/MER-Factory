@@ -2,6 +2,8 @@ import json
 from rich.console import Console
 from pathlib import Path
 
+from agents.models import hf_models
+from agents.prompts import PromptTemplates
 
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.emotion_analyzer import EmotionAnalyzer
@@ -73,8 +75,8 @@ def generate_audio_description(state):
     hf_model = state["models"].model_instance
     if verbose:
         console.log(f"Analyzing audio with HF model at [green]{audio_path}[/green]")
-
-    audio_analysis = hf_model.analyze_audio(audio_path)
+    prompt = PromptTemplates.analyze_audio()
+    audio_analysis = hf_model.analyze_audio(audio_path, prompt)
     return {"audio_analysis_results": audio_analysis}
 
 
@@ -102,7 +104,8 @@ def generate_video_description(state):
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     hf_model = state["models"].model_instance
-    video_description = hf_model.describe_video(video_path)
+    prompt = PromptTemplates.describe_video()
+    video_description = hf_model.describe_video(video_path, prompt)
     if verbose:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
@@ -239,32 +242,33 @@ def generate_peak_frame_au_description(state):
 
 
 def synthesize_summary(state):
-    """Synthesizes a final summary from coarse clues using the sync HF model."""
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final MER summary...")
     hf_model = state["models"].model_instance
+    ground_truth_label = state.get("ground_truth_label")
 
     # Dynamically build the context based on available data
     clues = []
 
+    # If a ground truth label exists, it's the most important clue.
+    if ground_truth_label:
+        clues.append(f"- Ground Truth Label: {ground_truth_label}")
+
     # Chronological emotions
     detected_emotions = state.get("detected_emotions")
-    if detected_emotions:
-        clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
+    clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
 
     # Peak frame facial expression
     peak_frame_au_desc = state.get("peak_frame_au_description")
-    if peak_frame_au_desc:
-        timestamp = state.get("peak_frame_info", {}).get("timestamp", 0)
-        clues.append(
-            f"- Facial Expression Clues (at overall peak {timestamp:.2f}s): {peak_frame_au_desc}"
-        )
+    timestamp = state.get("peak_frame_info", {}).get("timestamp", 0)
 
+    clues.append(
+        f"- Facial Expression Clues (at overall peak {timestamp:.2f}s): {peak_frame_au_desc}"
+    )
     # Peak frame visual context
     image_visual_desc = state.get("image_visual_description")
-    if image_visual_desc:
-        clues.append(f"- Visual Context (at overall peak): {image_visual_desc}")
+    clues.append(f"- Visual Context (at overall peak): {image_visual_desc}")
 
     # Audio analysis
     audio_analysis = state.get("audio_analysis_results", "")
@@ -283,7 +287,11 @@ def synthesize_summary(state):
         console.log(coarse_summary)
         console.log("----------------------------------------------------")
 
-    final_summary = hf_model.synthesize_summary(coarse_summary)
+    prompt = PromptTemplates.synthesize_summary(
+        has_label=bool(ground_truth_label)
+    ).format(context=coarse_summary)
+
+    final_summary = hf_model.synthesize_summary(prompt)
     return {"final_summary": final_summary}
 
 
@@ -311,6 +319,10 @@ def save_mer_results(state):
         "coarse_descriptions_at_peak": descriptions,
         "final_summary": state["final_summary"],
     }
+
+    if state.get("ground_truth_label"):
+        result_data["ground_truth_label"] = state["ground_truth_label"]
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=4, ensure_ascii=False)
     if verbose:
@@ -358,13 +370,14 @@ def run_image_analysis(state):
 
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
-
+    prompt = PromptTemplates.describe_facial_expression().format(au_text=au_text_desc)
     llm_au_description = (
         "A neutral facial expression was detected."
         if "Neutral expression" in au_text_desc
-        else hf_model.describe_facial_expression(au_text_desc)
+        else hf_model.describe_facial_expression(prompt)
     )
-    image_visual_description = hf_model.describe_image(image_path)
+    prompt = PromptTemplates.describe_image()
+    image_visual_description = hf_model.describe_image(image_path, prompt)
 
     if verbose:
         console.log(f"LLM AU Description: [cyan]{llm_au_description}[/cyan]")
@@ -383,11 +396,19 @@ def synthesize_image_summary(state):
     if verbose:
         console.log("Synthesizing final image summary...")
     hf_model = state["models"].model_instance
-    context = (
-        f"- Facial Expression Clues: {state['llm_au_description']}\n"
-        f"- Visual Context: {state['image_visual_description']}"
-    )
-    final_summary = hf_model.synthesize_summary(context)
+    ground_truth_label = state.get("ground_truth_label")
+
+    clues = []
+    if ground_truth_label:
+        clues.append(f"- Ground Truth Label: {ground_truth_label}")
+    clues.append(f"- Facial Expression Clues: {state['llm_au_description']}")
+    clues.append(f"- Visual Context: {state['image_visual_description']}")
+
+    context = "\n".join(clues)
+    prompt = PromptTemplates.synthesize_summary(
+        has_label=bool(ground_truth_label)
+    ).format(context=context)
+    final_summary = hf_model.synthesize_summary(prompt)
     if verbose:
         console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
     return {"final_summary": final_summary}
@@ -409,6 +430,9 @@ def save_image_results(state):
         "image_visual_description": state["image_visual_description"],
         "final_summary": state["final_summary"],
     }
+    if state.get("ground_truth_label"):
+        result_data["ground_truth_label"] = state["ground_truth_label"]
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=4, ensure_ascii=False)
     if verbose:

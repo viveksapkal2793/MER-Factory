@@ -6,9 +6,7 @@ from rich.console import Console
 import base64
 import mimetypes
 import asyncio
-import json
 
-from agents.prompts import PromptTemplates
 
 console = Console(stderr=True)
 
@@ -65,14 +63,11 @@ class ChatGptModel:
         if self.verbose:
             console.log(f"ChatGPT audio model '{audio_model_name}' initialized.")
 
-    async def describe_facial_expression(self, au_text: str) -> str:
+    async def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text using ChatGPT."""
         if not self.model:
             return ""
         try:
-            prompt = PromptTemplates.describe_facial_expression().format(
-                au_text=au_text
-            )
             chain = self.model | StrOutputParser()
             return await chain.ainvoke(prompt)
         except Exception as e:
@@ -81,7 +76,7 @@ class ChatGptModel:
             )
             return ""
 
-    async def describe_image(self, image_path: Path) -> str:
+    async def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file using ChatGPT."""
         if not self.vision_model:
             return ""
@@ -92,7 +87,7 @@ class ChatGptModel:
             mime_type = mimetypes.guess_type(image_path)[0] or "image/png"
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.describe_image()},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:{mime_type};base64,{image_data}"},
@@ -105,7 +100,7 @@ class ChatGptModel:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
             return ""
 
-    async def analyze_audio(self, audio_path: Path) -> dict:
+    async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """Analyzes an audio file and returns a structured dictionary using ChatGPT."""
         if not self.audio_model:
             return ""
@@ -116,7 +111,7 @@ class ChatGptModel:
 
             message = HumanMessage(
                 content=[
-                    {"type": "text", "text": PromptTemplates.analyze_audio()},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "input_audio",
                         "input_audio": {
