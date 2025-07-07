@@ -518,6 +518,7 @@ def process(
         None,
         "--label-file",
         "-l",
+        exists=True,
         help="Path to a CSV file with 'name' and 'label' columns. Optional, for ground truth labels.",
     ),
     threshold: float = typer.Option(

@@ -14,21 +14,21 @@
 
 ## Table of Contents
 
-- [Pipeline Structure](#pipeline-structure)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
+- [🏗️ Pipeline Structure](#🏗️-pipeline-structure)
+- [✨ Features](#✨-features)
+- [🛠️ Prerequisites](#🛠️-prerequisites)
   - [1. FFmpeg](#1-ffmpeg)
   - [2. OpenFace](#2-openface)
-- [Installation](#installation)
-- [Usage](#usage)
+- [🚀 Installation](#🚀-installation)
+- [⚙️ Usage](#⚙️-usage)
   - [Basic Command Structure](#basic-command-structure)
   - [Examples](#examples)
   - [Command Line Options](#command-line-options)
   - [Processing Types](#processing-types)
-  - [Model Support](#model-support)
-  - [Model Recommendations](#model-recommendations)
-- [Testing Tools](#testing-tools)
-- [Troubleshooting](#troubleshooting)
+  - [🤖 Model Support](#🤖-model-support)
+  - [🎯 Model Recommendations](#🎯-model-recommendations)
+- [✅ Testing & Troubleshooting](#✅-testing--troubleshooting)
+
 
 ## 🏗️ Pipeline Structure
 
@@ -205,6 +205,7 @@ Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not
 | Option | Short | Description | Default |
 |--------|-------|-------------|---------|
 | `--type` | `-t` | Processing type (AU, audio, video, image, MER) | MER |
+| `--label-file` | `-l` | Path to a CSV file with 'name' and 'label' columns. Optional, for ground truth labels. | None |
 | `--threshold` | `-th` | Emotion detection threshold (0.0-5.0) | 0.8 |
 | `--peak_dis` | `-pd` | Steps between peak frame detection (min 8) | 15 |
 | `--silent` | `-s` | Run with minimal output | False |
