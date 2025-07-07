@@ -160,7 +160,7 @@ class OllamaModel:
             console.log(f"[bold red]❌ Error analyzing audio: {e}[/bold red]")
             return ""
 
-    async def describe_video(self, video_path: Path) -> str:
+    async def describe_video(self, video_path: Path, prompt: str) -> str:
         """Video analysis is not supported for Ollama models."""
         if self.verbose:
             console.log(

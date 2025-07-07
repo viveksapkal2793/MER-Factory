@@ -76,7 +76,8 @@ async def generate_audio_description(state):
     models: LLMModels = state["models"].model_instance
     if verbose:
         console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
-    audio_analysis = await models.analyze_audio(audio_path)
+    prompt = PromptTemplates.analyze_audio()
+    audio_analysis = await models.analyze_audio(audio_path, prompt)
     return {"audio_analysis_results": audio_analysis}
 
 
@@ -107,7 +108,8 @@ async def generate_video_description(state):
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
     models: LLMModels = state["models"].model_instance
-    video_description = await models.describe_video(video_path)
+    prompt = PromptTemplates.describe_video()
+    video_description = await models.describe_video(video_path, prompt)
     if verbose and video_description:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
@@ -232,7 +234,8 @@ async def generate_peak_frame_visual_description(state):
     models: LLMModels = state["models"].model_instance
     peak_frame_path = Path(state["peak_frame_path"])
 
-    visual_obj_desc = await models.describe_image(peak_frame_path)
+    prompt = PromptTemplates.describe_image()
+    visual_obj_desc = await models.describe_image(peak_frame_path, prompt)
 
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")

@@ -77,6 +77,8 @@ def generate_audio_description(state):
         console.log(f"Analyzing audio with HF model at [green]{audio_path}[/green]")
     prompt = PromptTemplates.analyze_audio()
     audio_analysis = hf_model.analyze_audio(audio_path, prompt)
+    if verbose:
+        console.log(f"Audio Analysis Results: [cyan]{audio_analysis}[/cyan]")
     return {"audio_analysis_results": audio_analysis}
 
 
@@ -86,7 +88,6 @@ def save_audio_results(state):
     results = state["audio_analysis_results"]
     if verbose:
         console.rule("[bold green]✅ Audio Analysis Complete[/bold green]")
-        console.print(f"[bold]Tone Description:[/bold] {results}")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
@@ -124,7 +125,7 @@ def save_video_results(state):
         "llm_video_summary": state["video_description"],
     }
     with open(output_path, "w") as f:
-        json.dump(result_data, f, indent=4)
+        json.dump(result_data, f, indent=4, ensure_ascii=False)
     if verbose:
         console.print(f"Video analysis results saved to [green]{output_path}[/green]")
     return {}
@@ -219,7 +220,8 @@ def generate_peak_frame_visual_description(state):
         console.log("Generating visual description for peak frame...")
     hf_model = state["models"].model_instance
     peak_frame_path = Path(state["peak_frame_path"])
-    visual_obj_desc = hf_model.describe_image(peak_frame_path)
+    prompt = PromptTemplates.describe_image()
+    visual_obj_desc = hf_model.describe_image(peak_frame_path, prompt)
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
     return {"image_visual_description": visual_obj_desc}
