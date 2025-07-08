@@ -1,0 +1,76 @@
+# GitHub Pages Configuration
+title: MER-Factory Documentation
+description: Your automated factory for constructing Multimodal Emotion Recognition and Reasoning (MERR) datasets
+url: "https://Lum1104.github.io"
+baseurl: "/MER-Factory"
+
+# Theme Configuration
+theme: jekyll-theme-dinky
+show_downloads: true
+
+# Repository Information
+github:
+  repository_name: MER-Factory
+  repository_url: https://github.com/Lum1104/MER-Factory
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /getting-started
+  - title: API Reference
+    url: /api-reference
+  - title: Examples
+    url: /examples
+  - title: Technical Documentation
+    url: /technical-docs
+
+# Social Links
+author:
+  name: MER-Factory Team
+  email: lin.yuxiang.contact@gmail.com
+
+# SEO and Analytics
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Markdown Configuration
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Include/Exclude
+include:
+  - _pages
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Collections
+collections:
+  pages:
+    output: true
+    permalink: /:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"

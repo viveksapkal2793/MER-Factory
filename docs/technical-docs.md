@@ -1,3 +1,9 @@
+---
+layout: default
+title: Technical Documentation
+description: Deep dive into MER-Factory's architecture, design patterns, and extensibility
+---
+
 # MER-Factory: Technical Documentation
 
 ## 1. Introduction & System Overview

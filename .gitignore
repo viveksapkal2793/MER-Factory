@@ -195,4 +195,29 @@ cython_debug/
 
 *output*/
 video/
+
+
+# Jekyll/Documentation specific
+docs/_site/
+docs/.jekyll-cache/
+docs/.sass-cache/
+docs/.jekyll-metadata
+docs/Gemfile.lock
+
+# Ruby specific for Jekyll
+.bundle/
+vendor/
+
+# Logs and temporary files
+*.log
+.tmp/
+temp/
+
+# OS specific
 .DS_Store
+Thumbs.db
+
+# Editor specific
+*.swp
+*.swo
+*~
