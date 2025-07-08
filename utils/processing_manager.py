@@ -21,6 +21,7 @@ from .config import (
     VIDEO_EXTENSIONS,
     IMAGE_EXTENSIONS,
     AUDIO_EXTENSIONS,
+    FINAL_OUTPUT_FILENAMES,
     ProcessingType,
 )
 from tools.ffmpeg_adapter import FFMpegAdapter
@@ -150,9 +151,10 @@ async def run_main_processing(
     is_sync: bool,
 ) -> Dict[str, int]:
     """
-    Manages the main processing loop, dispatching to sync or async helpers.
+    Manages the main processing loop, checking for cached final outputs first,
+    then dispatching to sync or async helpers.
     """
-    results = {"success": 0, "failure": 0}
+    results = {"success": 0, "failure": 0, "skipped": 0}
     total_files = len(files_to_process)
     semaphore = asyncio.Semaphore(config.concurrency)
 
@@ -168,22 +170,51 @@ async def run_main_processing(
     ) as progress:
         task = progress.add_task("Processing files...", total=total_files)
 
-        if is_sync:
-            # Synchronous execution (for Hugging Face)
+        final_output_suffix = FINAL_OUTPUT_FILENAMES.get(config.processing_type)
+
+        files_to_run = []
+        if config.cache and final_output_suffix:
             for file_path in files_to_process:
+                file_id = file_path.stem
+                file_output_dir = config.output_dir / file_id
+                final_output_path = file_output_dir / f"{file_id}{final_output_suffix}"
+
+                if final_output_path.exists():
+                    if config.verbose:
+                        console.log(
+                            f"Cache hit: Final output for [cyan]{file_path.name}[/cyan] found. Skipping."
+                        )
+                    progress.update(
+                        task,
+                        advance=1,
+                        description=f"Skipped [cyan]{file_path.name}[/cyan]",
+                    )
+                    results["skipped"] += 1
+                else:
+                    files_to_run.append(file_path)
+        else:
+            files_to_run = files_to_process
+
+        if not files_to_run:
+            return results
+
+        if is_sync:
+            # Synchronous execution
+            for file_path in files_to_run:
                 initial_state = initial_state_builder(file_path=file_path)
                 invoke_func = functools.partial(graph_app.invoke, initial_state)
                 _run_sync_job(invoke_func, file_path, task, progress, results)
         else:
-            # Asynchronous execution (for Gemini/Ollama)
+            # Asynchronous execution
             tasks = []
-            for file_path in files_to_process:
+            for file_path in files_to_run:
                 initial_state = initial_state_builder(file_path=file_path)
                 coro = graph_app.ainvoke(initial_state)
                 tasks.append(
                     _run_async_job(coro, file_path, task, progress, results, semaphore)
                 )
-            await asyncio.gather(*tasks)
+            if tasks:
+                await asyncio.gather(*tasks)
 
     return results
 

@@ -25,6 +25,16 @@ class ProcessingType(str, Enum):
     IMAGE = "image"
 
 
+# Maps processing types to the suffix of their final output file.
+FINAL_OUTPUT_FILENAMES = {
+    ProcessingType.MER: "_merr_data.json",
+    ProcessingType.AU: "_au_analysis.json",
+    ProcessingType.AUDIO: "_audio_analysis.json",
+    ProcessingType.VIDEO: "_video_analysis.json",
+    ProcessingType.IMAGE: "_image_analysis.json",
+}
+
+
 class AppConfig(BaseModel):
     """
     A Pydantic model to hold and validate all application settings.

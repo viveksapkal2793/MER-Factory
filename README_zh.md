@@ -178,11 +178,11 @@ python main.py [输入路径] [输出目录] [选项]
 
 ### 示例
 ```bash
+# 查看所有支持功能
+python main.py --help
+
 # 使用 Gemini（默认）运行完整 MER 处理流程
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
-
-# 使用自定义阈值运行 MER 处理流程
-python main.py path_to_video/ output/ --type MER --silent --threshold 0.45
 
 # 使用 ChatGPT 模型
 python main.py path_to_video/ output/ --type MER --chatgpt-model gpt-4o --silent
@@ -208,6 +208,7 @@ python main.py ./images ./output --type MER
 | `--threshold` | `-th` | 情感检测阈值（0.0-5.0） | 0.8 |
 | `--peak_dis` | `-pd` | 情感峰值帧检测间隔（最小 8） | 15 |
 | `--silent` | `-s` | 以最小输出运行 | False |
+| `--cache` | `-ca` | 复用现有 音视频/ AU 分析结果 | False |
 | `--concurrency` | `-c` | 异步处理文件数量（最小 1） | 4 |
 | `--ollama-vision-model` | `-ovm` | Ollama 视觉模型名称 | None |
 | `--ollama-text-model` | `-otm` | Ollama 文本模型名称 | None |

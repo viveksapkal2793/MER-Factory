@@ -92,6 +92,8 @@ def main_orchestrator(config: AppConfig):
     console.rule("[bold green]Processing Complete[/bold green]")
     console.print(f"Total files attempted: {total_files}")
     console.print(f"✅ [green]Successful[/green]: {results['success']}")
+    if results.get("skipped", 0) > 0:
+        console.print(f"⏭️  [blue]Skipped (Cached)[/blue]: {results['skipped']}")
     if results["failure"] > 0:
         console.print(f"❌ [red]Failed[/red]: {results['failure']}")
         console.print(f"Error logs saved in: [cyan]{config.error_logs_dir}[/cyan]")
@@ -121,14 +123,6 @@ def process(
     peak_distance_frames: int = typer.Option(
         15, "--peak_dis", "-pd", min=8, help="The steps between peak frame detection."
     ),
-    silent: bool = typer.Option(
-        False, "--silent", "-s", help="Run with minimal output."
-    ),
-    cache: bool = typer.Option(
-        False,
-        "--cache",
-        help="Reuse existing audio/video/AU results from previous pipeline runs.",
-    ),
     concurrency: int = typer.Option(
         4, "--concurrency", "-c", min=1, help="Concurrent files for async processing."
     ),
@@ -143,6 +137,15 @@ def process(
     ),
     huggingface_model_id: str = typer.Option(
         None, "--huggingface-model", "-hfm", help="Hugging Face model ID."
+    ),
+    silent: bool = typer.Option(
+        False, "--silent", "-s", help="Run with minimal output."
+    ),
+    cache: bool = typer.Option(
+        False,
+        "--cache",
+        "-ca",
+        help="Reuse existing audio/video/AU results from previous pipeline runs.",
     ),
 ):
     """Processes media files for Multimodal Emotion Recognition and Reasoning (MERR)."""

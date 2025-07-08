@@ -179,11 +179,11 @@ python main.py [INPUT_PATH] [OUTPUT_DIR] [OPTIONS]
 
 ### Examples
 ```bash
+# Show all supported args.
+python main.py --help
+
 # Full MER pipeline with Gemini (default)
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
-
-# MER pipeline with custom threshold
-python main.py path_to_video/ output/ --type MER --silent --threshold 0.45
 
 # Using ChatGPT models
 python main.py path_to_video/ output/ --type MER --chatgpt-model gpt-4o --silent
@@ -209,6 +209,7 @@ Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not
 | `--threshold` | `-th` | Emotion detection threshold (0.0-5.0) | 0.8 |
 | `--peak_dis` | `-pd` | Steps between peak frame detection (min 8) | 15 |
 | `--silent` | `-s` | Run with minimal output | False |
+| `--cache` | `-ca` | Reuse existing audio/video/AU results from previous pipeline runs | False |
 | `--concurrency` | `-c` | Concurrent files for async processing (min 1) | 4 |
 | `--ollama-vision-model` | `-ovm` | Ollama vision model name | None |
 | `--ollama-text-model` | `-otm` | Ollama text model name | None |
