@@ -63,6 +63,21 @@ async def save_au_results(state):
 
 
 async def generate_audio_description(state):
+    # reuse existing audio analysis results if available
+    if state.get("processing_type") == "MER" and state.get("cache"):
+        output_path = (
+            Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
+        )
+        if output_path.exists():
+            verbose = state.get("verbose", True)
+            if verbose:
+                console.log(
+                    f"Cache hit for audio analysis. Loading from [green]{output_path}[/green]"
+                )
+            with open(output_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {"audio_analysis_results": data.get("audio_analysis", "")}
+
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Audio Analysis[/bold]")
@@ -118,6 +133,20 @@ async def save_audio_results(state):
 
 
 async def generate_video_description(state):
+    if state.get("processing_type") == "MER" and state.get("cache"):
+        output_path = (
+            Path(state["video_output_dir"]) / f"{state['video_id']}_video_analysis.json"
+        )
+        if output_path.exists():
+            verbose = state.get("verbose", True)
+            if verbose:
+                console.log(
+                    f"Cache hit for video analysis. Loading from [green]{output_path}[/green]"
+                )
+            with open(output_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {"video_description": data.get("llm_video_summary", "")}
+
     verbose = state.get("verbose", True)
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
@@ -185,6 +214,21 @@ async def filter_by_emotion(state):
     Finds all significant emotional peaks in the video and, for each peak,
     analyzes the primary and secondary emotions present.
     """
+    # If caching is enabled for an MER run, try to load existing results first.
+    if state.get("processing_type") == "MER" and state.get("cache"):
+        output_path = (
+            Path(state["video_output_dir"]) / f"{state['video_id']}_au_analysis.json"
+        )
+        if output_path.exists():
+            verbose = state.get("verbose", True)
+            if verbose:
+                console.log(
+                    f"Cache hit for AU analysis. Loading from [green]{output_path}[/green]"
+                )
+            with open(output_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {"detected_emotions": data.get("chronological_emotion_peaks", [])}
+
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Finding all emotional peaks and analyzing mixed emotions...")

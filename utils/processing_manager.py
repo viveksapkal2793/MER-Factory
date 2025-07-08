@@ -14,7 +14,7 @@ from rich.progress import (
     TaskID,
 )
 
-from agents.graph import MERRState
+from agents.state import MERRState
 from agents.models import LLMModels
 from .config import (
     AppConfig,
@@ -68,6 +68,7 @@ def build_initial_state(
         "error_logs_dir": config.error_logs_dir,
         "video_id": file_id,
         "video_output_dir": file_output_dir,
+        "cache": config.cache,
     }
 
     ground_truth_label = config.labels.get(file_id)

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Author: Yuxiang Lin
+
 import os
 import typer
 from pathlib import Path
@@ -121,6 +124,11 @@ def process(
     silent: bool = typer.Option(
         False, "--silent", "-s", help="Run with minimal output."
     ),
+    cache: bool = typer.Option(
+        False,
+        "--cache",
+        help="Reuse existing audio/video/AU results from previous pipeline runs.",
+    ),
     concurrency: int = typer.Option(
         4, "--concurrency", "-c", min=1, help="Concurrent files for async processing."
     ),
@@ -147,6 +155,7 @@ def process(
             threshold=threshold,
             peak_distance_frames=peak_distance_frames,
             silent=silent,
+            cache=cache,
             concurrency=concurrency,
             ollama_vision_model=ollama_vision_model,
             ollama_text_model=ollama_text_model,

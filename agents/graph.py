@@ -1,43 +1,10 @@
 from langgraph.graph import StateGraph, END
 from rich.console import Console
-from pathlib import Path
-from typing import TypedDict, Dict, Any, List
 
-from .models import LLMModels
+
+from .state import MERRState
 
 console = Console()
-
-
-class MERRState(TypedDict, total=False):
-    """Represents the state of the MERR pipeline."""
-
-    video_path: Path
-    output_dir: Path
-    processing_type: str
-    video_id: str
-    video_output_dir: Path
-    models: LLMModels
-    error: str
-    verbose: bool
-    error_logs_dir: Path
-    au_data_path: Path
-    au_text_description: str
-    llm_au_description: str
-    final_summary: str
-    peak_frame_info: Dict[str, Any]
-    peak_frame_path: Path
-    audio_path: Path
-    audio_analysis_results: str
-    video_description: str
-    descriptions: Dict[str, str]
-    threshold: float
-    detected_emotions: List
-    peak_distance_frames: int
-    ground_truth_label: str
-
-    # Image-Specific State
-    image_visual_description: str
-    peak_frame_au_description: str
 
 
 def route_by_processing_type(state: MERRState) -> str:

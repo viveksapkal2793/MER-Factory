@@ -38,6 +38,7 @@ class AppConfig(BaseModel):
     threshold: float = Field(0.8, ge=0.0, le=5.0)
     peak_distance_frames: int = Field(15, ge=8)
     silent: bool = False
+    cache: bool = False
     concurrency: int = Field(4, ge=1)
     ollama_vision_model: Optional[str] = None
     ollama_text_model: Optional[str] = None
