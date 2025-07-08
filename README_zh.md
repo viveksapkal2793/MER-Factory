@@ -15,22 +15,23 @@
 
 ## 目录
 
-- [🏗️ Pipeline 结构](#-pipeline-结构)
-- [✨ 特性](#-特性)
-- [🛠️ 前置条件](#-前置条件)
+- [Pipeline 结构](#pipeline-结构)
+- [特性](#特性)
+- [前置条件](#前置条件)
   - [1. FFmpeg](#1-ffmpeg)
   - [2. OpenFace](#2-openface)
-- [🚀 安装](#-安装)
-- [⚙️ 使用方法](#-使用方法)
+- [安装](#安装)
+- [使用方法](#使用方法)
   - [基本命令结构](#基本命令结构)
   - [示例](#示例)
   - [命令行选项](#命令行选项)
   - [处理类型](#处理类型)
-  - [🤖 模型支持](#-模型支持)
-  - [🎯 模型推荐](#-模型推荐)
-- [✅ 测试与故障排除](#-测试与故障排除)
+- [模型支持](#模型支持)
+  - [模型推荐](#模型推荐)
+- [测试与故障排除](#测试与故障排除)
+- [技术文档](#技术文档)
 
-## 🏗️ Pipeline 结构
+## Pipeline 结构
 
 <details>
 <summary>点击展开/折叠</summary>
@@ -94,7 +95,7 @@ graph TD;
 
 </details>
 
-## ✨ 特性
+## 特性
 
 -   **动作单元（AU）处理流程**：提取面部动作单元（AUs），并将其翻译成描述性的自然语言。
 -   **音频分析处理流程**：提取音频，转录语音，并进行详细的音调分析。
@@ -106,7 +107,7 @@ graph TD;
 -   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
-## 🛠️ 前置条件
+## 前置条件
 
 ### 1. FFmpeg
 FFmpeg 用于视频和音频处理。
@@ -146,7 +147,7 @@ OpenFace 用于面部动作单元提取。
 
 </details>
 
-## 🚀 安装
+## 安装
 
 ```bash
 git clone git@github.com:Lum1104/MER-Factory.git
@@ -169,7 +170,7 @@ pip install -r requirements.txt
    - `OPENAI_API_KEY`：您的 OpenAI API 密钥（如果使用 ChatGPT 模型则需要）
    - `OPENFACE_EXECUTABLE`：OpenFace FeatureExtraction 可执行文件的路径（AU 和 MER 处理流程需要）
 
-## ⚙️ 使用方法
+## 使用方法
 
 ### 基本命令结构
 ```bash
@@ -250,7 +251,7 @@ python main.py video.mp4 output/ --type MER
 python main.py video.mp4 output/
 ```
 
-### 🤖 模型支持
+## 模型支持
 
 该工具支持四种类型的模型：
 
@@ -261,7 +262,7 @@ python main.py video.mp4 output/
 
 **注意**：如果使用 Hugging Face 模型，会自动将并发设置为 1，以实现同步处理。
 
-### 🎯 模型推荐
+### 模型推荐
 
 #### 何时使用 Ollama
 **推荐用途**：图像分析、动作单元分析、文本处理以及简单的音频转录任务。
@@ -311,7 +312,7 @@ python main.py video.mp4 output/ --type MER --silent
 
 **当前支持的模型**：`google/gemma-3n-E4B-it` 以及其他在 HF 模型目录中列出的模型。
 
-## ✅ 测试与故障排除
+## 测试与故障排除
 
 ### 安装验证
 使用这些脚本确保您的依赖项正确配置。
@@ -348,3 +349,16 @@ python test_openface.py your_video.mp4 test_output/
 4.  **Ollama 模型未找到**：
     -   **症状**：错误提示模型不可用。
     -   **解决方案**：确保您已使用 `ollama pull <model_name>` 命令将模型下载到本地。
+
+## 技术文档
+
+有关系统架构、执行流程和可扩展性的详细技术信息，请参阅我们的[技术文档](docs.md)。
+
+技术文档涵盖：
+- 系统架构和执行流程
+- 状态管理和计算图
+- 核心模块和功能
+- 模型选择策略
+- 高级工作流程和缓存
+- 处理流程详细信息
+- 可扩展性指南

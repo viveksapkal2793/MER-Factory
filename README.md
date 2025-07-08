@@ -14,23 +14,24 @@
 
 ## Table of Contents
 
-- [🏗️ Pipeline Structure](#-pipeline-structure)
-- [✨ Features](#-features)
-- [🛠️ Prerequisites](#-prerequisites)
+- [Pipeline Structure](#pipeline-structure)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
   - [1. FFmpeg](#1-ffmpeg)
   - [2. OpenFace](#2-openface)
-- [🚀 Installation](#-installation)
-- [⚙️ Usage](#-usage)
+- [Installation](#installation)
+- [Usage](#usage)
   - [Basic Command Structure](#basic-command-structure)
   - [Examples](#examples)
   - [Command Line Options](#command-line-options)
   - [Processing Types](#processing-types)
-  - [🤖 Model Support](#-model-support)
-  - [🎯 Model Recommendations](#-model-recommendations)
-- [✅ Testing & Troubleshooting](#-testing--troubleshooting)
+- [Model Support](#model-support)
+  - [Model Recommendations](#model-recommendations)
+- [Testing & Troubleshooting](#testing--troubleshooting)
+- [Technical Documentation](#technical-documentation)
 
 
-## 🏗️ Pipeline Structure
+## Pipeline Structure
 
 <details>
 <summary>Click here to expand/collapse</summary>
@@ -95,7 +96,7 @@ graph TD;
 
 </details>
 
-## ✨ Features
+## Features
 
 -   **Action Unit (AU) Pipeline**: Extracts facial Action Units (AUs) and translates them into descriptive natural language.
 -   **Audio Analysis Pipeline**: Extracts audio, transcribes speech, and performs detailed tonal analysis.
@@ -107,7 +108,7 @@ Check out example outputs here:
 -   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
-## 🛠️ Prerequisites
+## Prerequisites
 
 ### 1. FFmpeg
 FFmpeg is required for video and audio processing.
@@ -147,7 +148,7 @@ OpenFace is needed for facial Action Unit extraction.
 
 </details>
 
-## 🚀 Installation
+## Installation
 
 ```bash
 git clone git@github.com:Lum1104/MER-Factory.git
@@ -170,7 +171,7 @@ pip install -r requirements.txt
    - `OPENAI_API_KEY`: Your OpenAI API key for ChatGPT models (optional if using other models)
    - `OPENFACE_EXECUTABLE`: Path to OpenFace FeatureExtraction executable (required for AU and MER pipelines)
 
-## ⚙️ Usage
+## Usage
 
 ### Basic Command Structure
 ```bash
@@ -251,7 +252,7 @@ python main.py video.mp4 output/ --type MER
 python main.py video.mp4 output/
 ```
 
-### 🤖 Model Support
+## Model Support
 
 The tool supports four types of models:
 
@@ -262,7 +263,7 @@ The tool supports four types of models:
 
 **Note**: If using Hugging Face models, concurrency is automatically set to 1 for synchronous processing.
 
-### 🎯 Model Recommendations
+### Model Recommendations
 
 #### When to Use Ollama
 **Recommended for**: Image analysis, Action Unit analysis, text processing, and simple audio transcription tasks.
@@ -312,7 +313,7 @@ If you want to use the latest HF models or features that Ollama doesn't support:
 
 **Current supported models**: `google/gemma-3n-E4B-it` and others listed in the HF models directory.
 
-## ✅ Testing & Troubleshooting
+## Testing & Troubleshooting
 
 ### Installation Verification
 Use these scripts to ensure your dependencies are correctly configured.
@@ -349,3 +350,16 @@ python test_openface.py your_video.mp4 test_output/
 4.  **Ollama Model Not Found**:
     -   **Symptom**: Errors mentioning the model is not available.
     -   **Solution**: Make sure you have pulled the model locally using `ollama pull <model_name>`.
+
+## Technical Documentation
+
+For detailed technical information about the system architecture, execution flow, and extensibility, please refer to our [Technical Documentation](docs.md).
+
+The technical documentation covers:
+- System architecture and execution flow
+- State management and computational graph
+- Core modules and functionality
+- Model selection strategies
+- Advanced workflows and caching
+- Processing pipeline details
+- Extensibility guidelines
