@@ -13,7 +13,9 @@
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
 
-<p align="center"> <img src="docs/assets/logo.png" width="400"> </p>
+<!-- <p align="center"> <img src="docs/assets/logo.png" width="400"> </p> -->
+
+[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=MER-Factory%20🧰&text2=✨%20Factory%20for%20Multimodal%20Emotion%20Recognition%20Reasoning%20(MERR)%20datasets&width=800&height=200)](https://lum1104.github.io/MER-Factory/)
 
 ## Table of Contents
 

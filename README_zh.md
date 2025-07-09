@@ -14,7 +14,9 @@
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
 
-<p align="center"> <img src="docs/assets/logo.png" width="400"> </p>
+<!-- <p align="center"> <img src="docs/assets/logo.png" width="400"> </p> -->
+
+[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=MER-Factory%20🧰&text2=✨%20多模态情绪识别推理%20(MERR)%20数据集工厂&width=800&height=200)](https://lum1104.github.io/MER-Factory/)
 
 ## 目录
 
