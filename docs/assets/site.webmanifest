@@ -1,0 +1,14 @@
+{
+    "name": "MER-Factory",
+    "short_name": "MER-Factory",
+    "icons": [
+        {
+            "src": "assets/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ],
+    "theme_color": "#6366F1",
+    "background_color": "#ffffff",
+    "display": "standalone"
+}
