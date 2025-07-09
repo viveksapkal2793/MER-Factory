@@ -12,7 +12,7 @@
   <a href="https://lum1104.github.io/MER-Factory/" target="_blank">📖 项目文档</a>
 </p>
 
-<p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> <img src="https://zenodo.org/badge/1007639998.svg" alt="DOI"> </p>
 
 <!-- <p align="center"> <img src="docs/assets/logo.png" width="400"> </p> -->
 

@@ -1,14 +1,22 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+title: MER-Factory
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
 authors:
-- family-names: "YOUR_NAME_HERE"
-  given-names: "YOUR_NAME_HERE"
-  orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: "Lisa"
-  given-names: "Mona"
-  orcid: "https://orcid.org/0000-0000-0000-0000"
-title: "MER-Factory"
-version: 1.0.0
-doi: 10.5281/zenodo.1234
-date-released: 2025-07-09
-url: "https://github.com/Lum1104/MER-Factory"
+  - given-names: Yuxiang
+    family-names: Lin
+    email: lin.yuxiang.contact@gmail.com
+    affiliation: Georgia Institute of Technology
+    orcid: 'https://orcid.org/0009-0004-7835-9352'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.15847351
+repository-code: 'https://github.com/Lum1104/MER-Factory'
+url: 'https://lum1104.github.io/MER-Factory/'
+license: MIT
+version: 0.1.0

@@ -14,6 +14,7 @@ lang: en
     <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red" alt="MER">
     <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python">
     <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+    <img src="https://zenodo.org/badge/1007639998.svg" alt="DOI">
   </div>
 
   <img src="assets/logo.png" alt="MER-Factory Logo" class="hero-image">
