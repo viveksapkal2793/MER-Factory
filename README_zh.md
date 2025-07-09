@@ -38,7 +38,7 @@
 - [模型支持](#模型支持)
   - [模型推荐](#模型推荐)
 - [测试与故障排除](#测试与故障排除)
-- [技术文档](#技术文档)
+- [引用](#引用)
 
 ## Pipeline 结构
 
@@ -358,4 +358,21 @@ python test_openface.py your_video.mp4 test_output/
 4.  **Ollama 模型未找到**：
     -   **症状**：错误提示模型不可用。
     -   **解决方案**：确保您已使用 `ollama pull <model_name>` 命令将模型下载到本地。
+
+## 引用
+
+如果您在研究或项目中发现 MER-Factory 很有用，请考虑引用我们：
+
+```bibtex
+@software{Lin_MER-Factory_2025,
+  author = {Lin, Yuxiang},
+  doi = {10.5281/zenodo.15847351},
+  license = {MIT},
+  month = {7},
+  title = {{MER-Factory}},
+  url = {https://lum1104.github.io/MER-Factory/},
+  version = {0.1.0},
+  year = {2025}
+}
+```
 

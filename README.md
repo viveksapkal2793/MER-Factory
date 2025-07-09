@@ -37,7 +37,7 @@
 - [Model Support](#model-support)
   - [Model Recommendations](#model-recommendations)
 - [Testing & Troubleshooting](#testing--troubleshooting)
-- [Technical Documentation](#technical-documentation)
+- [Citation](#citation)
 
 
 ## Pipeline Structure
@@ -359,3 +359,20 @@ python test_openface.py your_video.mp4 test_output/
 4.  **Ollama Model Not Found**:
     -   **Symptom**: Errors mentioning the model is not available.
     -   **Solution**: Make sure you have pulled the model locally using `ollama pull <model_name>`.
+
+## Citation
+
+If you find MER-Factory useful in your research or project, please consider citing us:
+
+```bibtex
+@software{Lin_MER-Factory_2025,
+  author = {Lin, Yuxiang},
+  doi = {10.5281/zenodo.15847351},
+  license = {MIT},
+  month = {7},
+  title = {{MER-Factory}},
+  url = {https://lum1104.github.io/MER-Factory/},
+  version = {0.1.0},
+  year = {2025}
+}
+```
