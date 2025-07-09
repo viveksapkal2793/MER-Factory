@@ -35,8 +35,8 @@ MER-Factory is a **Python-based, open-source framework** designed for the Affect
 | Pipeline | Description | Use Case |
 |----------|-------------|----------|
 | **AU** | Facial Action Unit extraction and description | Facial expression analysis |
-| **Audio** | Speech transcription and tonal analysis | Audio emotion recognition |
-| **Video** | Comprehensive video content description | Video understanding |
+| **Audio** | Speech transcription and tonal analysis | Audio emotion analysis |
+| **Video** | Comprehensive video content description | Video emotion analysis |
 | **Image** | Static image emotion recognition | Image-based emotion analysis |
 | **MER** | Complete multimodal pipeline | Full emotion reasoning datasets |
 
@@ -59,8 +59,8 @@ python main.py video.mp4 output/ --type MER --silent
 ### 📖 Example Outputs
 
 Check out real examples of what MER-Factory produces:
-- [Gemini Model Output](examples/gemini_merr.json)
-- [LLaVA Model Output](examples/llava-llama3:latest_llama3.2_merr_data.json)
+- [Gemini Model Output](https://github.com/Lum1104/MER-Factory/blob/main/examples/gemini_merr.json)
+- [LLaVA Model Output](https://github.com/Lum1104/MER-Factory/blob/main/examples/llava-llama3:latest_llama3.2_merr_data.json)
 
 ## Architecture Overview
 
@@ -80,20 +80,21 @@ Check out real examples of what MER-Factory produces:
 
 Ready to dive in? Here's what you need to know:
 
-1. **[Prerequisites](/prerequisites)** - Install FFmpeg and OpenFace
-2. **[Installation Guide](/installation)** - Set up MER-Factory
-3. **[Basic Usage](/usage)** - Your first emotion recognition pipeline
-4. **[Model Configuration](/models)** - Choose and configure your AI models
-5. **[Advanced Features](/advanced)** - Explore all capabilities
+1.  **[Prerequisites](/MER-Factory/getting-started#prerequisites)** - Install FFmpeg and OpenFace
+2.  **[Installation Guide](/MER-Factory/getting-started#installation)** - Set up MER-Factory
+3.  **[Basic Usage](/MER-Factory/getting-started#your-first-pipeline)** - Your first emotion recognition pipeline
+4.  **[Model Configuration](/MER-Factory/getting-started#model-options)** - Choose and configure your AI models
+5.  **[Advanced Features](/MER-Factory/getting-started#next-steps)** - Explore all capabilities
 
 ## Community & Support
 
-- 📚 **[Technical Documentation](/technical-docs)** - Deep dive into system architecture
-- 🔧 **[API Reference](/api-reference)** - Complete function and class documentation
-- 💡 **[Examples](/examples)** - Real-world usage examples and tutorials
+- 📚 **[Technical Documentation](/MER-Factory/technical-docs)** - Deep dive into system architecture
+- 🔧 **[API Reference](/MER-Factory/api-reference)** - Complete function and class documentation
+- 💡 **[Examples](/MER-Factory/examples)** - Real-world usage examples and tutorials
 - 🐛 **Issues & Bug Reports** - [GitHub Issues](https://github.com/Lum1104/MER-Factory/issues)
 - 💬 **Discussions** - [GitHub Discussions](https://github.com/Lum1104/MER-Factory/discussions)
 
+*Advancing together with the Affective Computing community.*
 
 <style>
 .hero-section {

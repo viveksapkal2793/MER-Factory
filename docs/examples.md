@@ -8,4 +8,4 @@ description: Real-world examples and tutorials for using MER-Factory
 
 Learn MER-Factory through practical examples and real-world use cases. From basic emotion recognition to advanced multimodal analysis.
 
-TODO: Coming soon...
+*TODO: Coming soon...*

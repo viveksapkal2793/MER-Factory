@@ -8,10 +8,13 @@
 <p align="center">
   <strong>您的多模态情感识别与推理（MERR）数据集自动化工厂。</strong>
 </p>
+<p align="center">
+  <a href="https://lum1104.github.io/MER-Factory/" target="_blank">📖 项目文档</a>
+</p>
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
 
-<p align="center"> <img src="https://github.com/user-attachments/assets/8b328f72-75ca-45d9-8cb2-8412f6686183" width="400"> </p>
+<p align="center"> <img src="docs/assets/logo.png" width="400"> </p>
 
 ## 目录
 
@@ -150,7 +153,7 @@ OpenFace 用于面部动作单元提取。
 ## 安装
 
 ```bash
-git clone git@github.com:Lum1104/MER-Factory.git
+git clone https://github.com/Lum1104/MER-Factory.git
 cd MER-Factory
 
 conda create -n mer-factory python=3.12
@@ -350,15 +353,3 @@ python test_openface.py your_video.mp4 test_output/
     -   **症状**：错误提示模型不可用。
     -   **解决方案**：确保您已使用 `ollama pull <model_name>` 命令将模型下载到本地。
 
-## 技术文档
-
-有关系统架构、执行流程和可扩展性的详细技术信息，请参阅我们的[技术文档](docs.md)。
-
-技术文档涵盖：
-- 系统架构和执行流程
-- 状态管理和计算图
-- 核心模块和功能
-- 模型选择策略
-- 高级工作流程和缓存
-- 处理流程详细信息
-- 可扩展性指南

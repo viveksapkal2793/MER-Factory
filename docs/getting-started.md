@@ -260,14 +260,12 @@ python test/test_openface.py your_video.mp4 test_output/
 
 Now that you have MER-Factory running, explore these advanced features:
 
-- **[API Reference](/api-reference)** - Detailed function documentation
-- **[Examples](/examples)** - Real-world usage examples  
-- **[Technical Documentation](/technical-docs)** - System architecture details
-- **[Model Configuration](/models)** - Advanced model setup
+- **[API Reference](/MER-Factory/api-reference)** - Detailed function documentation
+- **[Examples](/MER-Factory/examples)** - Real-world usage examples
+- **[Technical Documentation](/MER-Factory/technical-docs)** - System architecture details
 
 ## Need Help?
 
-- 📚 Check our [Examples](/examples) page
 - 🐛 Report issues on [GitHub Issues](https://github.com/Lum1104/MER-Factory/issues)
 - 💬 Join discussions on [GitHub Discussions](https://github.com/Lum1104/MER-Factory/discussions)
 - 📖 Read the [Technical Documentation](/technical-docs) for deeper understanding

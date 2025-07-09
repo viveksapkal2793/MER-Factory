@@ -7,10 +7,13 @@
 <p align="center">
   <strong>Your automated factory for constructing Multimodal Emotion Recognition and Reasoning (MERR) datasets.</strong>
 </p>
+<p align="center">
+  <a href="https://lum1104.github.io/MER-Factory/" target="_blank">📖 Documentation</a>
+</p>
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> </p>
 
-<p align="center"> <img src="https://github.com/user-attachments/assets/8b328f72-75ca-45d9-8cb2-8412f6686183" width="400"> </p>
+<p align="center"> <img src="docs/assets/logo.png" width="400"> </p>
 
 ## Table of Contents
 
@@ -151,7 +154,7 @@ OpenFace is needed for facial Action Unit extraction.
 ## Installation
 
 ```bash
-git clone git@github.com:Lum1104/MER-Factory.git
+git clone https://github.com/Lum1104/MER-Factory.git
 cd MER-Factory
 
 conda create -n mer-factory python=3.12
@@ -350,16 +353,3 @@ python test_openface.py your_video.mp4 test_output/
 4.  **Ollama Model Not Found**:
     -   **Symptom**: Errors mentioning the model is not available.
     -   **Solution**: Make sure you have pulled the model locally using `ollama pull <model_name>`.
-
-## Technical Documentation
-
-For detailed technical information about the system architecture, execution flow, and extensibility, please refer to our [Technical Documentation](docs.md).
-
-The technical documentation covers:
-- System architecture and execution flow
-- State management and computational graph
-- Core modules and functionality
-- Model selection strategies
-- Advanced workflows and caching
-- Processing pipeline details
-- Extensibility guidelines
