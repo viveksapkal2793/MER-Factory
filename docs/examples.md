@@ -2,6 +2,7 @@
 layout: default
 title: Examples
 description: Real-world examples and tutorials for using MER-Factory
+lang: en
 ---
 
 # Examples & Tutorials

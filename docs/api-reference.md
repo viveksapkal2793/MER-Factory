@@ -2,6 +2,7 @@
 layout: default
 title: API Reference
 description: Complete API reference for MER-Factory classes and functions
+lang: en
 ---
 
 # API Reference

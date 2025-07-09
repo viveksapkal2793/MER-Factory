@@ -2,6 +2,7 @@
 layout: default
 title: Getting Started
 description: Quick start guide for MER-Factory installation and basic usage
+lang: en
 ---
 
 # Getting Started with MER-Factory
@@ -268,7 +269,7 @@ Now that you have MER-Factory running, explore these advanced features:
 
 - 🐛 Report issues on [GitHub Issues](https://github.com/Lum1104/MER-Factory/issues)
 - 💬 Join discussions on [GitHub Discussions](https://github.com/Lum1104/MER-Factory/discussions)
-- 📖 Read the [Technical Documentation](/technical-docs) for deeper understanding
+- 📖 Read the [Technical Documentation](/MER-Factory/technical-docs) for deeper understanding
 
 <style>
 .feature-grid {

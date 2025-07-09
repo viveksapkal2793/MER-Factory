@@ -2,6 +2,7 @@
 layout: default
 title: MER-Factory - Multimodal Emotion Recognition Factory
 description: Your automated factory for constructing Multimodal Emotion Recognition and Reasoning (MERR) datasets
+lang: en
 ---
 
 <div class="hero-section">

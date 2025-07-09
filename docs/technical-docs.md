@@ -2,6 +2,7 @@
 layout: default
 title: Technical Documentation
 description: Deep dive into MER-Factory's architecture, design patterns, and extensibility
+lang: en
 ---
 
 # MER-Factory: Technical Documentation

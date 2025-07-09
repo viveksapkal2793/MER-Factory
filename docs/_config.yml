@@ -4,6 +4,11 @@ description: Your automated factory for constructing Multimodal Emotion Recognit
 url: "https://Lum1104.github.io"
 baseurl: "/MER-Factory"
 
+# Multi-language support
+languages: ["en", "zh"]
+default_lang: "en"
+exclude_from_localization: ["javascript", "images", "css", "assets"]
+
 # Theme Configuration
 theme: jekyll-theme-dinky
 show_downloads: true
@@ -27,6 +32,19 @@ navigation:
     url: /examples
   - title: Technical Documentation
     url: /technical-docs
+
+# Chinese Navigation
+navigation_zh:
+  - title: 首页
+    url: /zh/
+  - title: 快速开始
+    url: /zh/getting-started
+  - title: API 参考
+    url: /zh/api-reference
+  - title: 示例
+    url: /zh/examples
+  - title: 技术文档
+    url: /zh/technical-docs
 
 # Social Links
 author:

@@ -43,18 +43,42 @@
 
           <p class="site-description">{{ site.description | default: site.github.project_tagline }}</p>
 
+          <!-- Language Switcher -->
+          <div class="language-switcher">
+            {% assign current_lang = page.lang | default: "en" %}
+            {% if current_lang == "zh" %}
+            <a href="{{ page.url | replace: '/zh/', '/' | relative_url }}" class="lang-button">English</a>
+            <span class="lang-button active">中文</span>
+            {% else %}
+            <span class="lang-button active">English</span>
+            <a href="{{ '/zh' | append: page.url | relative_url }}" class="lang-button">中文</a>
+            {% endif %}
+          </div>
+
           <!-- Navigation -->
           <nav class="main-nav">
             <div class="nav-buttons">
-              <a href="{{ '/' | relative_url }}" class="nav-button"><i class="fas fa-home"></i> Home</a>
-              <a href="{{ '/getting-started' | relative_url }}" class="nav-button"><i class="fas fa-rocket"></i> Getting
-                Started</a>
-              <a href="{{ '/api-reference' | relative_url }}" class="nav-button"><i class="fas fa-code"></i> API
-                Reference</a>
-              <a href="{{ '/examples' | relative_url }}" class="nav-button"><i class="fas fa-lightbulb"></i>
-                Examples</a>
-              <a href="{{ '/technical-docs' | relative_url }}" class="nav-button"><i class="fas fa-cogs"></i> Technical
-                Docs</a>
+              {% assign nav_items = site.navigation %}
+              {% if page.lang == "zh" %}
+              {% assign nav_items = site.navigation_zh %}
+              {% endif %}
+
+              {% for nav_item in nav_items %}
+              <a href="{{ nav_item.url | relative_url }}" class="nav-button">
+                {% if nav_item.title == "Home" or nav_item.title == "首页" %}
+                <i class="fas fa-home"></i>
+                {% elsif nav_item.title == "Getting Started" or nav_item.title == "快速开始" %}
+                <i class="fas fa-rocket"></i>
+                {% elsif nav_item.title == "API Reference" or nav_item.title == "API 参考" %}
+                <i class="fas fa-code"></i>
+                {% elsif nav_item.title == "Examples" or nav_item.title == "示例" %}
+                <i class="fas fa-lightbulb"></i>
+                {% elsif nav_item.title == "Technical Documentation" or nav_item.title == "技术文档" %}
+                <i class="fas fa-cogs"></i>
+                {% endif %}
+                {{ nav_item.title }}
+              </a>
+              {% endfor %}
             </div>
           </nav>
 
@@ -132,7 +156,7 @@
             <ul>
               <li><a href="{{ site.github.repository_url }}/issues">Issues</a></li>
               <li><a href="{{ site.github.repository_url }}/discussions">Discussions</a></li>
-              <li><a href="{{ site.github.repository_url }}/wiki">Wiki</a></li>
+              <!-- <li><a href="{{ site.github.repository_url }}/wiki">Wiki</a></li> -->
             </ul>
           </div>
         </div>
