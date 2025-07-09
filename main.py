@@ -41,9 +41,9 @@ def main_orchestrator(config: AppConfig):
         console.print(f"[bold red]Error: {error}[/bold red]")
         raise typer.Exit(1)
 
-    if warning := config.get_openface_path_error():
-        console.print(f"[bold yellow]{warning}[/bold yellow]")
-        if "Error" in warning:
+    if config.processing_type not in [ProcessingType.AUDIO, ProcessingType.VIDEO]:
+        if error := config.get_openface_path_error():
+            console.print(f"[bold red]{error}[/bold red]")
             raise typer.Exit(1)
 
     if config.label_file:

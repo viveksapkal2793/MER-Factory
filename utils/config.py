@@ -122,8 +122,6 @@ class AppConfig(BaseModel):
     def get_openface_path_error(self) -> Optional[str]:
         """Check if OpenFace is needed and if the path is valid."""
         if self.processing_type in [ProcessingType.MER, ProcessingType.AU]:
-            if not self.openface_executable:
-                return "Warning: OPENFACE_EXECUTABLE not set in .env file. Using default path."
             if not Path(self.openface_executable).exists():
                 return f"Error: OpenFace executable not found at '{self.openface_executable}'. Please check your .env file."
         return None

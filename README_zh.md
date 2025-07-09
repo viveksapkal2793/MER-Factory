@@ -16,7 +16,11 @@
 
 <!-- <p align="center"> <img src="docs/assets/logo.png" width="400"> </p> -->
 
-[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=MER-Factory%20🧰&text2=✨%20多模态情绪识别推理%20(MERR)%20数据集工厂&width=800&height=200)](https://lum1104.github.io/MER-Factory/)
+<p align="center">
+  <a href="https://lum1104.github.io/MER-Factory/">
+    <img src="https://svg-banners.vercel.app/api?type=origin&text1=MER-Factory%20🧰&text2=✨%20多模态情绪识别推理%20(MERR)%20数据集工厂&width=800&height=200" alt="MER-Factory Banner">
+  </a>
+</p>
 
 ## 目录
 
