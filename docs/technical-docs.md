@@ -26,6 +26,10 @@ The system is built with modularity and scalability in mind, leveraging a state-
 -   **Data Handling:** `pandas` for processing tabular AU data.
 -   **Concurrency:** `asyncio` for efficient, parallel processing of multiple files.
 
+## System Overview
+
+![Framework Architecture](assets/framework.svg)
+
 ---
 
 ## 2. System Architecture & Execution Flow

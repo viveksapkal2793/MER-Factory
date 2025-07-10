@@ -9,6 +9,10 @@ lang: en
 
 Get up and running with MER-Factory in just a few minutes. This guide will walk you through the installation process and your first emotion recognition pipeline.
 
+## System Overview
+
+![Framework Architecture](assets/framework.svg)
+
 ## Prerequisites
 
 Before installing MER-Factory, ensure you have the following dependencies installed on your system:
