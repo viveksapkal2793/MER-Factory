@@ -1,6 +1,34 @@
 // Custom JavaScript for MER-Factory documentation
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function () {
+
+    // --- NEW: Mobile Navigation Toggle ---
+    const menuToggle = document.querySelector('.menu-toggle');
+    const sidebar = document.querySelector('header');
+    const mainContent = document.querySelector('section.main-content');
+
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function (event) {
+            sidebar.classList.toggle('sidebar-visible');
+            event.stopPropagation(); // Prevent click from bubbling to main content
+        });
+
+        if (mainContent) {
+            mainContent.addEventListener('click', function () {
+                if (sidebar.classList.contains('sidebar-visible')) {
+                    sidebar.classList.remove('sidebar-visible');
+                }
+            });
+        }
+
+        sidebar.addEventListener('click', function (event) {
+            if (event.target.tagName === 'A' && sidebar.classList.contains('sidebar-visible')) {
+                sidebar.classList.remove('sidebar-visible');
+            }
+        });
+    }
+    // --- END: Mobile Navigation Toggle ---
+
+
     // Scroll to Top Button
     const scrollToTopBtn = document.createElement('button');
     scrollToTopBtn.className = 'scroll-to-top';
@@ -9,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(scrollToTopBtn);
 
     // Show/hide scroll to top button
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function () {
         if (window.pageYOffset > 300) {
             scrollToTopBtn.classList.add('visible');
         } else {
@@ -18,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Scroll to top functionality
-    scrollToTopBtn.addEventListener('click', function() {
+    scrollToTopBtn.addEventListener('click', function () {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
@@ -27,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -46,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.className = 'copy-code-btn';
         button.innerHTML = '<i class="fas fa-copy"></i>';
         button.setAttribute('aria-label', 'Copy code');
-        
+
         // Style the button
         button.style.cssText = `
             position: absolute;
@@ -61,19 +89,19 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: opacity 0.3s ease;
             color: #666;
         `;
-        
+
         // Make pre relative for absolute positioning
         pre.style.position = 'relative';
-        
+
         // Show button on hover
         pre.addEventListener('mouseenter', () => {
             button.style.opacity = '1';
         });
-        
+
         pre.addEventListener('mouseleave', () => {
             button.style.opacity = '0';
         });
-        
+
         // Copy functionality
         button.addEventListener('click', async () => {
             const text = codeBlock.textContent;
@@ -89,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Failed to copy text: ', err);
             }
         });
-        
+
         pre.appendChild(button);
     });
 
@@ -106,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const printStyle = document.createElement('style');
     printStyle.textContent = `
         @media print {
-            .header-content, .site-footer, .scroll-to-top, .copy-code-btn {
+            .header-content, .site-footer, .scroll-to-top, .copy-code-btn, .menu-toggle {
                 display: none !important;
             }
             
@@ -143,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add loading states for external links
     document.querySelectorAll('a[href^="http"]').forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
             const icon = this.querySelector('i');
             if (icon) {
                 const originalClass = icon.className;

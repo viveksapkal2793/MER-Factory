@@ -66,17 +66,13 @@ python main.py video.mp4 output/ --type MER --silent
 
 ## 架构概览
 
-<div class="architecture-section">
-  <h3>系统组件</h3>
-  <ul>
-    <li><strong>CLI 框架:</strong> 使用 Typer 构建强大的命令行界面</li>
-    <li><strong>工作流管理:</strong> 使用 LangGraph 实现有状态处理管道</li>
-    <li><strong>面部分析:</strong> 使用 OpenFace 提取面部动作单元</li>
-    <li><strong>媒体处理:</strong> 使用 FFmpeg 进行音频/视频操作</li>
-    <li><strong>AI 集成:</strong> 支持多个 LLM 提供商的可插拔架构</li>
-    <li><strong>并发处理:</strong> 使用 Asyncio 实现高效的并行处理</li>
-  </ul>
-</div>
+- **CLI 框架**: 基于 Typer 构建，提供强大的命令行界面，简化用户操作。
+- **工作流管理**: 使用 LangGraph 实现有状态处理管道，确保任务的高效执行。
+- **面部分析**: 集成 OpenFace，支持面部动作单元 (AU) 的提取与分析。
+- **媒体处理**: 借助 FFmpeg 实现音频和视频的高效操作。
+- **AI 集成**: 提供可插拔架构，支持多个大型语言模型 (LLM) 提供商。
+- **并发处理**: 使用 Asyncio 实现异步和并行处理，优化大规模数据集的处理性能。
+- **可扩展性**: 设计灵活，支持未来功能扩展和新模型集成。
 
 ## 入门指南
 
@@ -156,28 +152,4 @@ python main.py video.mp4 output/ --type MER --silent
   }
 }
 
-.architecture-section {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-table th, table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #dee2e6;
-}
-
-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
 </style>

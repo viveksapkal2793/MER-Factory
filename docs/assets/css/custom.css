@@ -11,8 +11,6 @@
   --light-gray: #ecf0f1;
   --border-color: #bdc3c7;
   --code-bg: #f8f9fa;
-  --gradient-start: #667eea;
-  --gradient-end: #764ba2;
 }
 
 /* Global Styles */
@@ -27,9 +25,37 @@ body {
   background-color: #fafbfc;
   margin: 0 !important;
   padding: 0 !important;
+  overflow-x: hidden !important;
 }
 
-/* Override dinky theme wrapper layout */
+/* Menu Toggle Button for Mobile */
+.menu-toggle {
+  display: none;
+  /* Hidden on desktop */
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  width: 44px;
+  height: 44px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  z-index: 1001;
+  /* Above the sidebar */
+  cursor: pointer;
+  font-size: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.menu-toggle:hover {
+  background: var(--secondary-color);
+}
+
+/* Wrapper for layout */
 .wrapper {
   display: flex !important;
   flex-direction: row !important;
@@ -40,107 +66,32 @@ body {
   min-height: 100vh !important;
 }
 
-/* Fix header positioning in dinky theme */
-header {
+/* Header/Sidebar */
+.wrapper header {
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
   width: 300px !important;
   height: 100vh !important;
-  overflow-y: auto !important;
   background: #dc143c !important;
+  color: white !important;
   padding: 0 !important;
   z-index: 1000 !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  padding-bottom: 0 !important;
+  text-align: left !important;
 }
 
-/* Debug styles to see what's happening */
-header {
-  background: #dc143c !important;
-  border: none !important;
-  box-shadow: none !important;
+/* This new rule ensures the main content area grows to push the footer down */
+.header-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* Crucial for flexbox scrolling */
 }
 
-/* Override any potential dinky theme defaults */
-.wrapper header {
-  background: #dc143c !important;
-  color: white !important;
-}
-
-.wrapper header h1,
-.wrapper header h2,
-.wrapper header h3,
-.wrapper header h4,
-.wrapper header h5,
-.wrapper header h6 {
-  color: white !important;
-}
-
-.wrapper header a {
-  color: white !important;
-}
-
-.wrapper header p {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Ensure proper box model */
-header,
-header * {
-  box-sizing: border-box !important;
-}
-
-/* Force proper display */
-header .site-title {
-  display: block !important;
-  width: 100% !important;
-}
-
-header .site-description {
-  display: block !important;
-  width: 100% !important;
-}
-
-header .main-nav {
-  display: block !important;
-  width: 100% !important;
-}
-
-header .action-buttons {
-  display: block !important;
-  width: 100% !important;
-}
-
-header .quick-links {
-  display: block !important;
-  width: 100% !important;
-}
-
-/* Ensure main content doesn't overlap with fixed sidebar */
-section {
-  margin-left: 300px !important;
-  width: calc(100% - 300px) !important;
-  min-height: 100vh !important;
-  display: block !important;
-  box-sizing: border-box !important;
-}
-
-/* Fix main content area positioning and alignment */
-section.main-content,
-.main-content {
-  margin-left: 300px !important;
-  width: calc(100% - 300px) !important;
-  padding: 2rem !important;
-  padding-bottom: 80px !important;
-  background-color: white !important;
-  min-height: 100vh !important;
-  box-sizing: border-box !important;
-}
-
-/* Header Styles */
 .header-content {
   padding: 2rem 1rem 1rem 1rem;
   color: white;
@@ -149,6 +100,26 @@ section.main-content,
   flex-direction: column !important;
   min-height: 0 !important;
   overflow-y: auto;
+  /* This is where scrolling will happen */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.header-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.header-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.header-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.header-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .site-title a {
@@ -206,64 +177,46 @@ section.main-content,
   cursor: default;
 }
 
-/* Navigation Styles */
+/* Navigation */
 .main-nav {
   margin: 2rem 0;
 }
 
-.main-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.nav-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.main-nav li {
-  margin-bottom: 0.5rem;
-}
-
-.nav-link {
-  display: flex !important;
-  align-items: center;
-  padding: 12px 16px;
+.nav-button {
+  display: block !important;
+  padding: 12px 16px !important;
   background: #dc3545 !important;
   color: white !important;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border: 2px solid #dc3545;
-  width: 100%;
-  box-sizing: border-box;
+  text-decoration: none !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  border: 2px solid #dc3545 !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
 }
 
-.nav-link:hover {
+.nav-button:hover {
   background: #c82333 !important;
-  border-color: #c82333;
+  border-color: #c82333 !important;
   transform: translateX(4px);
-  text-decoration: none;
+}
+
+.nav-button:visited {
   color: white !important;
 }
 
-.nav-link i {
+.nav-button i {
   margin-right: 8px;
   width: 16px;
+  display: inline-block;
   text-align: center;
-  color: white !important;
-}
-
-.nav-link span {
-  flex: 1;
-  color: white !important;
-}
-
-/* Override any conflicting styles */
-header .main-nav .nav-link {
-  background: #dc3545 !important;
-  color: white !important;
-}
-
-header .main-nav .nav-link:visited {
-  color: white !important;
 }
 
 /* Action Buttons */
@@ -310,56 +263,64 @@ header .main-nav .nav-link:visited {
   transform: translateY(-1px);
 }
 
-/* Quick Links */
-.quick-links {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #f39c12;
+/* Sidebar Footer */
+.sidebar-footer {
+  background: rgba(0, 0, 0, 0.2) !important;
+  padding: 20px !important;
+  border-top: 2px solid rgba(255, 255, 255, 0.3) !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
 }
 
-.quick-links h3 {
-  margin: 0 0 1rem 0;
-  color: white;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.sidebar-footer h3 {
+  color: white !important;
+  margin: 0 0 10px 0 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
 }
 
-.quick-links ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.sidebar-footer h3 i {
+  margin-right: 8px !important;
 }
 
-.quick-links li {
-  margin: 0.5rem 0;
+.sidebar-footer .social-links {
+  display: flex !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
-.quick-links a {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-size: 0.9rem;
-  padding: 0.25rem 0;
-  transition: color 0.3s ease;
+.sidebar-footer .social-links a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
+  font-size: 18px !important;
+  text-decoration: none !important;
 }
 
-.quick-links a:hover {
-  color: #f39c12 !important;
+.sidebar-footer .social-links a:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px) !important;
 }
 
-/* Main Content */
-.main-content {
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin: 1rem;
+/* Main Content Area */
+section.main-content {
+  margin-left: 300px !important;
+  width: calc(100% - 300px) !important;
+  padding: 2rem !important;
+  padding-bottom: 80px !important;
+  /* Space for footer */
+  background-color: white !important;
+  min-height: 100vh !important;
+  box-sizing: border-box !important;
 }
 
 /* Breadcrumb */
@@ -432,6 +393,8 @@ pre {
   padding: 1rem;
   overflow-x: auto;
   margin: 1rem 0;
+  position: relative;
+  /* For copy button positioning */
 }
 
 pre code {
@@ -468,129 +431,33 @@ tr:hover {
   background-color: #f8f9fa;
 }
 
-/* Badges and Tags */
-.badges {
-  margin: 1rem 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.badges img {
-  height: 20px;
-}
-
-/* Alert Boxes */
-.alert {
-  padding: 1rem 1.5rem;
-  margin: 1rem 0;
-  border-radius: 6px;
-  border-left: 4px solid;
-}
-
-.alert-info {
-  background-color: #e3f2fd;
-  border-left-color: var(--secondary-color);
-  color: #0d47a1;
-}
-
-.alert-warning {
-  background-color: #fff3e0;
-  border-left-color: var(--warning-color);
-  color: #e65100;
-}
-
-.alert-success {
-  background-color: #e8f5e8;
-  border-left-color: var(--success-color);
-  color: #1b5e20;
-}
-
-/* Page Navigation */
-.page-navigation {
-  display: flex;
-  justify-content: space-between;
-  margin: 3rem 0;
-  gap: 1rem;
-}
-
-.nav-prev,
-.nav-next {
-  flex: 1;
-  padding: 1rem;
-  background-color: var(--light-gray);
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--text-color);
-  transition: all 0.3s ease;
-}
-
-.nav-prev:hover,
-.nav-next:hover {
-  background-color: #d5dbdb;
-  transform: translateY(-2px);
-}
-
-.nav-next {
-  text-align: right;
-}
-
-/* Footer */
+/* Page Footer */
 .site-footer {
   position: fixed !important;
   bottom: 0 !important;
   left: 300px !important;
-  right: 0 !important;
-  width: calc(100vw - 300px) !important;
+  width: calc(100% - 300px) !important;
   height: 60px !important;
   z-index: 500 !important;
-  margin: 0 !important;
   background: linear-gradient(135deg, var(--primary-color), #34495e) !important;
   color: white !important;
-  border-radius: 0 !important;
-  overflow: hidden !important;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
   display: flex !important;
   align-items: center !important;
+  padding: 0 2rem !important;
+  box-sizing: border-box !important;
 }
 
 .footer-content {
   display: flex !important;
-  flex-direction: row !important;
   justify-content: space-between !important;
   align-items: center !important;
-  gap: 1rem !important;
-  padding: 0 2rem !important;
   width: 100% !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.footer-section {
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex: 1 !important;
-  height: 100% !important;
-  min-width: 0 !important;
-  max-width: 300px !important;
 }
 
 .footer-section h4 {
   color: white;
   margin: 0 0 0.25rem 0;
   font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.footer-section p {
-  color: #bdc3c7;
-  margin: 0;
-  font-size: 0.85rem;
-  max-width: 200px;
 }
 
 .footer-section ul {
@@ -599,11 +466,6 @@ tr:hover {
   margin: 0;
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.footer-section li {
-  margin: 0;
 }
 
 .footer-section a {
@@ -611,277 +473,68 @@ tr:hover {
   text-decoration: none;
   transition: color 0.3s ease;
   font-size: 0.85rem;
-  white-space: nowrap;
 }
 
 .footer-section a:hover {
   color: white;
 }
 
-.social-links {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.social-links a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.social-links a:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
 .footer-bottom {
   display: none !important;
 }
 
-/* Sidebar Footer with Social Links */
-.sidebar-footer {
-  background: rgba(0, 0, 0, 0.2) !important;
-  padding: 20px !important;
-  border-radius: 0 !important;
-  border-top: 2px solid rgba(255, 255, 255, 0.3) !important;
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 10 !important;
-}
-
-.sidebar-footer h3 {
-  color: white !important;
-  margin: 0 0 10px 0 !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-}
-
-.sidebar-footer h3 i {
-  color: white !important;
-  margin-right: 8px !important;
-}
-
-.sidebar-footer .social-links {
-  display: flex !important;
-  justify-content: space-around !important;
-  align-items: center !important;
-  gap: 10px !important;
-  flex-wrap: nowrap !important;
-  margin-top: 10px !important;
-}
-
-.sidebar-footer .social-links a {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 40px !important;
-  height: 40px !important;
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  border-radius: 8px !important;
-  transition: all 0.3s ease !important;
-  color: white !important;
-  font-size: 18px !important;
-  text-decoration: none !important;
-  flex-shrink: 0 !important;
-}
-
-.sidebar-footer .social-links a:hover {
-  background-color: rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-2px) !important;
-  color: white !important;
-}
-
-/* Table of Contents Styles - Override dinky theme */
-.table-of-contents {
-  background: #f8f9fa !important;
-  border: 1px solid #e9ecef !important;
-  border-radius: 6px !important;
-  padding: 1.5rem !important;
-  margin: 2rem 0 !important;
-  max-width: 400px !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-.table-of-contents h3 {
-  margin: 0 0 1rem 0 !important;
-  color: var(--primary-color) !important;
-  font-size: 1rem !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  font-weight: 600 !important;
-}
-
-.table-of-contents ul {
-  list-style: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.table-of-contents li {
-  margin: 0.5rem 0 !important;
-  list-style: none !important;
-  position: relative !important;
-}
-
-.table-of-contents a {
-  text-decoration: none !important;
-  color: var(--text-color) !important;
-  display: block !important;
-  padding: 0.75rem 1rem !important;
-  border-radius: 4px !important;
-  transition: all 0.3s ease !important;
-  background-color: white !important;
-  border: 1px solid #e9ecef !important;
-  margin: 0.25rem 0 !important;
-  box-sizing: border-box !important;
-  font-size: 0.9rem !important;
-  line-height: 1.4 !important;
-  width: 100% !important;
-  position: relative !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  word-wrap: break-word !important;
-}
-
-.table-of-contents a:hover {
-  color: white !important;
-  background-color: var(--secondary-color) !important;
-  border-color: var(--secondary-color) !important;
-  transform: translateX(2px) !important;
-  text-decoration: none !important;
-}
-
-.table-of-contents a:visited {
-  color: var(--text-color) !important;
-}
-
-.table-of-contents a:visited:hover {
-  color: white !important;
-}
-
-/* Hierarchical styling */
-.toc-h2 a {
-  font-weight: 600 !important;
-  background-color: #f8f9fa !important;
-  border-left: 3px solid var(--secondary-color) !important;
-}
-
-.toc-h3 a {
-  margin-left: 1rem !important;
-  font-size: 0.85rem !important;
-  background-color: #fdfdfd !important;
-  border-left: 2px solid #bdc3c7 !important;
-}
-
-.toc-h4 a {
-  margin-left: 2rem !important;
-  font-size: 0.8rem !important;
-  color: #666 !important;
-  background-color: #fafafa !important;
-  border-left: 1px solid #dee2e6 !important;
-}
-
-/* Ensure text is visible and properly contained */
-.table-of-contents a>* {
-  display: inline !important;
-  white-space: normal !important;
-}
-
-/* Override any potential conflicting nav styles */
-.table-of-contents .nav-button,
-.table-of-contents .nav-link {
-  all: unset !important;
-  text-decoration: none !important;
-  color: var(--text-color) !important;
-  display: block !important;
-  padding: 0.75rem 1rem !important;
-  border-radius: 4px !important;
-  transition: all 0.3s ease !important;
-  background-color: white !important;
-  border: 1px solid #e9ecef !important;
-  margin: 0.25rem 0 !important;
-  box-sizing: border-box !important;
-  font-size: 0.9rem !important;
-  line-height: 1.4 !important;
-  width: 100% !important;
-}
-
-/* Responsive Design */
+/* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
+  .menu-toggle {
+    display: flex;
+    /* Show the button on small screens */
+  }
+
   .wrapper {
-    flex-direction: column;
+    flex-direction: column !important;
   }
 
-  header {
-    position: relative;
-    width: 100%;
-    height: auto;
+  .wrapper header {
+    /* Hide by default, make it a fixed overlay */
+    display: none;
+    position: fixed;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
   }
 
-  section {
-    margin-left: 0;
-    width: 100%;
+  /* Class to show the sidebar, toggled by JS */
+  .wrapper header.sidebar-visible {
+    display: flex;
+    transform: translateX(0);
+  }
+
+  section.main-content,
+  .site-footer {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 
   .main-content {
-    margin: 0.5rem;
-    padding: 1rem;
-    padding-bottom: 80px !important;
+    padding-top: 70px !important;
+    /* Space for toggle button */
   }
 
   .site-footer {
     left: 0 !important;
-    width: 100vw !important;
-    height: 60px !important;
+    width: 100% !important;
+    padding: 0 1rem !important;
   }
 
   .footer-content {
-    flex-direction: row !important;
-    padding: 0 1rem !important;
-    gap: 0.5rem !important;
-  }
-
-  .footer-section {
-    align-items: center !important;
-    text-align: center !important;
-  }
-
-  .footer-section h4 {
-    font-size: 0.8rem !important;
-  }
-
-  .footer-section p {
-    font-size: 0.75rem !important;
-    max-width: none !important;
-  }
-
-  .footer-section ul {
-    flex-direction: row !important;
-    gap: 0.5rem !important;
     justify-content: center !important;
   }
 
-  .page-navigation {
-    flex-direction: column;
-  }
-
-  .social-links {
-    justify-content: center;
-  }
-
-  .action-buttons {
-    text-align: center;
+  .footer-section {
+    text-align: center !important;
   }
 
   h1 {
@@ -893,84 +546,6 @@ tr:hover {
   }
 }
 
-@media (min-width: 769px) {
-
-  /* Ensure desktop layout */
-  .wrapper {
-    display: flex !important;
-    flex-direction: row !important;
-  }
-
-  header {
-    position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 300px !important;
-    height: 100vh !important;
-  }
-
-  section {
-    margin-left: 300px !important;
-    width: calc(100% - 300px) !important;
-  }
-}
-
-/* Syntax Highlighting */
-.highlight {
-  background-color: var(--code-bg);
-  border-radius: 6px;
-  margin: 1rem 0;
-}
-
-.highlight pre {
-  margin: 0;
-  background: none;
-  border: none;
-}
-
-/* Custom Components */
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
-}
-
-.feature-card {
-  padding: 1.5rem;
-  background-color: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.feature-card h3 {
-  margin-top: 0;
-  color: var(--secondary-color);
-}
-
-/* Loading Animation */
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(52, 152, 219, 0.3);
-  border-radius: 50%;
-  border-top-color: var(--secondary-color);
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Scroll to Top Button */
 .scroll-to-top {
   position: fixed;
@@ -978,7 +553,7 @@ tr:hover {
   right: 2rem;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -992,204 +567,11 @@ tr:hover {
 }
 
 .scroll-to-top:hover {
+  background: var(--secondary-color);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .scroll-to-top.visible {
   display: flex;
-}
-
-/* Override any conflicting dinky theme styles */
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Fix any potential float issues */
-header,
-section {
-  float: none !important;
-}
-
-/* Ensure sidebar scrolling works */
-header {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-}
-
-header::-webkit-scrollbar {
-  width: 6px;
-}
-
-header::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-header::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
-}
-
-header::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* Force override all dinky theme header styles */
-header * {
-  color: white !important;
-}
-
-header .site-title a {
-  color: white !important;
-}
-
-header .site-description {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-header .nav-link {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-header .nav-link:hover {
-  color: white !important;
-  background-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-header .nav-link i {
-  color: #f39c12 !important;
-}
-
-header .quick-links h3 {
-  color: white !important;
-}
-
-header .quick-links a {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-header .quick-links a:hover {
-  color: #f39c12 !important;
-}
-
-header .btn {
-  color: white !important;
-}
-
-/* Ensure text alignment */
-header {
-  text-align: left !important;
-}
-
-header .header-content {
-  text-align: left !important;
-}
-
-header .main-nav {
-  text-align: left !important;
-}
-
-header .action-buttons {
-  text-align: left !important;
-}
-
-/* Ensure content doesn't get cut off */
-body {
-  overflow-x: hidden !important;
-}
-
-/* Force proper layout on the wrapper */
-body>.wrapper {
-  display: flex !important;
-  flex-direction: row !important;
-  width: 100vw !important;
-  min-height: 100vh !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Additional header fixes for text visibility */
-header .header-content * {
-  color: inherit !important;
-}
-
-header .site-title a:visited,
-header .site-title a:link {
-  color: white !important;
-}
-
-header .nav-link:visited,
-header .nav-link:link {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Make sure navigation items are properly spaced */
-header .main-nav li {
-  margin: 0.25rem 0 !important;
-  width: 100% !important;
-}
-
-header .nav-link {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  padding: 0.75rem 1rem !important;
-}
-
-/* Override Dinky theme styles for navigation */
-.main-nav {
-  margin: 2rem 0;
-}
-
-.nav-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.nav-button {
-  display: block !important;
-  padding: 12px 16px !important;
-  background: #dc3545 !important;
-  color: white !important;
-  text-decoration: none !important;
-  border-radius: 6px !important;
-  font-weight: 500 !important;
-  transition: all 0.3s ease !important;
-  border: 2px solid #dc3545 !important;
-  text-align: left !important;
-  box-sizing: border-box !important;
-}
-
-.nav-button:hover {
-  background: #c82333 !important;
-  border-color: #c82333 !important;
-  color: white !important;
-  text-decoration: none !important;
-  transform: translateX(4px);
-}
-
-.nav-button:visited {
-  color: white !important;
-}
-
-.nav-button i {
-  margin-right: 8px;
-  width: 16px;
-  display: inline-block;
-  text-align: center;
-}
-
-/* Ensure compatibility with Dinky theme */
-header .nav-button,
-.wrapper .nav-button {
-  background: #dc3545 !important;
-  color: white !important;
-}
-
-/* Override any ul/li styles that might interfere */
-.main-nav ul {
-  display: none;
 }

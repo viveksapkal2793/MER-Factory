@@ -26,6 +26,8 @@ navigation:
     url: /
   - title: Getting Started
     url: /getting-started
+  - title: Tools
+    url: /tools
   - title: API Reference
     url: /api-reference
   - title: Examples
@@ -39,6 +41,8 @@ navigation_zh:
     url: /zh/
   - title: 快速开始
     url: /zh/getting-started
+  - title: 工具
+    url: /zh/tools
   - title: API 参考
     url: /zh/api-reference
   - title: 示例

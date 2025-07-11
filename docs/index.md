@@ -32,6 +32,7 @@ MER-Factory is a **Python-based, open-source framework** designed for the Affect
 - **Scalable Processing**: Async/concurrent processing for large datasets.
 - **Scientific Foundation**: Based on Facial Action Coding System (FACS) and latest research.
 - **Easy CLI Interface**: Simple command-line usage with comprehensive options.
+- **Interactive Tools**: Web-based dashboard for data curation and configuration management.
 
 ### 📋 Processing Types
 
@@ -80,17 +81,12 @@ Check out real examples of what MER-Factory produces:
 
 ## Architecture Overview
 
-<div class="architecture-section">
-  <h3>System Components</h3>
-  <ul>
-    <li><strong>CLI Framework:</strong> Typer for robust command-line interface</li>
-    <li><strong>Workflow Management:</strong> LangGraph for stateful processing pipelines</li>
-    <li><strong>Facial Analysis:</strong> OpenFace for Facial Action Units extraction</li>
-    <li><strong>Media Processing:</strong> FFmpeg for audio/video manipulation</li>
-    <li><strong>AI Integration:</strong> Pluggable architecture for multiple LLM providers</li>
-    <li><strong>Concurrency:</strong> Asyncio for efficient parallel processing</li>
-  </ul>
-</div>
+- **CLI Framework**: Utilizes Typer for a robust and user-friendly command-line interface.
+- **Workflow Management**: Employs LangGraph to enable stateful and dynamic processing pipelines.
+- **Facial Analysis**: Integrates OpenFace for precise Facial Action Units extraction.
+- **Media Processing**: Leverages FFmpeg for advanced audio and video manipulation tasks.
+- **AI Integration**: Features a pluggable architecture supporting multiple LLM providers.
+- **Concurrency**: Implements Asyncio for efficient and scalable parallel processing.
 
 ## Getting Started
 
@@ -170,28 +166,4 @@ Ready to dive in? Here's what you need to know:
   }
 }
 
-.architecture-section {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-table th, table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #dee2e6;
-}
-
-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
 </style>

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MER Factory Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Generated command block styling */
+        #command-output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Contenteditable focus styling */
+        [contenteditable]:focus {
+            outline: 2px solid #3b82f6;
+            background-color: #2d3748;
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        .star-rating .star {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        /* Ensure modal is on top */
+        #media-modal {
+            z-index: 50;
+        }
+
+        /* Basic markdown rendering styles */
+        .editable-content h1,
+        .editable-content h2,
+        .editable-content h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .editable-content a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
+        .editable-content code {
+            background-color: #374151;
+            color: #f87171;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+        .editable-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8">
+
+        <!-- Header -->
+        <header class="w-full max-w-7xl mx-auto mb-6 text-center">
+            <h1 class="text-4xl font-bold text-white">MER Factory Dashboard</h1>
+            <p class="mt-2 text-lg text-gray-400">A unified tool for data curation and prompt engineering.</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="w-full max-w-7xl mx-auto mb-8 flex justify-center border-b border-gray-700">
+            <button id="tab-curation"
+                class="nav-tab px-6 py-3 text-lg font-medium border-b-2 border-blue-500 text-white">Data
+                Curation</button>
+            <button id="tab-runner"
+                class="nav-tab px-6 py-3 text-lg font-medium border-b-2 border-transparent text-gray-400 hover:text-white hover:border-gray-500 transition-colors">Prompt
+                & Run</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="w-full max-w-7xl mx-auto">
+            <!-- Data Curation View -->
+            <div id="view-curation" class="view-content">
+                <!-- File Upload Section -->
+                <div id="upload-section"
+                    class="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-8 text-center">
+                    <div id="drop-zone"
+                        class="border-2 border-dashed border-gray-600 rounded-lg p-10 cursor-pointer hover:border-blue-500 hover:bg-gray-700/50 transition-colors duration-300">
+                        <svg class="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none"
+                            viewBox="0 0 48 48" aria-hidden="true">
+                            <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <p class="mt-4 text-gray-400"><span class="font-semibold text-blue-400">Click to upload</span>
+                            or drag and drop a CSV file</p>
+                        <input type="file" id="csv-file-input" class="hidden" accept=".csv">
+                    </div>
+                </div>
+                <!-- Dashboard Display Section -->
+                <div id="dashboard-section" class="hidden mt-8">
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 sm:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                            <div>
+                                <h2 id="file-name" class="text-xl font-semibold text-white"></h2>
+                                <p id="table-info" class="text-sm text-gray-400"></p>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-end gap-3">
+                                <input type="text" id="video-prefix-input" placeholder="e.g., assets/videos"
+                                    class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-48">
+                                <!-- MODIFIED: Added extension input field -->
+                                <input type="text" id="media-extension-input" placeholder="Extension (e.g., mkv, jpg)"
+                                    class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-40">
+                                <button id="export-csv-btn"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow transition-colors flex items-center">Export
+                                    as CSV</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <div id="sample-view-body"></div>
+                        </div>
+                        <div id="pagination-controls" class="flex items-center justify-between mt-4 px-2">
+                            <span id="pagination-info" class="text-sm text-gray-400"></span>
+                            <div class="flex space-x-2">
+                                <button id="prev-page-btn"
+                                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                                <button id="next-page-btn"
+                                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt & Run View -->
+            <div id="view-runner" class="view-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column: Prompt Editor -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-6 flex flex-col">
+                        <div class="flex-shrink-0 mb-4">
+                            <h2 class="text-2xl font-semibold text-white mb-4">1. Edit Default Prompts</h2>
+                        </div>
+                        <div id="prompts-container" class="flex-grow overflow-y-auto pr-2 space-y-4">
+                            <!-- Prompts will be loaded here by default -->
+                        </div>
+                    </div>
+                    <!-- Right Column: Command Builder -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-6">
+                        <h2 class="text-2xl font-semibold text-white mb-4">2. Configure Run</h2>
+                        <div class="space-y-4">
+                            <div><label for="input-path" class="block text-sm font-medium text-gray-300">Input
+                                    Path</label><input type="text" id="input-path" placeholder="path/to/your/media"
+                                    class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div><label for="output-dir" class="block text-sm font-medium text-gray-300">Output
+                                    Directory</label><input type="text" id="output-dir"
+                                    placeholder="path/to/your/output"
+                                    class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label for="processing-type"
+                                        class="block text-sm font-medium text-gray-300">Processing Type</label><select
+                                        id="processing-type"
+                                        class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option>MER</option>
+                                        <option>AU</option>
+                                        <option>audio</option>
+                                        <option>video</option>
+                                        <option>image</option>
+                                    </select></div>
+                                <div><label for="task-type"
+                                        class="block text-sm font-medium text-gray-300">Task</label><select
+                                        id="task-type"
+                                        class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option>MERR</option>
+                                        <option>Sentiment Analysis</option>
+                                    </select></div>
+                            </div>
+                            <div><label for="prompts-file" class="block text-sm font-medium text-gray-300">Prompts
+                                    File</label><input type="text" id="prompts-file" value="edited_prompts.json"
+                                    class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <fieldset class="border-t border-gray-700 pt-4">
+                                <legend class="text-lg font-medium text-white">Model Selection</legend>
+                                <div class="mt-2 space-y-4">
+                                    <div>
+                                        <label for="model-provider"
+                                            class="block text-sm font-medium text-gray-300">Provider</label>
+                                        <select id="model-provider"
+                                            class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="gemini">Gemini (Default)</option>
+                                            <option value="chatgpt">ChatGPT</option>
+                                            <option value="ollama">Ollama</option>
+                                            <option value="huggingface">HuggingFace</option>
+                                        </select>
+                                    </div>
+                                    <div id="model-inputs-container">
+                                        <div id="gemini-options" class="model-options-panel">
+                                            <p class="text-sm text-gray-400 p-2 bg-gray-700/50 rounded-md">Uses
+                                                GOOGLE_API_KEY from your .env file. No specific model name needed.</p>
+                                        </div>
+                                        <div id="chatgpt-options" class="model-options-panel hidden">
+                                            <input type="text" id="chatgpt-model"
+                                                placeholder="ChatGPT Model (e.g., gpt-4o)"
+                                                class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                        <div id="ollama-options" class="model-options-panel hidden space-y-4">
+                                            <input type="text" id="ollama-vision-model"
+                                                placeholder="Ollama Vision Model"
+                                                class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <input type="text" id="ollama-text-model" placeholder="Ollama Text Model"
+                                                class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                        <div id="huggingface-options" class="model-options-panel hidden">
+                                            <input type="text" id="huggingface-model"
+                                                placeholder="Hugging Face Model ID"
+                                                class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="border-t border-gray-700 pt-4">
+                                <legend class="text-lg font-medium text-white">Other Options</legend>
+                                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="relative flex items-start">
+                                        <div class="flex h-5 items-center"><input id="silent-mode" type="checkbox"
+                                                class="h-4 w-4 rounded border-gray-500 bg-gray-700 text-blue-600 focus:ring-blue-500">
+                                        </div>
+                                        <div class="ml-3 text-sm"><label for="silent-mode"
+                                                class="font-medium text-gray-300">Silent Mode</label></div>
+                                    </div>
+                                    <div class="relative flex items-start">
+                                        <div class="flex h-5 items-center"><input id="use-cache" type="checkbox"
+                                                class="h-4 w-4 rounded border-gray-500 bg-gray-700 text-blue-600 focus:ring-blue-500">
+                                        </div>
+                                        <div class="ml-3 text-sm"><label for="use-cache"
+                                                class="font-medium text-gray-300">Use Cache</label></div>
+                                    </div>
+                                    <div>
+                                        <label for="threshold-input"
+                                            class="block text-sm font-medium text-gray-300">Threshold</label>
+                                        <input type="number" id="threshold-input" placeholder="Default: 0.8" step="0.1"
+                                            class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="peak-dis-input" class="block text-sm font-medium text-gray-300">Peak
+                                            Distance</label>
+                                        <input type="number" id="peak-dis-input" placeholder="Default: 15" min="8"
+                                            class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="concurrency-input"
+                                            class="block text-sm font-medium text-gray-300">Concurrency</label>
+                                        <input type="number" id="concurrency-input" placeholder="Default: 4" min="1"
+                                            class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="pt-4"><button id="generate-cmd-btn"
+                                    class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow transition-colors">Generate
+                                    Command</button></div>
+                        </div>
+                        <div id="command-output-container" class="hidden mt-6">
+                            <h2 class="text-2xl font-semibold text-white mb-4">3. Download & Run</h2>
+                            <div class="space-y-4">
+                                <button id="save-prompts-btn"
+                                    class="w-full px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow transition-colors">
+                                    Download edited_prompts.json
+                                </button>
+                                <div class="relative bg-gray-900 rounded-lg p-4">
+                                    <button id="copy-cmd-btn"
+                                        class="absolute top-2 right-2 px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs font-medium rounded-md">Copy</button>
+                                    <code id="command-output" class="text-green-300"></code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals and Toasts (Shared) -->
+    <div id="toast"
+        class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg hidden transition-opacity duration-300">
+        <p id="toast-message"></p>
+    </div>
+    <div id="media-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto relative">
+            <div id="modal-content" class="p-4"></div>
+            <button id="modal-close-btn"
+                class="absolute top-3 right-3 text-gray-400 hover:text-white bg-gray-800/50 rounded-full p-1"><svg
+                    class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SHARED ELEMENTS & FUNCTIONS ---
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            function showToast(message, type = 'success') {
+                let bgColor = 'bg-green-500';
+                if (type === 'error') bgColor = 'bg-red-500';
+                else if (type === 'info') bgColor = 'bg-blue-500';
+
+                toastMessage.textContent = message;
+                toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${bgColor}`;
+                toast.classList.remove('hidden');
+                setTimeout(() => { toast.classList.add('hidden'); }, 4000);
+            }
+
+            // --- TAB SWITCHING LOGIC ---
+            const tabCuration = document.getElementById('tab-curation');
+            const tabRunner = document.getElementById('tab-runner');
+            const viewCuration = document.getElementById('view-curation');
+            const viewRunner = document.getElementById('view-runner');
+            const tabs = [tabCuration, tabRunner];
+            const views = [viewCuration, viewRunner];
+
+            function switchTab(activeTab) {
+                tabs.forEach(tab => {
+                    const view = document.getElementById(tab.id.replace('tab-', 'view-'));
+                    if (tab === activeTab) {
+                        tab.classList.add('border-blue-500', 'text-white');
+                        tab.classList.remove('border-transparent', 'text-gray-400');
+                        view.classList.remove('hidden');
+                    } else {
+                        tab.classList.remove('border-blue-500', 'text-white');
+                        tab.classList.add('border-transparent', 'text-gray-400');
+                        view.classList.add('hidden');
+                    }
+                });
+            }
+            tabCuration.addEventListener('click', () => switchTab(tabCuration));
+            tabRunner.addEventListener('click', () => switchTab(tabRunner));
+
+
+            // --- DATA CURATION LOGIC ---
+            const dropZone = document.getElementById('drop-zone');
+            const csvFileInput = document.getElementById('csv-file-input');
+            const uploadSection = document.getElementById('upload-section');
+            const dashboardSection = document.getElementById('dashboard-section');
+            const fileNameDisplay = document.getElementById('file-name');
+            const tableInfoDisplay = document.getElementById('table-info');
+            const sampleViewBody = document.getElementById('sample-view-body');
+            const exportBtn = document.getElementById('export-csv-btn');
+            const mediaModal = document.getElementById('media-modal');
+            const modalContent = document.getElementById('modal-content');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+
+            let tableData = [], tableHeaders = [], currentFileName = '', currentPage = 1;
+            const rowsPerPage = 1;
+
+            function handleCsvFile(file) {
+                if (file && file.type === 'text/csv') {
+                    currentFileName = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        parseAndDisplayCSV(e.target.result);
+                        uploadSection.classList.add('hidden');
+                        dashboardSection.classList.remove('hidden');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    showToast('Please upload a valid .csv file.', 'error');
+                }
+            }
+
+            function parseCsvRow(row) {
+                const result = []; let current = ''; let inQuote = false;
+                for (let i = 0; i < row.length; i++) {
+                    const char = row[i];
+                    if (char === '"' && row[i + 1] === '"') { current += '"'; i++; }
+                    else if (char === '"') { inQuote = !inQuote; }
+                    else if (char === ',' && !inQuote) { result.push(current); current = ''; }
+                    else { current += char; }
+                }
+                result.push(current); return result;
+            }
+
+            function parseAndDisplayCSV(csvText) {
+                const lines = csvText.trim().split(/\r?\n/);
+                if (lines.length < 2) { showToast('CSV is empty or has no data.', 'error'); return; }
+                tableHeaders = parseCsvRow(lines[0]);
+                tableData = lines.slice(1).map(line => {
+                    if (line.trim() === '') return null;
+                    const values = parseCsvRow(line);
+                    const rowObject = {};
+                    tableHeaders.forEach((header, index) => { rowObject[header] = values[index] || ''; });
+                    rowObject['Quality Rating'] = 0;
+                    return rowObject;
+                }).filter(Boolean);
+                currentPage = 1;
+                renderSampleView();
+            }
+
+            function parseMarkdown(text) {
+                if (typeof text !== 'string') return '';
+                return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>').replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>').replace(/^\s*# (.*)/gm, '<h1>$1</h1>').replace(/^\s*## (.*)/gm, '<h2>$2</h2>').replace(/^\s*### (.*)/gm, '<h3>$3</h3>').replace(/^\s*-\s(.*)/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/gm, '').replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+            }
+
+            function renderSampleView() {
+                sampleViewBody.innerHTML = '';
+                if (!tableData || tableData.length === 0) return;
+                const originalRowIndex = currentPage - 1;
+                const rowData = tableData[originalRowIndex];
+                if (!rowData) return;
+
+                const sampleContainer = document.createElement('div');
+                sampleContainer.className = 'space-y-4';
+                tableHeaders.filter(h => h.toLowerCase() !== 'file_type').forEach(header => {
+                    const fieldContainer = document.createElement('div');
+                    fieldContainer.className = 'bg-gray-700/50 p-4 rounded-lg';
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'flex justify-between items-center mb-2';
+                    const label = document.createElement('h3');
+                    label.className = 'text-sm font-semibold text-gray-400 uppercase tracking-wider';
+                    label.textContent = header.replace(/_/g, ' ');
+                    headerDiv.appendChild(label);
+                    if (['video_id', 'image_id', 'source_image'].includes(header)) {
+                        const previewButton = createPreviewButton(rowData);
+                        if (previewButton) headerDiv.appendChild(previewButton);
+                    }
+                    fieldContainer.appendChild(headerDiv);
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'text-gray-200 editable-content min-h-[24px]';
+                    contentDiv.innerHTML = parseMarkdown(rowData[header] || '');
+                    contentDiv.contentEditable = true;
+                    contentDiv.dataset.rowIndex = originalRowIndex;
+                    contentDiv.dataset.header = header;
+                    contentDiv.addEventListener('blur', (e) => {
+                        const { rowIndex, header } = e.target.dataset;
+                        if (tableData[rowIndex][header] !== e.target.textContent) {
+                            tableData[rowIndex][header] = e.target.textContent;
+                            showToast('Change saved!', 'success');
+                        }
+                    });
+                    fieldContainer.appendChild(contentDiv);
+                    sampleContainer.appendChild(fieldContainer);
+                });
+                const ratingContainer = document.createElement('div');
+                ratingContainer.className = 'bg-gray-700/50 p-4 rounded-lg flex items-center gap-4';
+                const ratingLabel = document.createElement('h3');
+                ratingLabel.className = 'text-sm font-semibold text-gray-400 uppercase tracking-wider';
+                ratingLabel.textContent = 'Quality Rating';
+                ratingContainer.appendChild(ratingLabel);
+                ratingContainer.appendChild(createRatingStars(originalRowIndex, rowData['Quality Rating']));
+                sampleContainer.appendChild(ratingContainer);
+                sampleViewBody.appendChild(sampleContainer);
+                fileNameDisplay.textContent = currentFileName;
+                tableInfoDisplay.textContent = `${tableData.length} total rows`;
+                renderPaginationControls();
+            }
+
+            function renderPaginationControls() {
+                const totalPages = Math.ceil(tableData.length / rowsPerPage);
+                paginationInfo.textContent = `Showing ${currentPage} of ${tableData.length} results`;
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages;
+            }
+
+            function createPreviewButton(rowData) {
+                const fileType = rowData.file_type ? rowData.file_type.toLowerCase() : '';
+                let mediaPath = '', mediaType = '';
+                if (fileType === 'image' && rowData.source_image) { mediaPath = rowData.source_image; mediaType = 'image'; }
+                else if (['video', 'mer', 'au', 'audio'].includes(fileType) && rowData.video_id) { mediaPath = rowData.video_id; mediaType = 'video'; }
+                if (mediaPath) {
+                    const button = document.createElement('button');
+                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>`;
+                    button.className = 'text-blue-400 hover:text-blue-300';
+                    button.onclick = () => openPreviewModal(mediaPath, mediaType);
+                    return button;
+                }
+                return null;
+            }
+
+            // MODIFIED: Replaced the entire function
+            function openPreviewModal(path, type) {
+                modalContent.innerHTML = '';
+                let mediaElement;
+
+                // 1. Get the user-provided extension from the new input field
+                const customExtension = document.getElementById('media-extension-input').value.trim();
+
+                // 2. Determine the final filename
+                let finalFilename = path; // Default to the path from the CSV
+
+                // If the path from the CSV does NOT have an extension (no ".") AND the user typed one in...
+                if (!path.includes('.') && customExtension) {
+                    // ...then build the full filename.
+                    finalFilename = `${path}.${customExtension}`;
+                }
+                // If no extension is in the path AND the user input is empty, fallback to old logic for videos
+                else if (!path.includes('.') && type === 'video' && !customExtension) {
+                    finalFilename = `${path}.mp4`;
+                }
+
+                // 3. Get the prefix and construct the full source path
+                const prefix = document.getElementById('video-prefix-input').value.trim();
+                const fullSrcPath = prefix ? `${prefix}/${finalFilename}` : finalFilename;
+
+                // 4. Create the media element with the newly constructed path
+                if (type === 'image') {
+                    mediaElement = document.createElement('img');
+                    mediaElement.className = 'max-w-full max-h-[80vh] mx-auto rounded';
+                    mediaElement.src = fullSrcPath;
+                } else if (type === 'video') {
+                    mediaElement = document.createElement('video');
+                    mediaElement.className = 'max-w-full max-h-[80vh] mx-auto rounded';
+                    mediaElement.controls = true;
+                    const sourceElement = document.createElement('source');
+                    sourceElement.src = fullSrcPath;
+                    mediaElement.appendChild(sourceElement);
+                }
+
+                if (mediaElement) {
+                    modalContent.appendChild(mediaElement);
+                    mediaModal.classList.remove('hidden');
+                } else {
+                    showToast('Could not create media element.', 'error');
+                }
+            }
+
+            function createRatingStars(rowIndex, currentRating) {
+                const container = document.createElement('div');
+                container.className = 'star-rating flex items-center';
+                for (let i = 1; i <= 5; i++) {
+                    const star = document.createElement('span');
+                    star.className = 'star text-2xl';
+                    star.innerHTML = i <= currentRating ? '&#9733;' : '&#9734;';
+                    star.style.color = i <= currentRating ? '#f59e0b' : '#6b7280';
+                    star.dataset.rowIndex = rowIndex;
+                    star.dataset.ratingValue = i;
+                    star.addEventListener('click', (e) => {
+                        const { rowIndex, ratingValue } = e.currentTarget.dataset;
+                        tableData[rowIndex]['Quality Rating'] = parseInt(ratingValue, 10);
+                        renderSampleView();
+                        showToast(`Rated ${ratingValue} stars.`, 'success');
+                    });
+                    container.appendChild(star);
+                }
+                return container;
+            }
+
+            function exportToCSV() {
+                const headersToExport = [...tableHeaders.filter(h => h.toLowerCase() !== 'file_type'), 'Quality Rating'];
+                const csvRows = [headersToExport.join(',')];
+                tableData.forEach(row => {
+                    const values = headersToExport.map(header => {
+                        let value = row[header] !== undefined ? String(row[header]) : '';
+                        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                            value = `"${value.replace(/"/g, '""')}"`;
+                        }
+                        return value;
+                    });
+                    csvRows.push(values.join(','));
+                });
+                const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `edited_${currentFileName}`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast('Exported as CSV', 'success');
+            }
+
+            dropZone.addEventListener('click', () => csvFileInput.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-500'));
+            dropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleCsvFile(e.dataTransfer.files[0]); });
+            csvFileInput.addEventListener('change', (e) => { if (e.target.files.length) handleCsvFile(e.target.files[0]); });
+            exportBtn.addEventListener('click', exportToCSV);
+            modalCloseBtn.addEventListener('click', () => mediaModal.classList.add('hidden'));
+            prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderSampleView(); } });
+            nextPageBtn.addEventListener('click', () => { if (currentPage < Math.ceil(tableData.length / rowsPerPage)) { currentPage++; renderSampleView(); } });
+
+            // --- PROMPT & RUN LOGIC ---
+            const savePromptsBtn = document.getElementById('save-prompts-btn');
+            const promptsContainer = document.getElementById('prompts-container');
+            const generateCmdBtn = document.getElementById('generate-cmd-btn');
+            const commandOutputContainer = document.getElementById('command-output-container');
+            const commandOutput = document.getElementById('command-output');
+            const copyCmdBtn = document.getElementById('copy-cmd-btn');
+            const modelProviderSelect = document.getElementById('model-provider');
+            const modelOptionPanels = document.querySelectorAll('.model-options-panel');
+
+            function updateModelOptions(provider) {
+                modelOptionPanels.forEach(panel => {
+                    if (panel.id === `${provider}-options`) {
+                        panel.classList.remove('hidden');
+                    } else {
+                        panel.classList.add('hidden');
+                    }
+                });
+            }
+
+            modelProviderSelect.addEventListener('change', (e) => {
+                updateModelOptions(e.target.value);
+            });
+
+            // Set initial state
+            updateModelOptions(modelProviderSelect.value);
+
+
+            function renderPrompts(prompts) {
+                promptsContainer.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+                function createPromptFields(obj, path = '') {
+                    for (const key in obj) {
+                        const currentPath = path ? `${path}.${key}` : key;
+                        if (typeof obj[key] === 'string') {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'p-3 bg-gray-700/50 rounded-lg';
+                            const label = document.createElement('label');
+                            label.htmlFor = currentPath;
+                            label.className = 'block text-xs font-medium text-gray-400 mb-1';
+                            label.textContent = currentPath;
+                            const textarea = document.createElement('textarea');
+                            textarea.id = currentPath;
+                            textarea.dataset.path = currentPath;
+                            textarea.className = 'block w-full bg-gray-600 border border-gray-500 rounded-md py-2 px-3 text-gray-200 h-32 resize-y';
+                            textarea.value = obj[key];
+                            wrapper.append(label, textarea);
+                            fragment.appendChild(wrapper);
+                        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            createPromptFields(obj[key], currentPath);
+                        }
+                    }
+                }
+                createPromptFields(prompts);
+                promptsContainer.appendChild(fragment);
+            }
+
+            function saveEditedPrompts() {
+                const newPrompts = {};
+                promptsContainer.querySelectorAll('textarea[data-path]').forEach(textarea => {
+                    const path = textarea.dataset.path.split('.');
+                    let current = newPrompts;
+                    path.forEach((key, index) => {
+                        if (index === path.length - 1) { current[key] = textarea.value; }
+                        else { current[key] = current[key] || {}; current = current[key]; }
+                    });
+                });
+                const blob = new Blob([JSON.stringify(newPrompts, null, 4)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'edited_prompts.json';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast('`edited_prompts.json` downloaded!', 'success');
+            }
+
+            function generateCommand() {
+                const args = [];
+                const inputPath = document.getElementById('input-path').value.trim();
+                const outputDir = document.getElementById('output-dir').value.trim();
+                if (!inputPath || !outputDir) {
+                    showToast('Input Path and Output Directory are required.', 'error');
+                    return;
+                }
+                args.push(`"${inputPath}"`, `"${outputDir}"`);
+
+                const options = {
+                    '--type': document.getElementById('processing-type').value,
+                    '--task': document.getElementById('task-type').value,
+                    '--prompts-file': document.getElementById('prompts-file').value.trim(),
+                    '--chatgpt-model': document.getElementById('chatgpt-model').value.trim(),
+                    '--ollama-vision-model': document.getElementById('ollama-vision-model').value.trim(),
+                    '--ollama-text-model': document.getElementById('ollama-text-model').value.trim(),
+                    '--huggingface-model': document.getElementById('huggingface-model').value.trim(),
+                    '--threshold': document.getElementById('threshold-input').value.trim(),
+                    '--peak_dis': document.getElementById('peak-dis-input').value.trim(),
+                    '--concurrency': document.getElementById('concurrency-input').value.trim(),
+                };
+
+                const defaults = {
+                    '--type': 'MER',
+                    '--task': 'MERR',
+                    '--threshold': '0.8',
+                    '--peak_dis': '15',
+                    '--concurrency': '4',
+                };
+
+                for (const [key, value] of Object.entries(options)) {
+                    if (value) { // Only process if there is a value
+                        // Add arg if the option has no default or if the value is different from the default
+                        if (defaults[key] === undefined || value !== defaults[key]) {
+                            args.push(`${key} "${value}"`);
+                        }
+                    }
+                }
+
+                if (document.getElementById('silent-mode').checked) args.push('--silent');
+                if (document.getElementById('use-cache').checked) args.push('--cache');
+
+                commandOutput.textContent = `python main.py ${args.join(' ')}`;
+                commandOutputContainer.classList.remove('hidden');
+                showToast('Command generated!', 'success');
+            }
+
+            function renderPromptUploadFallback() {
+                promptsContainer.innerHTML = `
+                <div class="text-center text-gray-400 p-8 bg-gray-800 rounded-lg">
+                    <p class="mb-4">Could not automatically load <strong>../agents/prompts.json</strong>.</p>
+                    <p class="mb-4">This can happen when running the HTML file directly from your computer due to browser security policies (CORS).</p>
+                    <label class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow transition-colors cursor-pointer">
+                        Upload prompts.json
+                        <input type="file" id="manual-prompt-upload" class="hidden" accept=".json">
+                    </label>
+                </div>
+            `;
+                document.getElementById('manual-prompt-upload').addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (file && file.type === 'application/json') {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const prompts = JSON.parse(e.target.result);
+                                renderPrompts(prompts);
+                                showToast('Prompts loaded successfully!', 'success');
+                            } catch (parseError) {
+                                showToast('Error parsing the uploaded JSON file.', 'error');
+                                console.error('JSON Parse Error:', parseError);
+                            }
+                        };
+                        reader.readAsText(file);
+                    } else {
+                        showToast('Please select a valid .json file.', 'error');
+                    }
+                });
+            }
+
+            async function loadInitialPrompts() {
+                try {
+                    const response = await fetch('../agents/prompts.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const promptsFromFile = await response.json();
+                    renderPrompts(promptsFromFile);
+                    showToast('Loaded prompts from ../agents/prompts.json', 'success');
+                } catch (error) {
+                    console.error('Could not fetch prompts from file path:', error);
+                    showToast('Could not load prompts. Please upload the file manually.', 'error');
+                    renderPromptUploadFallback();
+                }
+            }
+
+            // Initial load of prompts
+            loadInitialPrompts();
+
+            savePromptsBtn.addEventListener('click', saveEditedPrompts);
+            generateCmdBtn.addEventListener('click', generateCommand);
+            copyCmdBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(commandOutput.textContent).then(() => showToast('Command copied!', 'success'));
+            });
+        });
+    </script>
+</body>
+
+</html>

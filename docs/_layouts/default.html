@@ -29,6 +29,11 @@
 </head>
 
 <body>
+  <!-- Menu toggle button for mobile -->
+  <button class="menu-toggle" aria-label="Toggle navigation">
+    <i class="fas fa-bars"></i>
+  </button>
+
   <div class="wrapper">
     <!-- Header/Sidebar -->
     <header>
@@ -75,6 +80,8 @@
                 <i class="fas fa-lightbulb"></i>
                 {% elsif nav_item.title == "Technical Documentation" or nav_item.title == "技术文档" %}
                 <i class="fas fa-cogs"></i>
+                {% elsif nav_item.title == "Tools" or nav_item.title == "工具" %}
+                <i class="fas fa-wrench"></i>
                 {% endif %}
                 {{ nav_item.title }}
               </a>

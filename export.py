@@ -5,7 +5,25 @@ import json
 import glob
 import csv
 import argparse
+import re
 from tqdm import tqdm
+
+
+def clean_text_for_csv(text):
+    """
+    Clean text data for CSV export by handling problematic characters.
+
+    Args:
+        text (str): Input text to clean
+
+    Returns:
+        str: Cleaned text safe for CSV export
+    """
+    if not isinstance(text, str):
+        text = str(text)
+    text = text.strip().replace("\n", "\\n")
+
+    return text
 
 
 def process_export_folder(output_folder, file_type, export_path):
@@ -88,7 +106,11 @@ def process_json_file(json_file, file_type):
 
         if file_type == "au":
             chronological_emotion_peaks = data.get("chronological_emotion_peaks", [])
-            emotion_peaks_text = "; ".join(chronological_emotion_peaks)
+            # Clean each emotion peak text
+            cleaned_peaks = [
+                clean_text_for_csv(peak) for peak in chronological_emotion_peaks
+            ]
+            emotion_peaks_text = "; ".join(cleaned_peaks)
 
             return {
                 "video_id": video_id,
@@ -98,43 +120,68 @@ def process_json_file(json_file, file_type):
         elif file_type == "mer":
             # Special handling for MER files
             chronological_emotion_peaks = data.get("chronological_emotion_peaks", [])
-            emotion_peaks_text = "; ".join(chronological_emotion_peaks)
+            # Clean each emotion peak text
+            cleaned_peaks = [
+                clean_text_for_csv(peak) for peak in chronological_emotion_peaks
+            ]
+            emotion_peaks_text = "; ".join(cleaned_peaks)
             coarse_descriptions = data.get("coarse_descriptions_at_peak", {})
 
             return {
                 "video_id": video_id,
                 "chronological_emotion_peaks": emotion_peaks_text,
-                "visual_expression": coarse_descriptions.get("visual_expression", ""),
-                "visual_objective": coarse_descriptions.get("visual_objective", ""),
-                "audio_analysis": coarse_descriptions.get("audio_analysis_results", ""),
-                "video_content": coarse_descriptions.get("video_content", ""),
+                "visual_expression": clean_text_for_csv(
+                    coarse_descriptions.get("visual_expression", "")
+                ),
+                "visual_objective": clean_text_for_csv(
+                    coarse_descriptions.get("visual_objective", "")
+                ),
+                "audio_analysis": clean_text_for_csv(
+                    coarse_descriptions.get("audio_analysis", "")
+                ),
+                "video_content": clean_text_for_csv(
+                    coarse_descriptions.get("video_content", "")
+                ),
+                "final_summary": clean_text_for_csv(data.get("final_summary", "")),
                 "file_type": file_type,
             }
         elif file_type == "audio":
             return {
                 "video_id": video_id,
-                "audio_analysis": data.get("audio_analysis_results", ""),
+                "audio_analysis": clean_text_for_csv(data.get("audio_analysis", "")),
                 "file_type": file_type,
             }
         elif file_type == "video":
             return {
                 "video_id": video_id,
-                "llm_video_summary": data.get("llm_video_summary", ""),
+                "llm_video_summary": clean_text_for_csv(
+                    data.get("llm_video_summary", "")
+                ),
                 "file_type": file_type,
             }
         elif file_type == "image":
             return {
                 "image_id": video_id,
-                "source_image": data.get("source_image", ""),
-                "au_text_description": data.get("au_text_description", ""),
-                "llm_au_description": data.get("llm_au_description", ""),
-                "image_visual_description": data.get("image_visual_description", ""),
-                "final_summary": data.get("final_summary", ""),
+                "source_image": clean_text_for_csv(data.get("source_image", "")),
+                "au_text_description": clean_text_for_csv(
+                    data.get("au_text_description", "")
+                ),
+                "llm_au_description": clean_text_for_csv(
+                    data.get("llm_au_description", "")
+                ),
+                "image_visual_description": clean_text_for_csv(
+                    data.get("image_visual_description", "")
+                ),
+                "final_summary": clean_text_for_csv(data.get("final_summary", "")),
                 "file_type": file_type,
             }
         else:
             # Generic handling for other file types
-            return {"video_id": video_id, "data": str(data), "file_type": file_type}
+            return {
+                "video_id": video_id,
+                "data": clean_text_for_csv(str(data)),
+                "file_type": file_type,
+            }
 
     except Exception as e:
         print(f"Error processing {json_file}: {e}")
@@ -164,13 +211,13 @@ def export_to_csv(all_data, export_path, file_type):
                     "chronological_emotion_peaks",
                     "visual_expression",
                     "visual_objective",
-                    "audio_tone",
-                    "subtitles",
+                    "audio_analysis",
                     "video_content",
+                    "final_summary",
                     "file_type",
                 ]
             elif file_type == "audio":
-                fieldnames = ["video_id", "transcript", "tone_description", "file_type"]
+                fieldnames = ["video_id", "audio_analysis", "file_type"]
             elif file_type == "video":
                 fieldnames = ["video_id", "llm_video_summary", "file_type"]
             elif file_type == "image":
@@ -186,7 +233,10 @@ def export_to_csv(all_data, export_path, file_type):
             else:
                 fieldnames = ["video_id", "data", "file_type"]
 
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            # Use QUOTE_ALL to ensure all fields are quoted
+            writer = csv.DictWriter(
+                csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL
+            )
             writer.writeheader()
 
             # Write rows with progress bar
