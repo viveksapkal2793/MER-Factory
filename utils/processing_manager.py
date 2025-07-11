@@ -16,6 +16,7 @@ from rich.progress import (
 
 from agents.state import MERRState
 from agents.models import LLMModels
+from agents.prompts import PromptTemplates
 from .config import (
     AppConfig,
     VIDEO_EXTENSIONS,
@@ -31,7 +32,7 @@ console = Console(stderr=True)
 
 
 def build_initial_state(
-    file_path: Path, config: AppConfig, models: LLMModels
+    file_path: Path, config: AppConfig, models: LLMModels, prompts: PromptTemplates
 ) -> MERRState:
     """Builds the initial state dictionary for a file to be processed by the graph."""
     file_id = file_path.stem
@@ -62,7 +63,9 @@ def build_initial_state(
         "au_data_path": au_data_path,
         "output_dir": config.output_dir,
         "processing_type": current_processing_type,
+        "task": config.task.value,
         "models": models,
+        "prompts": prompts,
         "threshold": config.threshold,
         "peak_distance_frames": config.peak_distance_frames,
         "verbose": config.verbose,

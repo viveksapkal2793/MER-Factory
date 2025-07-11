@@ -11,7 +11,9 @@ Get up and running with MER-Factory in just a few minutes. This guide will walk 
 
 ## System Overview
 
-![Framework Architecture](assets/framework.svg)
+<div style="text-align: center;">
+  <img src="assets/framework.svg" style="border: none; width: 100%; max-width: 1000px;">
+</div>
 
 ## Prerequisites
 

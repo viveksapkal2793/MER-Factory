@@ -26,9 +26,6 @@
 
 - [Pipeline 结构](#pipeline-结构)
 - [特性](#特性)
-- [前置条件](#前置条件)
-  - [1. FFmpeg](#1-ffmpeg)
-  - [2. OpenFace](#2-openface)
 - [安装](#安装)
 - [使用方法](#使用方法)
   - [基本命令结构](#基本命令结构)
@@ -37,7 +34,6 @@
   - [处理类型](#处理类型)
 - [模型支持](#模型支持)
   - [模型推荐](#模型推荐)
-- [测试与故障排除](#测试与故障排除)
 - [引用](#引用)
 
 ## Pipeline 结构
@@ -116,68 +112,11 @@ graph TD;
 -   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
-## 前置条件
-
-### 1. FFmpeg
-FFmpeg 用于视频和音频处理。
-
-<details>
-<summary>点击展开/折叠</summary>
-
-**安装方法：**
-- **macOS**：`brew install ffmpeg`
-- **Ubuntu/Debian**：`sudo apt update && sudo apt install ffmpeg`
-- **Windows**：从 [ffmpeg.org](https://ffmpeg.org/download.html) 下载
-
-**验证安装：**
-```bash
-ffmpeg -version
-ffprobe -version
-```
-
-</details>
-
-### 2. OpenFace
-OpenFace 用于面部动作单元提取。
-
-<details>
-<summary>点击展开/折叠</summary>
-
-**安装方法：**
-1. 克隆 OpenFace 仓库：
-   ```bash
-   git clone https://github.com/TadasBaltrusaitis/OpenFace.git
-   cd OpenFace
-   ```
-
-2. 按照 [OpenFace Wiki](https://github.com/TadasBaltrusaitis/OpenFace/wiki) 的说明进行安装。
-
-3. 构建项目并记录 `FeatureExtraction` 可执行文件的路径（通常在 `build/bin/FeatureExtraction`）
-
-</details>
-
 ## 安装
 
-```bash
-git clone https://github.com/Lum1104/MER-Factory.git
-cd MER-Factory
-
-conda create -n mer-factory python=3.12
-conda activate mer-factory
-
-pip install -r requirements.txt
-```
-
-**配置：**
-1. 复制示例环境文件：
-   ```bash
-   cp .env.example .env
-   ```
-
-2. 编辑 `.env` 文件并配置您的设置：
-   - `GOOGLE_API_KEY`：您的 Google API 密钥（如果使用 Gemini 模型则需要）
-   - `OPENAI_API_KEY`：您的 OpenAI API 密钥（如果使用 ChatGPT 模型则需要）
-   - `OPENFACE_EXECUTABLE`：OpenFace FeatureExtraction 可执行文件的路径（AU 和 MER 处理流程需要）
+<p align="center">
+  📚 请访问 <a href="https://lum1104.github.io/MER-Factory/zh/" target="_blank">项目文档</a> 查看详细的安装和使用教程。
+</p>
 
 ## 使用方法
 
@@ -193,6 +132,9 @@ python main.py --help
 
 # 使用 Gemini（默认）运行完整 MER 处理流程
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
+
+# 使用情感分析任务代替情感识别
+python main.py path_to_video/ output/ --type MER --task "Sentiment Analysis" --silent
 
 # 使用 ChatGPT 模型
 python main.py path_to_video/ output/ --type MER --chatgpt-model gpt-4o --silent
@@ -214,6 +156,7 @@ python main.py ./images ./output --type MER
 | 选项 | 简写 | 描述 | 默认值 |
 |--------|-------|-------------|---------|
 | `--type` | `-t` | 处理类型（AU、audio、video、image、MER） | MER |
+| `--task` | `-tk` | 分析任务类型（Emotion Recognition、Sentiment Analysis） | Emotion Recognition |
 | `--label-file` | `-l` | CSV 文件路径，包含 'name' 和 'label' 列。可选，用于真实标签。 | None |
 | `--threshold` | `-th` | 情感检测阈值（0.0-5.0） | 0.8 |
 | `--peak_dis` | `-pd` | 情感峰值帧检测间隔（最小 8） | 15 |
@@ -258,6 +201,24 @@ python main.py ./images ./output --type image
 python main.py video.mp4 output/ --type MER
 # 或者简单地：
 python main.py video.mp4 output/
+```
+
+### 任务类型
+
+`--task` 选项允许您在不同的分析任务之间进行选择：
+
+#### 1. 情感识别（默认）
+进行详细的情感分析，使用精细的情感类别：
+```bash
+python main.py video.mp4 output/ --task "Emotion Recognition"
+# 或者直接省略 --task 选项，因为这是默认值
+python main.py video.mp4 output/
+```
+
+#### 2. 情感分析
+进行基于情绪极性的分析（积极、消极、中性）：
+```bash
+python main.py video.mp4 output/ --task "Sentiment Analysis"
 ```
 
 ## 模型支持
@@ -320,44 +281,6 @@ python main.py video.mp4 output/ --type MER --silent
 2. **选项 2 - 请求支持**：在我们的仓库中提交问题，告诉我们您希望我们支持的模型，我们会考虑添加。
 
 **当前支持的模型**：`google/gemma-3n-E4B-it` 以及其他在 HF 模型目录中列出的模型。
-
-## 测试与故障排除
-
-### 安装验证
-使用这些脚本确保您的依赖项正确配置。
-
-<details>
-<summary>点击查看测试命令</summary>
-
-**测试 FFmpeg 集成**：
-```bash
-python test_ffmpeg.py your_video.mp4 test_output/
-```
-
-**测试 OpenFace 集成**：
-```bash
-python test_openface.py your_video.mp4 test_output/
-```
-
-</details>
-
-### 常见问题
-
-1.  **未找到 FFmpeg**：
-    -   **症状**：出现与 `ffmpeg` 或 `ffprobe` 相关的 `FileNotFoundError`。
-    -   **解决方案**：确保 FFmpeg 已正确安装，并且其位置已包含在系统的 `PATH` 环境变量中。通过 `ffmpeg -version` 进行验证。
-
-2.  **OpenFace 可执行文件未找到**：
-    -   **症状**：出现错误，提示无法找到 `FeatureExtraction` 可执行文件。
-    -   **解决方案**：双检查 `.env` 文件中的 `OPENFACE_EXECUTABLE` 路径。它必须是可执行文件的 **绝对路径**。确保文件具有执行权限（`chmod +x FeatureExtraction`）。
-
-3.  **API 密钥错误（Google/OpenAI）**：
-    -   **症状**：出现 `401 Unauthorized` 或 `PermissionDenied` 错误。
-    -   **解决方案**：验证 `.env` 文件中的 API 密钥是否正确，且没有多余的空格或字符。确保相关账户已启用计费功能并有足够的配额。
-
-4.  **Ollama 模型未找到**：
-    -   **症状**：错误提示模型不可用。
-    -   **解决方案**：确保您已使用 `ollama pull <model_name>` 命令将模型下载到本地。
 
 ## 引用
 

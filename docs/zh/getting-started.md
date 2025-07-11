@@ -11,7 +11,9 @@ lang: zh
 
 ## 系统概要
 
-![系统概要](../assets/framework.svg)
+<div style="text-align: center;">
+  <img src="../assets/framework.svg" style="border: none; width: 100%; max-width: 1000px;">
+</div>
 
 ## 先决条件
 

@@ -28,7 +28,9 @@ The system is built with modularity and scalability in mind, leveraging a state-
 
 ## System Overview
 
-![Framework Architecture](assets/framework.svg)
+<div style="text-align: center;">
+  <img src="assets/framework.svg" style="border: none; width: 100%; max-width: 1000px;">
+</div>
 
 ---
 

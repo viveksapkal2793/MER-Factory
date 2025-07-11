@@ -15,6 +15,13 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a"}
 
 
+class TaskType(str, Enum):
+    """Enum for the different types of analysis tasks that can be performed."""
+
+    EMOTION_RECOGNITION = "MERR"
+    SENTIMENT_ANALYSIS = "Sentiment Analysis"
+
+
 class ProcessingType(str, Enum):
     """Enum for the different types of processing that can be performed."""
 
@@ -43,6 +50,13 @@ class AppConfig(BaseModel):
     input_path: Path
     output_dir: DirectoryPath
     processing_type: ProcessingType
+    task: TaskType = Field(
+        TaskType.EMOTION_RECOGNITION,
+        description="The analysis task to perform.",
+    )
+    prompts_file: Path = Field(
+        Path("agents/prompts.json"), description="Path to the prompts JSON file."
+    )
     error_logs_dir: Path
     label_file: Optional[FilePath] = None
     threshold: float = Field(0.8, ge=0.0, le=5.0)
@@ -122,6 +136,9 @@ class AppConfig(BaseModel):
     def get_openface_path_error(self) -> Optional[str]:
         """Check if OpenFace is needed and if the path is valid."""
         if self.processing_type in [ProcessingType.MER, ProcessingType.AU]:
-            if not Path(self.openface_executable).exists():
+            if (
+                not self.openface_executable
+                or not Path(self.openface_executable).exists()
+            ):
                 return f"Error: OpenFace executable not found at '{self.openface_executable}'. Please check your .env file."
         return None

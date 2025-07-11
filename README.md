@@ -25,9 +25,6 @@
 
 - [Pipeline Structure](#pipeline-structure)
 - [Features](#features)
-- [Prerequisites](#prerequisites)
-  - [1. FFmpeg](#1-ffmpeg)
-  - [2. OpenFace](#2-openface)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Basic Command Structure](#basic-command-structure)
@@ -36,7 +33,6 @@
   - [Processing Types](#processing-types)
 - [Model Support](#model-support)
   - [Model Recommendations](#model-recommendations)
-- [Testing & Troubleshooting](#testing--troubleshooting)
 - [Citation](#citation)
 
 
@@ -117,68 +113,11 @@ Check out example outputs here:
 -   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
-## Prerequisites
-
-### 1. FFmpeg
-FFmpeg is required for video and audio processing.
-
-<details>
-<summary>Click here to expand/collapse</summary>
-
-**Installation:**
-- **macOS**: `brew install ffmpeg`
-- **Ubuntu/Debian**: `sudo apt update && sudo apt install ffmpeg`
-- **Windows**: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
-
-**Verify installation:**
-```bash
-ffmpeg -version
-ffprobe -version
-```
-
-</details>
-
-### 2. OpenFace
-OpenFace is needed for facial Action Unit extraction.
-
-<details>
-<summary>Click here to expand/collapse</summary>
-
-**Installation:**
-1. Clone OpenFace repository:
-   ```bash
-   git clone https://github.com/TadasBaltrusaitis/OpenFace.git
-   cd OpenFace
-   ```
-
-2. Follow the installation instructions for your platform from the [OpenFace Wiki](https://github.com/TadasBaltrusaitis/OpenFace/wiki)
-
-3. Build the project and note the path to the `FeatureExtraction` executable (typically in `build/bin/FeatureExtraction`)
-
-</details>
-
 ## Installation
 
-```bash
-git clone https://github.com/Lum1104/MER-Factory.git
-cd MER-Factory
-
-conda create -n mer-factory python=3.12
-conda activate mer-factory
-
-pip install -r requirements.txt
-```
-
-**Configuration:**
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Edit the `.env` file and configure your settings:
-   - `GOOGLE_API_KEY`: Your Google API key for Gemini models (optional if using other models)
-   - `OPENAI_API_KEY`: Your OpenAI API key for ChatGPT models (optional if using other models)
-   - `OPENFACE_EXECUTABLE`: Path to OpenFace FeatureExtraction executable (required for AU and MER pipelines)
+<p align="center">
+  📚 Please visit <a href="https://lum1104.github.io/MER-Factory/" target="_blank">project documentation</a> for detailed installation and usage instructions.
+</p>
 
 ## Usage
 
@@ -194,6 +133,9 @@ python main.py --help
 
 # Full MER pipeline with Gemini (default)
 python main.py path_to_video/ output/ --type MER --silent --threshold 0.8
+
+# Using Sentiment Analysis task instead of MERR
+python main.py path_to_video/ output/ --type MER --task "Sentiment Analysis" --silent
 
 # Using ChatGPT models
 python main.py path_to_video/ output/ --type MER --chatgpt-model gpt-4o --silent
@@ -215,6 +157,7 @@ Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not
 | Option | Short | Description | Default |
 |--------|-------|-------------|---------|
 | `--type` | `-t` | Processing type (AU, audio, video, image, MER) | MER |
+| `--task` | `-tk` | Analysis task type (MERR, Sentiment Analysis) | MERR |
 | `--label-file` | `-l` | Path to a CSV file with 'name' and 'label' columns. Optional, for ground truth labels. | None |
 | `--threshold` | `-th` | Emotion detection threshold (0.0-5.0) | 0.8 |
 | `--peak_dis` | `-pd` | Steps between peak frame detection (min 8) | 15 |
@@ -259,6 +202,24 @@ Runs the complete multimodal emotion recognition pipeline:
 python main.py video.mp4 output/ --type MER
 # or simply:
 python main.py video.mp4 output/
+```
+
+### Task Types
+
+The `--task` option allows you to choose between different analysis tasks:
+
+#### 1. Emotion Recognition (Default)
+Performs detailed emotion analysis with granular emotion categories:
+```bash
+python main.py video.mp4 output/ --task "Emotion Recognition"
+# or simply omit the --task option since it's the default
+python main.py video.mp4 output/
+```
+
+#### 2. Sentiment Analysis
+Performs sentiment-focused analysis (positive, negative, neutral):
+```bash
+python main.py video.mp4 output/ --task "Sentiment Analysis"
 ```
 
 ## Model Support
@@ -321,44 +282,6 @@ If you want to use the latest HF models or features that Ollama doesn't support:
 2. **Option 2 - Request support**: Open an issue on our repository to let us know which model you'd like us to support, and we'll consider adding it.
 
 **Current supported models**: `google/gemma-3n-E4B-it` and others listed in the HF models directory.
-
-## Testing & Troubleshooting
-
-### Installation Verification
-Use these scripts to ensure your dependencies are correctly configured.
-
-<details>
-<summary>Click to see testing commands</summary>
-
-**Test FFmpeg Integration**:
-```bash
-python test_ffmpeg.py your_video.mp4 test_output/
-```
-
-**Test OpenFace Integration**:
-```bash
-python test_openface.py your_video.mp4 test_output/
-```
-
-</details>
-
-### Common Issues
-
-1.  **FFmpeg not found**:
-    -   **Symptom**: `FileNotFoundError` related to `ffmpeg` or `ffprobe`.
-    -   **Solution**: Ensure FFmpeg is installed correctly and that its location is included in your system's `PATH` environment variable. Verify with `ffmpeg -version`.
-
-2.  **OpenFace executable not found**:
-    -   **Symptom**: Errors indicating the `FeatureExtraction` executable cannot be found.
-    -   **Solution**: Double-check the `OPENFACE_EXECUTABLE` path in your `.env` file. It must be an **absolute path** to the executable. Ensure the file has execute permissions (`chmod +x FeatureExtraction`).
-
-3.  **API Key Errors (Google/OpenAI)**:
-    -   **Symptom**: `401 Unauthorized` or `PermissionDenied` errors.
-    -   **Solution**: Verify that the API keys in your `.env` file are correct and do not have extra spaces or characters. Ensure the associated account has billing enabled and sufficient quota.
-
-4.  **Ollama Model Not Found**:
-    -   **Symptom**: Errors mentioning the model is not available.
-    -   **Solution**: Make sure you have pulled the model locally using `ollama pull <model_name>`.
 
 ## Citation
 

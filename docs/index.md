@@ -26,21 +26,32 @@ MER-Factory is a **Python-based, open-source framework** designed for the Affect
 
 ### 🚀 Key Features
 
-- **Multi-Pipeline Architecture**: Support for AU, Audio, Video, Image, and full MER processing
-- **Flexible Model Integration**: Works with OpenAI, Google Gemini, Ollama, and Hugging Face models
-- **Scalable Processing**: Async/concurrent processing for large datasets
-- **Scientific Foundation**: Based on Facial Action Coding System (FACS) and latest research
-- **Easy CLI Interface**: Simple command-line usage with comprehensive options
+- **Multi-Pipeline Architecture**: Support for AU, Audio, Video, Image, and full MER processing.
+- **Flexible Analysis Tasks**: Choose between MERR and Sentiment Analysis.
+- **Flexible Model Integration**: Works with OpenAI, Google Gemini, Ollama, and Hugging Face models.
+- **Scalable Processing**: Async/concurrent processing for large datasets.
+- **Scientific Foundation**: Based on Facial Action Coding System (FACS) and latest research.
+- **Easy CLI Interface**: Simple command-line usage with comprehensive options.
 
 ### 📋 Processing Types
 
 | Pipeline | Description | Use Case |
-|----------|-------------|----------|
-| **AU** | Facial Action Unit extraction and description | Facial expression analysis |
-| **Audio** | Speech transcription and tonal analysis | Audio emotion analysis |
-| **Video** | Comprehensive video content description | Video emotion analysis |
-| **Image** | Static image emotion recognition | Image-based emotion analysis |
-| **MER** | Complete multimodal pipeline | Full emotion reasoning datasets |
+|---|---|---|
+| **AU** | Facial Action Unit extraction and description. | Facial expression analysis. |
+| **Audio** | Speech transcription and tonal analysis. | Audio emotion analysis. |
+| **Video** | Comprehensive video content description. | Video emotion analysis. |
+| **Image** | Static image emotion recognition. | Image-based emotion analysis. |
+| **MER** | Complete multimodal pipeline. | Full emotion reasoning datasets. |
+
+### 🎯 Analysis Task Types
+
+The `--task` argument allows you to specify the analysis goal.
+
+| Task | `--task` argument | Description |
+|---|---|---|
+| **MERR** | `"MERR"` | (Default) Performs detailed analysis with MER. |
+| **Sentiment Analysis** | `"Sentiment Analysis"` | Performs sentiment-focused analysis (positive, negative, neutral). |
+
 
 ## Quick Start
 
@@ -54,8 +65,11 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API keys and OpenFace path
 
-# Run full MER pipeline
+# Run full MER pipeline (default task: MERR)
 python main.py video.mp4 output/ --type MER --silent
+
+# Run with Sentiment Analysis task
+python main.py video.mp4 output/ --task "Sentiment Analysis"
 ```
 
 ### 📖 Example Outputs

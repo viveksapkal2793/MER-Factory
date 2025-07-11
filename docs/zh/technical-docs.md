@@ -28,7 +28,9 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
 
 ## 系统概要
 
-![系统概要](../assets/framework.svg)
+<div style="text-align: center;">
+  <img src="../assets/framework.svg" style="border: none; width: 100%; max-width: 1000px;">
+</div>
 
 ---
 

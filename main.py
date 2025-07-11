@@ -13,7 +13,8 @@ os.environ["GRPC_VERBOSITY"] = "ERROR"
 # Import from local packages
 from agents.graph import create_graph
 from agents.models import LLMModels
-from utils.config import AppConfig, ProcessingType
+from agents.prompts import PromptTemplates
+from utils.config import AppConfig, ProcessingType, TaskType
 from utils.file_handler import find_files_to_process, load_labels_from_file
 from utils.processing_manager import (
     run_feature_extraction,
@@ -34,7 +35,7 @@ console = Console(stderr=True)
 def main_orchestrator(config: AppConfig):
     """The main function that orchestrates the entire processing pipeline."""
     console.rule(
-        f"[bold magenta]MERR CLI - Mode: {config.processing_type.value}[/bold magenta]"
+        f"[bold magenta]MERR CLI - Mode: {config.processing_type.value} | Task: {config.task.value}[/bold magenta]"
     )
 
     if error := config.get_model_choice_error():
@@ -58,8 +59,9 @@ def main_orchestrator(config: AppConfig):
             huggingface_model_id=config.huggingface_model_id,
             verbose=config.verbose,
         )
-    except (ValueError, ImportError) as e:
-        console.print(f"[bold red]Failed to initialize models: {e}[/bold red]")
+        prompts = PromptTemplates(prompts_file=config.prompts_file)
+    except (ValueError, ImportError, FileNotFoundError) as e:
+        console.print(f"[bold red]Failed to initialize components: {e}[/bold red]")
         raise typer.Exit(1)
 
     # --- File Discovery ---
@@ -80,6 +82,7 @@ def main_orchestrator(config: AppConfig):
         build_initial_state,
         config=config,
         models=models,
+        prompts=prompts,
     )
 
     results = asyncio.run(
@@ -109,6 +112,20 @@ def process(
     ),
     processing_type: ProcessingType = typer.Option(
         ProcessingType.MER, "--type", "-t", case_sensitive=False
+    ),
+    task: TaskType = typer.Option(
+        TaskType.EMOTION_RECOGNITION,
+        "--task",
+        "-tk",
+        case_sensitive=False,
+        help="The analysis task to perform.",
+    ),
+    prompts_file: Path = typer.Option(
+        "agents/prompts.json",
+        "--prompts-file",
+        "-pf",
+        exists=True,
+        help="Path to the prompts JSON file.",
     ),
     label_file: Path = typer.Option(
         None,
@@ -154,6 +171,8 @@ def process(
             input_path=input_path,
             output_dir=output_dir,
             processing_type=processing_type,
+            task=task,
+            prompts_file=prompts_file,
             label_file=label_file,
             threshold=threshold,
             peak_distance_frames=peak_distance_frames,

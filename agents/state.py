@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import TypedDict, Dict, Any, List
+
 from .models import LLMModels
+from .prompts import PromptTemplates
 
 
 class MERRState(TypedDict, total=False):
@@ -12,7 +14,9 @@ class MERRState(TypedDict, total=False):
 
     # === CORE CONFIGURATION & SETUP ===
     processing_type: str  # The type of pipeline to run (e.g., 'MER', 'audio').
+    task: str  # The analysis task to perform (e.g., 'MERR').
     models: LLMModels  # An instance of the LLMModels class for API calls.
+    prompts: PromptTemplates  # An instance of the PromptTemplates class.
     verbose: bool  # Flag for detailed logging output.
     cache: bool  # Flag to reuse existing analysis results from previous runs.
     ground_truth_label: str  # Optional ground truth label for the media file.
