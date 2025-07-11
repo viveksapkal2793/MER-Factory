@@ -1,5 +1,4 @@
 import json
-from multiprocessing import context
 from rich.console import Console
 from pathlib import Path
 import asyncio
@@ -89,7 +88,7 @@ async def generate_audio_description(state):
             "error": f"Audio file not found at {audio_path}. The background FFMpeg task may have failed."
         }
 
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
     if verbose:
         console.log(f"Analyzing pre-extracted audio at [green]{audio_path}[/green]")
@@ -104,7 +103,7 @@ async def generate_audio_description(state):
     if has_label:
         prompt = prompt.format(label=ground_truth_label)
 
-    audio_analysis = await models.analyze_audio(audio_path, prompt)
+    audio_analysis = await model.analyze_audio(audio_path, prompt)
     if verbose:
         console.log(f"Audio Analysis Results: [cyan]{audio_analysis}[/cyan]")
     return {"audio_analysis_results": audio_analysis}
@@ -153,7 +152,7 @@ async def generate_video_description(state):
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
 
     processing_type = state.get("processing_type")
@@ -165,7 +164,7 @@ async def generate_video_description(state):
     if has_label:
         prompt = prompt.format(label=ground_truth_label)
 
-    video_description = await models.describe_video(video_path, prompt)
+    video_description = await model.describe_video(video_path, prompt)
     if verbose and video_description:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
@@ -302,12 +301,13 @@ async def generate_peak_frame_visual_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating visual description for peak frame...")
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
     peak_frame_path = Path(state["peak_frame_path"])
 
+    # No label for peak frame, since this is use for MER.
     prompt = prompts.get_image_prompt()
-    visual_obj_desc = await models.describe_image(peak_frame_path, prompt)
+    visual_obj_desc = await model.describe_image(peak_frame_path, prompt)
 
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
@@ -337,7 +337,7 @@ async def synthesize_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final summary...")
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
     ground_truth_label = state.get("ground_truth_label")
     task = state.get("task")
@@ -387,7 +387,7 @@ async def synthesize_summary(state):
         task, has_label=bool(ground_truth_label)
     ).format(context=coarse_summary)
 
-    final_summary = await models.synthesize_summary(prompt)
+    final_summary = await model.synthesize_summary(prompt)
     return {"final_summary": final_summary}
 
 
@@ -459,7 +459,7 @@ async def run_image_analysis(state):
     if verbose:
         console.rule("[bold]Executing: Image Analysis[/bold]")
 
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
     image_path = Path(
         state["video_path"]
@@ -491,13 +491,13 @@ async def run_image_analysis(state):
         )
     else:
         prompt = prompts.get_facial_expression_prompt().format(au_text=au_text_desc)
-        llm_au_desc_task = models.describe_facial_expression(prompt)
+        llm_au_desc_task = model.describe_facial_expression(prompt)
     ground_truth_label = state.get("ground_truth_label")
     has_label = bool(ground_truth_label)
     visual_prompt = prompts.get_image_prompt(has_label)
     if has_label:
         visual_prompt = visual_prompt.format(label=ground_truth_label)
-    visual_desc_task = models.describe_image(image_path, visual_prompt)
+    visual_desc_task = model.describe_image(image_path, visual_prompt)
 
     llm_au_description, image_visual_description = await asyncio.gather(
         llm_au_desc_task, visual_desc_task
@@ -521,7 +521,7 @@ async def synthesize_image_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final image summary...")
-    models: LLMModels = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
     prompts: PromptTemplates = state["prompts"]
     ground_truth_label = state.get("ground_truth_label")
     task = state.get("task")
@@ -538,7 +538,7 @@ async def synthesize_image_summary(state):
         task=task, has_label=bool(ground_truth_label)
     ).format(context=context)
 
-    final_summary = await models.synthesize_summary(prompt)
+    final_summary = await model.synthesize_summary(prompt)
     if verbose:
         console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
 

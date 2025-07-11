@@ -3,6 +3,7 @@ from rich.console import Console
 from pathlib import Path
 
 from agents.prompts import PromptTemplates
+from ..models import LLMModels
 
 from tools.ffmpeg_adapter import FFMpegAdapter
 from tools.emotion_analyzer import EmotionAnalyzer
@@ -86,7 +87,8 @@ def generate_audio_description(state):
     if not audio_path.exists():
         return {"error": f"Audio file not found at {audio_path}."}
 
-    hf_model = state["models"].model_instance
+    model = state["models"].model_instance
+    prompts: PromptTemplates = state["prompts"]
     if verbose:
         console.log(f"Analyzing audio with HF model at [green]{audio_path}[/green]")
 
@@ -96,11 +98,11 @@ def generate_audio_description(state):
     # if processing_type is audio we pass the label to the prompt
     # otherwise (MER), we do not, because emotion cannot be inferred from audio alone.
     has_label = bool(ground_truth_label) if processing_type == "audio" else False
-    prompt = PromptTemplates.analyze_audio(has_label)
+    prompt = prompts.get_audio_prompt(has_label)
     if has_label:
         prompt = prompt.format(label=ground_truth_label)
 
-    audio_analysis = hf_model.analyze_audio(audio_path, prompt)
+    audio_analysis = model.analyze_audio(audio_path, prompt)
     if verbose:
         console.log(f"Audio Analysis Results: [cyan]{audio_analysis}[/cyan]")
     return {"audio_analysis_results": audio_analysis}
@@ -146,18 +148,19 @@ def generate_video_description(state):
     if verbose:
         console.rule("[bold]Executing: Video Content Analysis[/bold]")
     video_path = Path(state["video_path"])
-    hf_model = state["models"].model_instance
+    model = state["models"].model_instance
+    prompts: PromptTemplates = state["prompts"]
 
     processing_type = state.get("processing_type")
     ground_truth_label = state.get("ground_truth_label")
     # if processing_type is video, we pass the label to the prompt
     # otherwise (MER), we do not, because emotion cannot be inferred from video alone.
     has_label = bool(ground_truth_label) if processing_type == "video" else False
-    prompt = PromptTemplates.describe_video(has_label)
+    prompt = prompts.get_video_prompt(has_label)
     if has_label:
         prompt = prompt.format(label=ground_truth_label)
 
-    video_description = hf_model.describe_video(video_path, prompt)
+    video_description = model.describe_video(video_path, prompt)
     if verbose:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}
@@ -283,12 +286,14 @@ def generate_peak_frame_visual_description(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Generating visual description for peak frame...")
-    hf_model = state["models"].model_instance
+    model = state["models"].model_instance
+    prompts: PromptTemplates = state["prompts"]
     peak_frame_path = Path(state["peak_frame_path"])
-    prompt = (
-        PromptTemplates.describe_image()
-    )  # No label for peak frame, since this is use for MER.
-    visual_obj_desc = hf_model.describe_image(peak_frame_path, prompt)
+
+    # No label for peak frame, since this is use for MER.
+    prompt = prompts.get_image_prompt()
+    visual_obj_desc = model.describe_image(peak_frame_path, prompt)
+
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
     return {"image_visual_description": visual_obj_desc}
@@ -314,15 +319,18 @@ def synthesize_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final MER summary...")
-    hf_model = state["models"].model_instance
+    model: LLMModels = state["models"].model_instance
+    prompts: PromptTemplates = state["prompts"]
     ground_truth_label = state.get("ground_truth_label")
+    task = state.get("task")
 
     # Dynamically build the context based on available data
     clues = []
 
     # If a ground truth label exists, it's the most important clue.
     if ground_truth_label:
-        clues.append(f"- Ground Truth Label: {ground_truth_label}")
+        label_type = "Sentiment" if task == "Sentiment Analysis" else "Emotion"
+        clues.append(f"- Ground Truth {label_type} Label: {ground_truth_label}")
 
     # Chronological emotions
     detected_emotions = state.get("detected_emotions")
@@ -356,19 +364,20 @@ def synthesize_summary(state):
         console.log(coarse_summary)
         console.log("----------------------------------------------------")
 
-    prompt = PromptTemplates.synthesize_summary(
-        has_label=bool(ground_truth_label)
+    prompt = prompts.get_synthesis_prompt(
+        task, has_label=bool(ground_truth_label)
     ).format(context=coarse_summary)
 
-    final_summary = hf_model.synthesize_summary(prompt)
+    final_summary = model.synthesize_summary(prompt)
     return {"final_summary": final_summary}
 
 
 def save_mer_results(state):
     """Saves full MER results synchronously."""
     verbose = state.get("verbose", True)
+    task = state.get("task")
     if verbose:
-        console.rule("[bold green]✅ Full MER Pipeline Complete[/bold green]")
+        console.rule(f"[bold green]✅ Full {task} Complete[/bold green]")
     output_path = (
         Path(state["video_output_dir"]) / f"{state['video_id']}_merr_data.json"
     )
@@ -422,7 +431,8 @@ def run_image_analysis(state):
     if verbose:
         console.rule("[bold]Executing: Image Analysis[/bold]")
 
-    hf_model = state["models"].model_instance
+    model = state["models"].model_instance
+    prompts: PromptTemplates = state["prompts"]
     image_path = Path(state["video_path"])
     au_data_path = Path(state["au_data_path"])
 
@@ -439,18 +449,18 @@ def run_image_analysis(state):
 
     if verbose:
         console.log(f"Detected AUs: [yellow]{au_text_desc}[/yellow]")
-    prompt = PromptTemplates.describe_facial_expression().format(au_text=au_text_desc)
+    prompt = prompts.get_facial_expression_prompt().format(au_text=au_text_desc)
     llm_au_description = (
         "A neutral facial expression was detected."
         if "Neutral expression" in au_text_desc
-        else hf_model.describe_facial_expression(prompt)
+        else model.describe_facial_expression(prompt)
     )
     ground_truth_label = state.get("ground_truth_label")
     has_label = bool(ground_truth_label)
-    prompt = PromptTemplates.describe_image(has_label)
+    visual_prompt = prompts.get_image_prompt(has_label)
     if has_label:
-        prompt = prompt.format(label=ground_truth_label)
-    image_visual_description = hf_model.describe_image(image_path, prompt)
+        visual_prompt = visual_prompt.format(label=ground_truth_label)
+    image_visual_description = model.describe_image(image_path, visual_prompt)
 
     if verbose:
         console.log(f"LLM AU Description: [cyan]{llm_au_description}[/cyan]")
@@ -468,8 +478,10 @@ def synthesize_image_summary(state):
     verbose = state.get("verbose", True)
     if verbose:
         console.log("Synthesizing final image summary...")
-    hf_model = state["models"].model_instance
+    model = state["models"].model_instance
     ground_truth_label = state.get("ground_truth_label")
+    prompts: PromptTemplates = state["prompts"]
+    task = state.get("task")
 
     clues = []
     if ground_truth_label:
@@ -478,10 +490,11 @@ def synthesize_image_summary(state):
     clues.append(f"- Visual Context: {state['image_visual_description']}")
 
     context = "\n".join(clues)
-    prompt = PromptTemplates.synthesize_summary(
-        has_label=bool(ground_truth_label)
+    prompt = prompts.get_image_synthesis_prompt(
+        task=task, has_label=bool(ground_truth_label)
     ).format(context=context)
-    final_summary = hf_model.synthesize_summary(prompt)
+
+    final_summary = model.synthesize_summary(prompt)
     if verbose:
         console.log(f"Final Summary: [magenta]{final_summary}[/magenta]")
     return {"final_summary": final_summary}
