@@ -152,6 +152,16 @@ python main.py ./images ./output --type MER
 
 Note: Run `ollama pull llama3.2` etc, if Ollama model is needed. Ollama does not support video analysis for now.
 
+### Dashboard for Data Curation and Hyperparameter Tuning
+
+We provide an interactive dashboard webpage to facilitate data curation and hyperparameter tuning. The dashboard allows you to test different prompts, save and run configurations, and rate the generated data.
+
+To launch the dashboard, use the following command:
+
+```bash
+python dashboard.py
+```
+
 ### Command Line Options
 
 | Option | Short | Description | Default |

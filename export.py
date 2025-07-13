@@ -255,6 +255,7 @@ def main():
     parser.add_argument(
         "--file_type",
         choices=["au", "image", "mer", "audio", "video"],
+        type=str.lower,
         help="Type of files to process",
     )
     parser.add_argument(

@@ -20,12 +20,13 @@ The **Tune Dashboard** is a web-based interface that provides two main functiona
 - **Inline Editing**: Edit dataset fields directly in the interface
 - **Export**: Export your curated data back to CSV format
 
-### ⚙️ Prompt Configuration & Command Generation
+### ⚙️ Prompt Configuration & CLI running
 - **Prompt Editing**: Load and modify the default prompts used by MER-Factory
 - **Visual Configuration**: Configure all MER-Factory parameters through a user-friendly interface
 - **Model Selection**: Choose between different AI providers (Gemini, ChatGPT, Ollama, HuggingFace)
 - **Command Generation**: Automatically generate the complete command line for your configuration
-- **Download Prompts**: Export your customized prompts as `edited_prompts.json`
+- **Download Prompts**: Export your customized prompts as `prompts_v{i}.json`
+- **CLI Tool**: Run the CLI tool `main.py` directly to tune the hyper-parameters. Then export and load the constructed dataset directly into the `Data Curation` to rate and curate.
 
 ## Access the Dashboard
 

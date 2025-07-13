@@ -121,7 +121,7 @@ def process(
         help="The analysis task to perform.",
     ),
     prompts_file: Path = typer.Option(
-        "agents/prompts.json",
+        "utils/prompts/prompts.json",
         "--prompts-file",
         "-pf",
         exists=True,

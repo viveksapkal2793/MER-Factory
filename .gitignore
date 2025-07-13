@@ -221,3 +221,5 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+utils/prompts/prompts_v*.json
