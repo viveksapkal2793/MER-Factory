@@ -104,7 +104,7 @@ class OllamaModel:
             console.log(
                 f"[bold red]❌ Error describing facial expression: {e}[/bold red]"
             )
-            return f"Error generating facial description: {e}"
+            raise
 
     async def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file using Ollama."""
@@ -128,7 +128,7 @@ class OllamaModel:
             return await chain.ainvoke([message])
         except Exception as e:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
-            return ""
+            raise
 
     async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         return self._analyze_audio(audio_path, prompt)
@@ -158,7 +158,7 @@ class OllamaModel:
             return ""
         except Exception as e:
             console.log(f"[bold red]❌ Error analyzing audio: {e}[/bold red]")
-            return ""
+            raise
 
     async def describe_video(self, video_path: Path, prompt: str) -> str:
         """Video analysis is not supported for Ollama models."""
@@ -177,4 +177,4 @@ class OllamaModel:
             return await chain.ainvoke(prompt)
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
-            return ""
+            raise

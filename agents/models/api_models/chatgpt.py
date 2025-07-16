@@ -74,7 +74,7 @@ class ChatGptModel:
             console.log(
                 f"[bold red]❌ Error describing facial expression: {e}[/bold red]"
             )
-            return ""
+            raise
 
     async def describe_image(self, image_path: Path, prompt: str) -> str:
         """Generates a description for an image file using ChatGPT."""
@@ -98,7 +98,7 @@ class ChatGptModel:
             return await chain.ainvoke([message])
         except Exception as e:
             console.log(f"[bold red]❌ Error describing image: {e}[/bold red]")
-            return ""
+            raise
 
     async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """Analyzes an audio file and returns a structured dictionary using ChatGPT."""
@@ -145,4 +145,4 @@ class ChatGptModel:
             return await chain.ainvoke(prompt)
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
-            return ""
+            raise

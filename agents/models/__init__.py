@@ -1,9 +1,11 @@
 from rich.console import Console
+import diskcache
 
 from .api_models.gemini import GeminiModel
 from .api_models.ollama import OllamaModel
 from .api_models.chatgpt import ChatGptModel
 from .hf_models import get_hf_model_class
+from utils.caching import cache_llm_call
 
 
 console = Console(stderr=True)
@@ -17,11 +19,11 @@ class LLMModels:
         ollama_vision_model_name: str = None,
         chatgpt_model_name: str = None,
         huggingface_model_id: str = None,
+        cache: diskcache.Cache = None,
         verbose: bool = True,
     ):
         """
-        Initializes the appropriate model based on the provided arguments using a
-        dictionary dispatch pattern for cleaner, more scalable code.
+        Initializes the appropriate model and applies caching if provided.
 
         Args:
             api_key (str, optional): A generic API key.
@@ -29,6 +31,7 @@ class LLMModels:
             ollama_vision_model_name (str, optional): Name of the Ollama vision model.
             chatgpt_model_name (str, optional): Name of the ChatGPT model (e.g., 'gpt-4o').
             huggingface_model_id (str, optional): ID of the Hugging Face model.
+            cache (diskcache.Cache, optional): A diskcache instance for LLM caching.
             verbose (bool): Whether to print verbose logs.
         """
         self.verbose = verbose
@@ -81,19 +84,46 @@ class LLMModels:
                 self.model_type = model_type
                 try:
                     self.model_instance = config["class"](**config["args"])
+                    if cache is not None:
+                        console.log(
+                            f"Applying LLM cache to model: [yellow]{model_type}[/yellow]"
+                        )
+                        self._apply_caching(cache)
                     initialized = True
                 except (ValueError, ImportError) as e:
                     console.print(
                         f"[bold red]Failed to initialize {config['class'].__name__}: {e}[/bold red]"
                     )
                     raise
-                break  # Stop after initializing the first valid model
+                break
 
         if not initialized:
-            # Provide a more specific error if no model could be loaded
             active_conditions = {k: v["condition"] for k, v in model_factory.items()}
             if not any(active_conditions.values()):
                 raise ValueError(
-                    "No model could be initialized. Please provide the necessary arguments, "
-                    "e.g., --chatgpt-model-name and an OPENAI_API_KEY, or --ollama-..., etc."
+                    "No model could be initialized. Please provide the necessary arguments."
                 )
+
+    def _apply_caching(self, cache: diskcache.Cache):
+        """
+        Monkey-patches the model instance's methods with a caching decorator.
+        This dynamically adds caching to any LLM provider's methods,
+        supporting both sync and async methods.
+        """
+        methods_to_cache = [
+            "analyze_audio",
+            "describe_video",
+            "describe_image",
+            "synthesize_summary",
+            "describe_facial_expression",
+        ]
+
+        for method_name in methods_to_cache:
+            if hasattr(self.model_instance, method_name):
+                original_method = getattr(self.model_instance, method_name)
+                cached_method = cache_llm_call(cache)(original_method)
+                setattr(self.model_instance, method_name, cached_method)
+                if self.verbose:
+                    console.log(
+                        f"Applied LLM cache to method: [yellow]{method_name}[/yellow]"
+                    )

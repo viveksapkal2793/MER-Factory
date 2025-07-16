@@ -142,7 +142,7 @@ class GemmaMultimodalModel:
             console.log(
                 f"[bold red]❌ Error during Hugging Face pipeline execution: {e}[/bold red]"
             )
-            return ""
+            raise
 
     def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text."""

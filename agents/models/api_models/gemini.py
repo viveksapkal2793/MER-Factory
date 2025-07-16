@@ -21,6 +21,7 @@ class GeminiModel:
         self.model = ChatGoogleGenerativeAI(
             model="gemini-2.0-flash-lite", google_api_key=api_key, temperature=0
         )
+        console.log(api_key)
         self.vision_model = self.model  # Gemini models are multimodal
         if self.verbose:
             console.log("Gemini models initialized.")
@@ -100,7 +101,7 @@ class GeminiModel:
             return await chain.ainvoke([message])
         except Exception as e:
             console.log(f"[bold red]❌ Error describing video: {e}[/bold red]")
-            return ""
+            raise
 
     async def synthesize_summary(self, prompt: str) -> str:
         """Synthesizes a final summary from context using Gemini."""
@@ -109,4 +110,4 @@ class GeminiModel:
             return await chain.ainvoke(prompt)
         except Exception as e:
             console.log(f"[bold red]❌ Error synthesizing summary: {e}[/bold red]")
-            return ""
+            raise

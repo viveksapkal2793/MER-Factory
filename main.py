@@ -6,6 +6,8 @@ import typer
 from pathlib import Path
 from rich.console import Console
 import asyncio
+import diskcache
+import functools
 
 # Set gRPC verbosity to ERROR before other imports
 os.environ["GRPC_VERBOSITY"] = "ERROR"
@@ -21,7 +23,6 @@ from utils.processing_manager import (
     run_main_processing,
     build_initial_state,
 )
-import functools
 
 # Initialize Typer app and Rich console
 app = typer.Typer(
@@ -38,68 +39,88 @@ def main_orchestrator(config: AppConfig):
         f"[bold magenta]MERR CLI - Mode: {config.processing_type.value} | Task: {config.task.value}[/bold magenta]"
     )
 
-    if error := config.get_model_choice_error():
-        console.print(f"[bold red]Error: {error}[/bold red]")
-        raise typer.Exit(1)
+    llm_cache = None
+    try:
+        if config.cache:
+            cache_dir = config.output_dir / ".llm_cache"
+            cache_dir.mkdir(exist_ok=True)
+            llm_cache = diskcache.Cache(str(cache_dir))
+            console.log(
+                f"LLM response caching is enabled. Cache dir: [cyan]{cache_dir}[/cyan]"
+            )
 
-    if config.processing_type not in [ProcessingType.AUDIO, ProcessingType.VIDEO]:
-        if error := config.get_openface_path_error():
-            console.print(f"[bold red]{error}[/bold red]")
+        if error := config.get_model_choice_error():
+            console.print(f"[bold red]Error: {error}[/bold red]")
             raise typer.Exit(1)
 
-    if config.label_file:
-        config.labels = load_labels_from_file(config.label_file, config.verbose)
+        if config.processing_type not in [ProcessingType.AUDIO, ProcessingType.VIDEO]:
+            if error := config.get_openface_path_error():
+                console.print(f"[bold red]{error}[/bold red]")
+                raise typer.Exit(1)
 
-    try:
-        models = LLMModels(
-            api_key=config.api_key,
-            ollama_text_model_name=config.ollama_text_model,
-            ollama_vision_model_name=config.ollama_vision_model,
-            chatgpt_model_name=config.chatgpt_model,
-            huggingface_model_id=config.huggingface_model_id,
-            verbose=config.verbose,
+        if config.label_file:
+            config.labels = load_labels_from_file(config.label_file, config.verbose)
+
+        try:
+            models = LLMModels(
+                api_key=config.api_key,
+                ollama_text_model_name=config.ollama_text_model,
+                ollama_vision_model_name=config.ollama_vision_model,
+                chatgpt_model_name=config.chatgpt_model,
+                huggingface_model_id=config.huggingface_model_id,
+                cache=llm_cache,
+                verbose=config.verbose,
+            )
+            prompts = PromptTemplates(prompts_file=config.prompts_file)
+        except (ValueError, ImportError, FileNotFoundError) as e:
+            console.print(f"[bold red]Failed to initialize components: {e}[/bold red]")
+            raise typer.Exit(1)
+
+        # --- File Discovery ---
+        files_to_process = find_files_to_process(config.input_path, config.verbose)
+        total_files = len(files_to_process)
+
+        # --- Phase 1: Feature Extraction ---
+        console.rule("[bold yellow]Phase 1: Feature Extraction[/bold yellow]")
+        asyncio.run(run_feature_extraction(files_to_process, config))
+        console.rule("[bold yellow]Phase 1 Complete[/bold yellow]")
+
+        # --- Phase 2: Main Processing ---
+        console.rule("[bold blue]Phase 2: Main Processing[/bold blue]")
+        is_sync_model = models.model_type == "huggingface"
+        graph_app = create_graph(use_sync_nodes=is_sync_model)
+
+        initial_state_builder = functools.partial(
+            build_initial_state,
+            config=config,
+            models=models,
+            prompts=prompts,
         )
-        prompts = PromptTemplates(prompts_file=config.prompts_file)
-    except (ValueError, ImportError, FileNotFoundError) as e:
-        console.print(f"[bold red]Failed to initialize components: {e}[/bold red]")
-        raise typer.Exit(1)
 
-    # --- File Discovery ---
-    files_to_process = find_files_to_process(config.input_path, config.verbose)
-    total_files = len(files_to_process)
-
-    # --- Phase 1: Feature Extraction ---
-    console.rule("[bold yellow]Phase 1: Feature Extraction[/bold yellow]")
-    asyncio.run(run_feature_extraction(files_to_process, config))
-    console.rule("[bold yellow]Phase 1 Complete[/bold yellow]")
-
-    # --- Phase 2: Main Processing ---
-    console.rule("[bold blue]Phase 2: Main Processing[/bold blue]")
-    is_sync_model = models.model_type == "huggingface"
-    graph_app = create_graph(use_sync_nodes=is_sync_model)
-
-    initial_state_builder = functools.partial(
-        build_initial_state,
-        config=config,
-        models=models,
-        prompts=prompts,
-    )
-
-    results = asyncio.run(
-        run_main_processing(
-            files_to_process, graph_app, initial_state_builder, config, is_sync_model
+        results = asyncio.run(
+            run_main_processing(
+                files_to_process,
+                graph_app,
+                initial_state_builder,
+                config,
+                is_sync_model,
+            )
         )
-    )
 
-    # --- Completion ---
-    console.rule("[bold green]Processing Complete[/bold green]")
-    console.print(f"Total files attempted: {total_files}")
-    console.print(f"✅ [green]Successful[/green]: {results['success']}")
-    if results.get("skipped", 0) > 0:
-        console.print(f"⏭️  [blue]Skipped (Cached)[/blue]: {results['skipped']}")
-    if results["failure"] > 0:
-        console.print(f"❌ [red]Failed[/red]: {results['failure']}")
-        console.print(f"Error logs saved in: [cyan]{config.error_logs_dir}[/cyan]")
+        # --- Completion ---
+        console.rule("[bold green]Processing Complete[/bold green]")
+        console.print(f"Total files attempted: {total_files}")
+        console.print(f"✅ [green]Successful[/green]: {results['success']}")
+        if results.get("skipped", 0) > 0:
+            console.print(f"⏭️  [blue]Skipped (Cached)[/blue]: {results['skipped']}")
+        if results["failure"] > 0:
+            console.print(f"❌ [red]Failed[/red]: {results['failure']}")
+            console.print(f"Error logs saved in: [cyan]{config.error_logs_dir}[/cyan]")
+
+    finally:
+        if llm_cache:
+            llm_cache.close()
+            console.log("LLM cache closed.")
 
 
 @app.command()
@@ -162,7 +183,7 @@ def process(
         False,
         "--cache",
         "-ca",
-        help="Reuse existing audio/video/AU results from previous pipeline runs.",
+        help="Reuse existing audio/video/AU results from previous pipeline runs & cache LLM calls.",
     ),
 ):
     """Processes media files for Multimodal Emotion Recognition and Reasoning (MERR)."""
