@@ -42,27 +42,11 @@ MER-Factory 是一个**基于 Python 的开源框架**，专为情感计算社�
 | **Image** | 静态图像情绪识别 | 基于图像的情绪分析 |
 | **MER** | 完整的多模态管道 | 完整的情感推理数据集 |
 
-## 快速开始
-
-```bash
-# 安装 MER-Factory
-git clone https://github.com/Lum1104/MER-Factory.git
-cd MER-Factory
-pip install -r requirements.txt
-
-# 配置环境
-cp .env.example .env
-# 编辑 .env 文件，填入您的 API 密钥和 OpenFace 路径
-
-# 运行完整的 MER 管道
-python main.py video.mp4 output/ --type MER --silent
-```
-
 ### 📖 输出示例
 
 查看 MER-Factory 生成的真实示例：
 - [Gemini 模型输出](https://github.com/Lum1104/MER-Factory/blob/main/examples/gemini_merr.json)
-- [LLaVA 模型输出](https://github.com/Lum1104/MER-Factory/blob/main/examples/llava-llama3:latest_llama3.2_merr_data.json)
+- [LLaVA 模型输出](https://github.com/Lum1104/MER-Factory/blob/main/examples/llava-llama3_llama3.2_merr_data.json)
 
 ## 架构概览
 

@@ -138,10 +138,10 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
 
 **工作流示例:**
 1.  **使用 Qwen2-Audio 运行音频分析：** 使用强大的 API 模型以获得最佳的转录和音调分析。
-    这会在输出子目录中生成 `video_audio_analysis.json`。
+    这会在输出子目录中生成 `{sample_id}_audio_analysis.json`。
 
 2.  **使用 Gemma 运行视频分析：** 使用另一个 SOTA 模型进行视频描述。
-    这会生成 `video_video_analysis.json`。
+    这会生成 `{sample_id}_video_analysis.json`。
 
 3.  **运行最终的 MER 综合：** 运行完整的 `MER` 流水线。`--cache` 标志将检测到前几个步骤中已存在的 JSON 文件，并跳过这些模态的分析，直接加载结果。它将只运行最后的 `synthesize_summary` 步骤，合并高质量、预先计算好的分析。
     ```bash

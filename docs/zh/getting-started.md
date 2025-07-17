@@ -36,7 +36,7 @@ lang: zh
   
   <div class="feature-card">
     <h3><i class="fab fa-windows"></i> Windows</h3>
-    <p>从 <a href="[https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)">ffmpeg.org</a> 下载</p>
+    <p>从 <a href="https://ffmpeg.org/download.html">ffmpeg.org</a> 下载</p>
   </div>
 </div>
 
@@ -56,6 +56,7 @@ git clone https://github.com/TadasBaltrusaitis/OpenFace.git
 cd OpenFace
 
 # 遵循特定平台的构建说明
+# Windows 平台下载好以后需要运行 download_models.ps1 来自动下载需要的模型
 # 参见: https://github.com/TadasBaltrusaitis/OpenFace/wiki
 ```
 

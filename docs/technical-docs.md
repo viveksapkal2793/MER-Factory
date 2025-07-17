@@ -138,10 +138,10 @@ The `--cache` flag enables a powerful workflow that allows you to use the best m
 
 **Example Workflow:**
 1.  **Run Audio Analysis with Qwen2-Audio:** Use a powerful API model for the best transcription and tonal analysis.
-    This generates `video_audio_analysis.json` in the output sub-directory.
+    This generates `{sample_id}_audio_analysis.json` in the output sub-directory.
 
 2.  **Run Video Analysis with Gemma:** Use another SOTA model for video description.
-    This generates `video_video_analysis.json`.
+    This generates `{sample_id}_video_analysis.json`.
 
 3.  **Run Final MER Synthesis:** Run the full `MER` pipeline. The `--cache` flag will detect the existing JSON files from the previous steps and skip the analysis for those modalities, loading the results directly. It will only run the final `synthesize_summary` step, merging the high-quality, pre-computed analyses.
     ```bash

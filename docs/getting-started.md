@@ -56,6 +56,7 @@ git clone https://github.com/TadasBaltrusaitis/OpenFace.git
 cd OpenFace
 
 # Follow platform-specific build instructions
+# For Windows install, make sure you run the download_models.ps1 to download the models.
 # See: https://github.com/TadasBaltrusaitis/OpenFace/wiki
 ```
 

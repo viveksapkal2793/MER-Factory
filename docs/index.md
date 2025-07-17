@@ -53,31 +53,11 @@ The `--task` argument allows you to specify the analysis goal.
 | **MERR** | `"MERR"` | (Default) Performs detailed analysis with MER. |
 | **Sentiment Analysis** | `"Sentiment Analysis"` | Performs sentiment-focused analysis (positive, negative, neutral). |
 
-
-## Quick Start
-
-```bash
-# Install MER-Factory
-git clone https://github.com/Lum1104/MER-Factory.git
-cd MER-Factory
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys and OpenFace path
-
-# Run full MER pipeline (default task: MERR)
-python main.py video.mp4 output/ --type MER --silent
-
-# Run with Sentiment Analysis task
-python main.py video.mp4 output/ --task "Sentiment Analysis"
-```
-
 ### 📖 Example Outputs
 
 Check out real examples of what MER-Factory produces:
 - [Gemini Model Output](https://github.com/Lum1104/MER-Factory/blob/main/examples/gemini_merr.json)
-- [LLaVA Model Output](https://github.com/Lum1104/MER-Factory/blob/main/examples/llava-llama3:latest_llama3.2_merr_data.json)
+- [LLaVA Model Output](https://github.com/Lum1104/MER-Factory/blob/main/examples/llava-llama3_llama3.2_merr_data.json)
 
 ## Architecture Overview
 
