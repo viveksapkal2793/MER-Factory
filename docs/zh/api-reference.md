@@ -268,7 +268,7 @@ MER-Factory 命令行界面的主入口点，使用 Typer 构建。
 
 ## 代理与图模块
 
-### `agents/state.py` - 流程状态
+### `mer_factory/state.py` - 流程状态
 
 该模块定义了在处理图中所有节点之间传递的共享状态对象。
 
@@ -283,7 +283,7 @@ MER-Factory 命令行界面的主入口点，使用 Typer 构建。
 * **仅图像流程结果:** `au_text_description`, `llm_au_description`。
 * **最终综合与错误处理:** `final_summary`, `error`。
 
-### `agents/graph.py` - 处理图
+### `mer_factory/graph.py` - 处理图
 
 该模块使用 `langgraph.StateGraph` 构建处理流程。它定义了所有的节点、边和条件路由逻辑。
 
@@ -304,7 +304,7 @@ MER-Factory 命令行界面的主入口点，使用 Typer 构建。
 * `route_after_audio_generation`: 在音频分析之后，此路由要么保存结果（对于 `audio` 流程），要么继续 `MER` 流程的下一步。
 * `route_after_video_generation`: 在视频分析之后，此路由要么保存结果（对于 `video` 流程），要么继续 `MER` 流程的下一步。
 
-### `agents/prompts.py` - 提示模板
+### `mer_factory/prompts.py` - 提示模板
 
 该模块集中了所有用于与 LLM 交互的提示模板。
 
@@ -338,7 +338,7 @@ MER-Factory 命令行界面的主入口点，使用 Typer 构建。
 * 如果 `has_label` 为 `True`，该提示会要求 LLM 扮演心理学家的角色，并根据证据建立一个基本原理来解释为什么基准标签是正确的。
 * 如果 `has_label` 为 `False`，该提示会要求 LLM 推断主体的请感状态，并根据线索叙述其情绪历程。
 
-### `agents/models/__init__.py` - LLM 工厂
+### `mer_factory/models/__init__.py` - LLM 工厂
 
 该模块提供了一个工厂类，用于根据提供的 CLI 参数初始化正确的 LLM。
 
@@ -360,7 +360,7 @@ MER-Factory 命令行界面的主入口点，使用 Typer 构建。
 * **引发:**
     * `ValueError`: 如果因为没有提供所需的参数（例如，模型名称和/或 API 密钥）而无法初始化模型。
 
-### `agents/nodes/async_nodes.py` & `agents/nodes/sync_nodes.py` - 异步与同步执行
+### `mer_factory/nodes/async_nodes.py` & `mer_factory/nodes/sync_nodes.py` - 异步与同步执行
 
 本节概述了异步和同步节点实现之间的关键区别。它们之间的选择由所选的 LLM 决定，因为某些模型（如 Hugging Face）需要同步执行。
 

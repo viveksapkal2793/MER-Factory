@@ -4,7 +4,7 @@ from pathlib import Path
 import asyncio
 
 
-from agents.prompts import PromptTemplates
+from mer_factory.prompts import PromptTemplates
 from tools.ffmpeg_adapter import FFMpegAdapter
 from ..models import LLMModels
 from tools.emotion_analyzer import EmotionAnalyzer

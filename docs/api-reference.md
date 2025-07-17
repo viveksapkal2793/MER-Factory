@@ -363,7 +363,7 @@ Asynchronously runs the necessary feature extraction tools (`FFmpeg` for audio, 
 
 ## Agent & Graph Modules
 
-### `agents/state.py` - Pipeline State
+### `mer_factory/state.py` - Pipeline State
 
 This module defines the shared state object that is passed between all nodes in the processing graph.
 
@@ -378,7 +378,7 @@ A `TypedDict` that represents the incrementally built state of the MERR pipeline
 * **Image-Only Pipeline Results:** `au_text_description`, `llm_au_description`.
 * **Final Synthesis & Error Handling:** `final_summary`, `error`.
 
-### `agents/graph.py` - Processing Graph
+### `mer_factory/graph.py` - Processing Graph
 
 This module constructs the processing pipeline using `langgraph.StateGraph`. It defines all the nodes, edges, and conditional routing logic.
 
@@ -399,7 +399,7 @@ A series of small functions determine the next step in the graph based on the cu
 * `route_after_audio_generation`: After audio analysis, this routes to either save the results (for the `audio` pipeline) or proceed to the next step in the `MER` pipeline.
 * `route_after_video_generation`: After video analysis, this routes to either save the results (for the `video` pipeline) or proceed to the next step in the `MER` pipeline.
 
-### `agents/prompts.py` - Prompt Templates
+### `mer_factory/prompts.py` - Prompt Templates
 
 This module centralizes all prompt templates used for interacting with the LLMs.
 
@@ -433,7 +433,7 @@ Returns a prompt for a final analysis that synthesizes all gathered multimodal c
 * If `has_label` is `True`, the prompt asks the LLM to act as a psychologist and build a rationale explaining why the ground truth label is correct based on the evidence.
 * If `has_label` is `False`, the prompt asks the LLM to infer the subject's emotional state and narrate their emotional journey based on the clues.
 
-### `agents/models/__init__.py` - LLM Factory
+### `mer_factory/models/__init__.py` - LLM Factory
 
 This module provides a factory class for initializing the correct LLM based on provided CLI arguments.
 
@@ -455,7 +455,7 @@ Initializes the model instance based on the provided arguments. It iterates thro
 * **Raises:**
     * `ValueError`: If no model can be initialized because the required arguments (e.g., model name and/or API key) are not provided.
 
-### `agents/nodes/async_nodes.py` & `agents/nodes/sync_nodes.py` - Asynchronous vs. Synchronous Execution
+### `mer_factory/nodes/async_nodes.py` & `mer_factory/nodes/sync_nodes.py` - Asynchronous vs. Synchronous Execution
 
 This section outlines the key differences between the asynchronous and synchronous node implementations. The choice between them is determined by the selected LLM, as some models (like Hugging Face) require synchronous execution.
 

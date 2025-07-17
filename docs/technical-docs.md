@@ -93,7 +93,7 @@ This is the scientific core of the emotion recognition capability, based on the 
 
 ### 3.3. LLM Integration
 
-#### 3.3.1. Model Abstraction (`agents/models/__init__.py`)
+#### 3.3.1. Model Abstraction (`mer_factory/models/__init__.py`)
 
 The `LLMModels` class uses a factory pattern to provide a unified interface for interacting with different LLM providers. It inspects the CLI arguments and initializes the appropriate client (`GeminiModel`, `ChatGptModel`, etc.). This abstraction is key to the framework's extensibility, as supporting a new LLM provider only requires adding a new model class and updating the factory logic.
 
@@ -149,6 +149,8 @@ The `--cache` flag enables a powerful workflow that allows you to use the best m
     ```
 This approach allows you to construct a dataset using the most capable model for each specific task without being locked into a single provider for the entire workflow.
 
+Furthermore, the tool creates a hidden .llm_cache directory in your output folder. This folder stores the details of individual API calls, including the model name, the exact prompt sent, and the model's response. If a subsequent run detects an identical request, it will retrieve the content directly from this cache. This avoids redundant API calls, saving significant time and reducing costs. 💰
+
 ---
 
 ## 5. Processing Pipelines (In-Graph Flow)
@@ -198,17 +200,17 @@ This is the most comprehensive pipeline.
 The framework is designed to be extensible.
 
 -   **Adding a New LLM:**
-    1.  Create a new model class in `agents/models/` and implements the required methods:
+    1.  Create a new model class in `mer_factory/models/` and implements the required methods:
         - `describe_facial_expression`
         - `describe_image`
         - `analyze_audio`
         - `describe_video`
         - `synthesize_summary`
-    2.  Add the logic to the factory in `agents/models/__init__.py` to instantiate your new class based on a new CLI argument.
+    2.  Add the logic to the factory in `mer_factory/models/__init__.py` to instantiate your new class based on a new CLI argument.
 
 -   **Adding a New Pipeline:**
     1.  Define a new `ProcessingType` enum in `utils/config.py`.
-    2.  Add a new entry point node for your pipeline in `agents/nodes/`.
+    2.  Add a new entry point node for your pipeline in `mer_factory/nodes/`.
     3.  Update the `route_by_processing_type` function in `graph.py` to route to your new node.
     4.  Add the necessary nodes and edges to the `StateGraph` in `graph.py` to define your pipeline's workflow, connecting it to existing nodes where possible (e.g., reusing `save_..._results` nodes).
 

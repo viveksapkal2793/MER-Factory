@@ -55,7 +55,7 @@ class AppConfig(BaseModel):
         description="The analysis task to perform.",
     )
     prompts_file: Path = Field(
-        Path("agents/prompts.json"), description="Path to the prompts JSON file."
+        Path("utils/prompts/prompts.json"), description="Path to the prompts JSON file."
     )
     error_logs_dir: Path
     label_file: Optional[FilePath] = None

@@ -13,9 +13,9 @@ import functools
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 
 # Import from local packages
-from agents.graph import create_graph
-from agents.models import LLMModels
-from agents.prompts import PromptTemplates
+from mer_factory.graph import create_graph
+from mer_factory.models import LLMModels
+from mer_factory.prompts import PromptTemplates
 from utils.config import AppConfig, ProcessingType, TaskType
 from utils.file_handler import find_files_to_process, load_labels_from_file
 from utils.processing_manager import (
@@ -26,7 +26,7 @@ from utils.processing_manager import (
 
 # Initialize Typer app and Rich console
 app = typer.Typer(
-    name="merr-cli",
+    name="mer-factory",
     help="A modular CLI tool to construct the MERR dataset from video and image files.",
     add_completion=False,
 )

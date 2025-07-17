@@ -109,7 +109,7 @@ graph TD;
 -   **完整 MER 处理流程**：端到端的多模态处理流程，识别情感峰值时刻，分析所有模态（视觉、音频、面部），并合成一个整体的情感推理总结。
 
 查看示例输出：
--   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
+-   [llava-llama3_llama3.2_merr_data.json](examples/llava-llama3_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
 ## 安装
@@ -286,7 +286,7 @@ python main.py video.mp4 output/ --type MER --silent
 **自定义模型集成**：
 如果您想使用最新的 Hugging Face 模型或 Ollama 不支持的功能：
 
-1. **选项 1 - 自行实现**：导航至 `agents/models/hf_models/__init__.py`，按照现有模式注册您的模型并实现所需功能。
+1. **选项 1 - 自行实现**：导航至 `mer_factory/models/hf_models/__init__.py`，按照现有模式注册您的模型并实现所需功能。
 
 2. **选项 2 - 请求支持**：在我们的仓库中提交问题，告诉我们您希望我们支持的模型，我们会考虑添加。
 
@@ -308,4 +308,3 @@ python main.py video.mp4 output/ --type MER --silent
   year = {2025}
 }
 ```
-

@@ -110,7 +110,7 @@ graph TD;
 -   **Full MER Pipeline**: An end-to-end multimodal pipeline that identifies peak emotional moments, analyzes all modalities (visual, audio, facial), and synthesizes a holistic emotional reasoning summary.
 
 Check out example outputs here:
--   [llava-llama3:latest_llama3.2_merr_data.json](examples/llava-llama3:latest_llama3.2_merr_data.json)
+-   [llava-llama3_llama3.2_merr_data.json](examples/llava-llama3_llama3.2_merr_data.json)
 -   [gemini_merr.json](examples/gemini_merr.json)
 
 ## Installation
@@ -287,7 +287,7 @@ python main.py video.mp4 output/ --type MER --silent
 **Custom Model Integration**:
 If you want to use the latest HF models or features that Ollama doesn't support:
 
-1. **Option 1 - Implement yourself**: Navigate to `agents/models/hf_models/__init__.py` to register your own model and implement the needed functions following our existing patterns.
+1. **Option 1 - Implement yourself**: Navigate to `mer_factory/models/hf_models/__init__.py` to register your own model and implement the needed functions following our existing patterns.
 
 2. **Option 2 - Request support**: Open an issue on our repository to let us know which model you'd like us to support, and we'll consider adding it.
 

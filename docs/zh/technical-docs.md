@@ -93,7 +93,7 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
 
 ### 3.3. LLM 集成
 
-#### 3.3.1. 模型抽象 (`agents/models/__init__.py`)
+#### 3.3.1. 模型抽象 (`mer_factory/models/__init__.py`)
 
 `LLMModels` 类使用工厂模式为与不同 LLM 提供商的交互提供统一接口。它会检查 CLI 参数并初始化相应的客户端（`GeminiModel`, `ChatGptModel` 等）。这种抽象是框架可扩展性的关键，因为支持新的 LLM 提供商只需要添加一个新的模型类并更新工厂逻辑。
 
@@ -149,6 +149,8 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
     ```
 这种方法允许您使用针对每项特定任务最强大的模型来构建数据集，而不会在整个工作流中被锁定在单一提供商上。
 
+此外，工具会在输出文件夹中创建一个隐藏的 `.llm_cache` 目录。该目录存储了每次 API 调用的详细信息，包括模型名称、发送的确切提示以及模型的响应。如果后续运行检测到相同的请求，它将直接从缓存中检索内容。这避免了重复的 API 调用，显著节省时间并降低成本。💰
+
 ---
 
 ## 5. 处理流水线 (图内流程)
@@ -198,18 +200,18 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
 该框架被设计为可扩展的。
 
 -   **添加新的 LLM:**
-    1.  在 `agents/models/` 中创建一个新的模型类，并实现所需的方法：
+    1.  在 `mer_factory/models/` 中创建一个新的模型类，并实现所需的方法：
         - `describe_facial_expression`
         - `describe_image`
         - `analyze_audio`
         - `describe_video`
         - `synthesize_summary`
        
-    2.  在 `agents/models/__init__.py` 的工厂中添加逻辑，以便根据新的 CLI 参数实例化您的新类。
+    2.  在 `mer_factory/models/__init__.py` 的工厂中添加逻辑，以便根据新的 CLI 参数实例化您的新类。
 
 -   **添加新的流水线:**
     1.  在 `utils/config.py` 中定义一个新的 `ProcessingType` 枚举。
-    2.  在 `agents/nodes/` 中为您的流水线添加一个新的入口节点。
+    2.  在 `mer_factory/nodes/` 中为您的流水线添加一个新的入口节点。
     3.  更新 `graph.py` 中的 `route_by_processing_type` 函数，以路由到您的新节点。
     4.  在 `graph.py` 的 `StateGraph` 中添加必要的节点和边，以定义您流水线的工作流程，并在可能的情况下将其连接到现有节点（例如，重用 `save_..._results` 节点）。
 

@@ -732,7 +732,7 @@
             function renderPromptUploadFallback() {
                 promptsContainer.innerHTML = `
                 <div class="text-center text-gray-400 p-8 bg-gray-800 rounded-lg">
-                    <p class="mb-4">Could not automatically load <strong>../agents/prompts.json</strong>.</p>
+                    <p class="mb-4">Could not automatically load <strong>../mer_factory/prompts.json</strong>.</p>
                     <p class="mb-4">This can happen when running the HTML file directly from your computer due to browser security policies (CORS).</p>
                     <label class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow transition-colors cursor-pointer">
                         Upload prompts.json
@@ -763,13 +763,13 @@
 
             async function loadInitialPrompts() {
                 try {
-                    const response = await fetch('../agents/prompts.json');
+                    const response = await fetch('../mer_factory/prompts.json');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const promptsFromFile = await response.json();
                     renderPrompts(promptsFromFile);
-                    showToast('Loaded prompts from ../agents/prompts.json', 'success');
+                    showToast('Loaded prompts from ../mer_factory/prompts.json', 'success');
                 } catch (error) {
                     console.error('Could not fetch prompts from file path:', error);
                     showToast('Could not load prompts. Please upload the file manually.', 'error');

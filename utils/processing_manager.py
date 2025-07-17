@@ -14,9 +14,9 @@ from rich.progress import (
     TaskID,
 )
 
-from agents.state import MERRState
-from agents.models import LLMModels
-from agents.prompts import PromptTemplates
+from mer_factory.state import MERRState
+from mer_factory.models import LLMModels
+from mer_factory.prompts import PromptTemplates
 from .config import (
     AppConfig,
     VIDEO_EXTENSIONS,
