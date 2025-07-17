@@ -13,6 +13,10 @@ authors:
     email: lin.yuxiang.contact@gmail.com
     affiliation: Georgia Institute of Technology
     orcid: 'https://orcid.org/0009-0004-7835-9352'
+  - given-names: Shunchao
+    family-names: Zheng
+    email: zsc01036@gmail.com
+    affiliation: Georgia Institute of Technology
 identifiers:
   - type: doi
     value: 10.5281/zenodo.15847351

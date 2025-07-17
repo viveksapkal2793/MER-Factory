@@ -298,7 +298,7 @@ python main.py video.mp4 output/ --type MER --silent
 
 ```bibtex
 @software{Lin_MER-Factory_2025,
-  author = {Lin, Yuxiang},
+  author = {Lin, Yuxiang and Zheng, Shunchao},
   doi = {10.5281/zenodo.15847351},
   license = {MIT},
   month = {7},
