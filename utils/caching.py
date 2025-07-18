@@ -7,6 +7,8 @@ from functools import wraps
 import diskcache
 from rich.console import Console
 import asyncio
+import pickle
+
 
 console = Console(stderr=True)
 
@@ -21,7 +23,7 @@ def get_file_hash(file_path: Path) -> str:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
     except FileNotFoundError:
-        return "file_not_found"
+        return f"file_not_found:{str(file_path)}"
 
 
 def create_cache_key(model_name: str, func_name: str, args, kwargs) -> tuple:
@@ -35,11 +37,14 @@ def create_cache_key(model_name: str, func_name: str, args, kwargs) -> tuple:
     for arg in args:
         if isinstance(arg, Path):
             key_parts.append(f"path_hash:{get_file_hash(arg)}")
-        elif isinstance(arg, (str, int, float, bool)):
+        elif isinstance(arg, (str, int, float, bool, type(None))):
             key_parts.append(arg)
         else:
-            # For other types, use their string representation as a fallback.
-            key_parts.append(str(arg))
+            try:
+                key_parts.append(pickle.dumps(arg, protocol=pickle.HIGHEST_PROTOCOL))
+            except (pickle.PicklingError, TypeError):
+                # If the argument cannot be pickled, convert it to string
+                key_parts.append(str(arg))
 
     # Process keyword arguments, sorted by key for consistency
     for key, value in sorted(kwargs.items()):

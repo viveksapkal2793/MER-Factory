@@ -30,10 +30,10 @@ MER-Factory 提供交互式工具来帮助您管理数据和配置处理流水�
 
 ## 访问仪表板
 
-*注意，其中预览视频/图片功能仅供展示，请 clone 到本地后双击打开 tools/tune-dashboard.html 使用*
+*注意，其中预览视频/图片功能仅供展示，请 clone 到本地后运行 `dashboard.py` 使用*
 
 <div class="tool-access">
-  <a href="tune-dashboard.html" class="btn btn-primary">
+  <a href="../tune-dashboard.html" class="btn btn-primary">
     🚀 打开调优仪表板
   </a>
 </div>

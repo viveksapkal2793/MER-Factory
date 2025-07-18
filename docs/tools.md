@@ -30,7 +30,7 @@ The **Tune Dashboard** is a web-based interface that provides two main functiona
 
 ## Access the Dashboard
 
-*Note: The preview functionality for videos/images is for demonstration purposes only. Please clone the repository locally and double-click `tools/tune-dashboard.html` to use.*
+*Note: The preview functionality for videos/images is for demonstration purposes only. Please clone the repository locally run `dashboard.py` to use.*
 
 <div class="tool-access">
   <a href="tune-dashboard.html" class="btn btn-primary">
