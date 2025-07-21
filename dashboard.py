@@ -60,7 +60,6 @@ def serve_dashboard():
 
 @app.route("/<path:filename>")
 def serve_static_from_tools(filename):
-    print(f"[DEBUG] Requested filename: '{filename}'")
 
     # Allow serving files from the root path and tools directory
     if filename.startswith("prompts/"):
@@ -264,7 +263,7 @@ def export_results():
         )
 
     # Build the export command
-    command = f'python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}"'
+    command = f'python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}" --export_csv'
 
     print(f"[DASHBOARD] Running export command: {command}")
 

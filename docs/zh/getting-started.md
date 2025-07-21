@@ -143,6 +143,20 @@ ls output/
 # your_video_peak_frame.jpg - 关键情绪时刻的帧
 ```
 
+### 导出数据集
+
+要导出数据集以进行整理或训练，请使用以下命令：
+
+#### 用于数据集整理
+```bash
+python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}" --export_csv
+```
+
+#### 用于训练
+```bash
+python export.py --input_csv path/to/csv_file.csv --export_format sharegpt
+```
+
 ## 模型选项
 
 MER-Factory 支持多种 AI 模型。根据您的需求进行选择：

@@ -136,11 +136,25 @@ python main.py test_input/ output/ --type MER --threshold 0.8 --silent
 
 ```bash
 # View generated files
-ls output/
+ls output/{sample_id}/
 # your_video_merr_data.json - Contains complete analysis
 # your_video_au_data.csv - Facial Action Units data
 # your_video.wav - Extracted audio
 # your_video_peak_frame.jpg - Key emotional moment
+```
+
+### Export the Dataset
+
+To export datasets for curation or training, use the following commands:
+
+#### For Dataset Curation
+```bash
+python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}" --export_csv
+```
+
+#### For Training
+```bash
+python export.py --input_csv path/to/csv_file.csv --export_format sharegpt
 ```
 
 ## Model Options

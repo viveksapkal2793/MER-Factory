@@ -231,6 +231,21 @@ python main.py video.mp4 output/
 python main.py video.mp4 output/ --task "Sentiment Analysis"
 ```
 
+
+### 导出数据集
+
+要导出数据集以进行整理或训练，请使用以下命令：
+
+#### 用于数据集整理
+```bash
+python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}" --export_csv
+```
+
+#### 用于训练
+```bash
+python export.py --input_csv path/to/csv_file.csv --export_format sharegpt
+```
+
 ## 模型支持
 
 该工具支持四种类型的模型：

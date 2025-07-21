@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             label.className = 'text-sm font-semibold text-gray-400 uppercase tracking-wider';
             label.textContent = header.replace(/_/g, ' ');
             headerDiv.appendChild(label);
-            if (['video_id', 'image_id', 'source_image'].includes(header)) {
+            if (header === 'source_path') {
                 const previewButton = createPreviewButton(rowData);
                 if (previewButton) headerDiv.appendChild(previewButton);
             }
@@ -169,11 +169,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createPreviewButton(rowData) {
         const fileType = rowData.file_type ? rowData.file_type.toLowerCase() : '';
-        let mediaPath = '', mediaType = '';
-        if (fileType === 'image' && rowData.source_image) { mediaPath = rowData.source_image; mediaType = 'image'; }
-        else if (['video', 'mer', 'au'].includes(fileType) && rowData.video_id) { mediaPath = rowData.video_id; mediaType = 'video'; }
-        else if (fileType === 'audio' && rowData.video_id) { mediaPath = rowData.video_id; mediaType = 'audio'; }
-        if (mediaPath) {
+        const mediaPath = rowData.source_path;
+        let mediaType = '';
+
+        if (fileType === 'image') {
+            mediaType = 'image';
+        } else if (['video', 'mer', 'au'].includes(fileType)) {
+            mediaType = 'video';
+        } else if (fileType === 'audio') {
+            mediaType = 'audio';
+        }
+
+        if (mediaPath && mediaType) {
             const button = document.createElement('button');
             button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>`;
             button.className = 'text-blue-400 hover:text-blue-300';
@@ -184,56 +191,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openPreviewModal(path, type) {
-
         modalContent.innerHTML = '';
         let mediaElement;
+        const fullSrcPath = path; // The path from the CSV is now the full path
 
-        // 1. Get the user-provided extension from the new input field
-        const customExtension = document.getElementById('media-extension-input').value.trim();
-
-        // 2. Determine the final filename
-        let finalFilename = path; // Default to the path from the CSV
-
-        // If the path from the CSV does NOT have an extension (no ".") AND the user typed one in...
-        if (!path.includes('.') && customExtension) {
-            // ...then build the full filename.
-            finalFilename = `${path}.${customExtension}`;
-        }
-        // If no extension is in the path AND the user input is empty, fallback to old logic for videos
-        else if (!path.includes('.') && type === 'video' && !customExtension) {
-            finalFilename = `${path}.mp4`;
-        }
-        // If no extension is in the path AND the user input is empty, fallback for audio
-        else if (!path.includes('.') && type === 'audio' && !customExtension) {
-            finalFilename = `${path}.wav`;
-        }
-
-
-        // 3. Get the prefix and construct the full source path
-        const prefix = document.getElementById('video-prefix-input').value.trim();
-
-        let fullSrcPath;
-        if (prefix) {
-            const cleanPrefix = prefix.replace(/\/$/, '');
-            const cleanFilename = finalFilename.replace(/^\//, '');
-            fullSrcPath = `${cleanPrefix}/${cleanFilename}`;
-        } else {
-            fullSrcPath = finalFilename;
-        }
-
-        // 4. Create the media element with the newly constructed path
         if (type === 'image') {
             mediaElement = document.createElement('img');
             mediaElement.className = 'max-w-full max-h-[80vh] mx-auto rounded';
             mediaElement.src = fullSrcPath;
-            mediaElement.onerror = () => console.error(`[DEBUG] Failed to load image: ${fullSrcPath}`);
+            mediaElement.onerror = () => {
+                mediaElement.alt = `Failed to load image: ${fullSrcPath}`;
+                showToast(`Failed to load image: ${fullSrcPath}`, 'error');
+            };
         } else if (type === 'video') {
             mediaElement = document.createElement('video');
             mediaElement.className = 'max-w-full max-h-[80vh] mx-auto rounded';
             mediaElement.controls = true;
             const sourceElement = document.createElement('source');
             sourceElement.src = fullSrcPath;
-            sourceElement.onerror = () => console.error(`[DEBUG] Failed to load video: ${fullSrcPath}`);
+            sourceElement.onerror = () => {
+                showToast(`Failed to load video: ${fullSrcPath}`, 'error');
+            };
             mediaElement.appendChild(sourceElement);
         } else if (type === 'audio') {
             mediaElement = document.createElement('audio');
@@ -241,7 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaElement.controls = true;
             const sourceElement = document.createElement('source');
             sourceElement.src = fullSrcPath;
-            sourceElement.onerror = () => console.error(`[DEBUG] Failed to load audio: ${fullSrcPath}`);
+            sourceElement.onerror = () => {
+                showToast(`Failed to load audio: ${fullSrcPath}`, 'error');
+            };
             mediaElement.appendChild(sourceElement);
         }
 
@@ -249,8 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalContent.appendChild(mediaElement);
             mediaModal.classList.remove('hidden');
         } else {
-            console.error(`[DEBUG] Could not create media element for type: ${type}`);
-            showToast('Could not create media element.', 'error');
+            showToast('Could not create media element for this file type.', 'error');
         }
     }
 

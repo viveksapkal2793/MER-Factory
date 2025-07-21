@@ -103,13 +103,16 @@ The `PromptTemplates` class centralizes all prompts. A key strategy used in the 
 
 ### 3.4. Data Export (`export.py`)
 
-The final output of a pipeline run is a detailed JSON file. For the `MER` pipeline, this JSON is richly structured, containing:
--   `video_id` and `ground_truth_label`.
--   `chronological_emotion_peaks`: The list of emotions detected over time.
--   `coarse_descriptions_at_peak`: A dictionary containing all the intermediate unimodal descriptions (audio, video, visual, AU).
--   `final_summary`: The final synthesized reasoning from the LLM.
+The final output of any pipeline run is a detailed JSON file specific to the analysis type (`MER`, `AU`, `image`, etc.). For the `MER` pipeline, for instance, this JSON is richly structured, containing:
 
-The `export.py` script provides a utility to flatten this structured data, parsing the relevant fields from each JSON file and consolidating them into a single, analysis-ready `.csv` file.
+* `source_path`: The full path to the source media file.
+* `chronological_emotion_peaks`: The list of emotions detected over time.
+* `coarse_descriptions_at_peak`: A dictionary containing all the intermediate unimodal descriptions (audio, video, visual, AU).
+* `final_summary`: The final synthesized reasoning from the LLM.
+
+The `export.py` script is a versatile utility for handling this output data. Its primary function is to parse a directory of these structured JSON files, flatten them by extracting the most relevant fields, and consolidate the results into a single, analysis-ready `.csv` file.
+
+Furthermore, the script includes features for preparing data for large language model (LLM) fine-tuning. It can take the processed data (either from the initial JSON files or from an existing CSV) and convert it into structured ShareGPT `JSON` or `JSONL` formats, can be used in training framework (e.g., LLaMA-Factory).
 
 ---
 

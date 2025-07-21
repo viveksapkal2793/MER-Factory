@@ -232,6 +232,20 @@ Performs sentiment-focused analysis (positive, negative, neutral):
 python main.py video.mp4 output/ --task "Sentiment Analysis"
 ```
 
+### Export the Dataset
+
+To export datasets for curation or training, use the following commands:
+
+#### For Dataset Curation
+```bash
+python export.py --output_folder "{output_folder}" --file_type {file_type.lower()} --export_path "{export_path}" --export_csv
+```
+
+#### For Training
+```bash
+python export.py --input_csv path/to/csv_file.csv --export_format sharegpt
+```
+
 ## Model Support
 
 The tool supports four types of models:

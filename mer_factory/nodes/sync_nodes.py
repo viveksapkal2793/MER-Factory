@@ -52,7 +52,7 @@ def save_au_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_au_analysis.json"
     )
     result_data = {
-        "video_id": state["video_id"],
+        "source_path": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
     }
     with open(output_path, "w") as f:
@@ -118,7 +118,7 @@ def save_audio_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
     results = {
-        "video_id": state["video_id"],
+        "source_path": str(state["video_path"]),
         "audio_analysis": results,
     }
     with open(output_path, "w") as f:
@@ -175,7 +175,7 @@ def save_video_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_video_analysis.json"
     )
     result_data = {
-        "video_id": state["video_id"],
+        "source_path": str(state["video_path"]),
         "llm_video_summary": state["video_description"],
     }
     with open(output_path, "w") as f:
@@ -390,8 +390,7 @@ def save_mer_results(state):
     }
 
     result_data = {
-        "video_id": state["video_id"],
-        "source_video": str(state["video_path"]),
+        "source_path": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
         "overall_peak_frame_info": state["peak_frame_info"],
         "coarse_descriptions_at_peak": descriptions,
@@ -509,8 +508,7 @@ def save_image_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_image_analysis.json"
     )
     result_data = {
-        "image_id": state["video_id"],
-        "source_image": str(state["video_path"]),
+        "source_path": str(state["video_path"]),
         "au_text_description": state["au_text_description"],
         "llm_au_description": state["llm_au_description"],
         "image_visual_description": state["image_visual_description"],

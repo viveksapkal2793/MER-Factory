@@ -31,5 +31,33 @@
             "with_label": "You are an expert psychologist. Your mission is to build a detailed, evidence-based RATIONALE explaining why the provided \"Ground Truth Label\" for the image is correct.\n\nHere are the clues you've gathered from the image:\n---\n{context}\n---\n\n**ANALYSIS STRUCTURE:**\n\n**Part 1: Evidentiary Analysis**\nExplain precisely how the facial expression and visual context support the ground truth label.\n\n**Part 2: Conclusive Rationale**\nProvide a concise, concluding paragraph that summarizes why the provided label is the most accurate description of the subject's state.\n\n**Constraint Checklist:**\n- Ground your entire analysis *only* in the provided clues.\n- Adhere strictly to the two-part structure.\n- Provide only the raw text of your analysis.",
             "without_label": "You are an expert psychologist. Your mission is to perform a deep analysis of the clues from the image to INFER the subject's emotional state.\n\nHere are the clues you've gathered from the image:\n---\n{context}\n---\n\n**ANALYSIS STRUCTURE:**\n\n**Part 1: Overall Assessment**\nProvide a summary that:\n- **Infers the subject's most likely overall emotional state(s).**\n- **Proposes the likely cause for this state based on the evidence from the facial expression and visual context.**\n\n**Constraint Checklist:**\n- Ground your entire analysis *only* in the provided clues.\n- Adhere strictly to the two-part structure.\n- Provide only the raw text of your analysis."
         }
+    },
+    "user_questions": {
+        "mer": [
+            "Based on the synthesis of multimodal data including video, audio, and facial expressions, what is the subject's comprehensive emotional state? Provide a detailed rationale with evidence from each modality.",
+            "Analyze the complete emotional narrative. Considering the visual context, vocal characteristics, and facial action units, what is the most accurate emotional assessment and why?",
+            "Evaluate all available clues—visual, auditory, and physiological. What is the final conclusion about the subject's emotion, and which pieces of evidence were most critical to this determination?",
+            "From the combined evidence of speech, tone, and visual expression, construct a detailed summary of the subject's emotional journey and final inferred state."
+        ],
+        "image": [
+            "Based on the subject's facial expression and the surrounding visual context in the image, what is their most likely emotional state? Justify your conclusion.",
+            "Analyze the facial action units and the scene in the image. What emotion is being conveyed and what specific visual evidence supports this inference?",
+            "Provide a detailed emotional assessment of the person in the image, considering both their expression and the environment. What leads you to this conclusion?"
+        ],
+        "au": [
+            "Based on the provided list of detected Facial Action Units (AUs) and their intensities, what is the subject's primary emotional expression? Explain which AUs are key indicators.",
+            "Analyze the technical AU data provided. Can you translate this into a descriptive summary of the person's facial expression and infer the likely underlying emotion?",
+            "From the given Facial Action Units, provide a detailed breakdown of the muscle movements and explain how they combine to create a recognizable emotional expression."
+        ],
+        "audio": [
+            "Based on the speech transcription and the acoustic features (tone, pitch, speed), what is the speaker's emotional state? Provide evidence from both the content and the sound.",
+            "Analyze the provided audio analysis, including the transcript and vocal characteristics. What is the overall sentiment, and what specific audio cues support this finding?",
+            "Listen to the audio characteristics described. What emotion is the speaker conveying, and how do the pitch, speed, and tone of their voice contribute to this perception?"
+        ],
+        "video": [
+            "After analyzing the events, actions, and scene in the video, what is the overall mood or emotional context of the recording? Describe the key visual elements that inform your assessment.",
+            "Based purely on the visual description of the video, what emotional atmosphere is depicted? Explain your reasoning using observations of the subject's actions and the environment.",
+            "Describe the situation shown in the video. What are the subjects doing and what is the likely emotional tone of the events unfolding on screen?"
+        ]
     }
 }

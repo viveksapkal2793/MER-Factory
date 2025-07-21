@@ -103,13 +103,16 @@ MER-Factory 是一个基于 Python 的开源框架，专为情感计算社区设
 
 ### 3.4. 数据导出 (`export.py`)
 
-流水线运行的最终输出是一个详细的 JSON 文件。对于 `MER` 流水线，这个 JSON 结构丰富，包含：
--   `video_id` 和 `ground_truth_label`。
--   `chronological_emotion_peaks`: 随时间检测到的情绪列表。
--   `coarse_descriptions_at_peak`: 一个包含所有中间单模态描述（音频、视频、视觉、AU）的字典。
--   `final_summary`: 来自 LLM 的最终综合推理。
+任何流水线运行的最终输出都是一个详细的 JSON 文件，具体内容取决于分析类型（`MER`、`AU`、`image` 等）。以 `MER` 流水线为例，该 JSON 文件结构丰富，包含以下内容：
 
-`export.py` 脚本提供了一个工具来扁平化这些结构化数据，从每个 JSON 文件中解析相关字段，并将它们整合成一个单一的、可供分析的 `.csv` 文件。
+* `source_path`: 源媒体文件的完整路径。
+* `chronological_emotion_peaks`: 按时间顺序排列的情感高峰列表。
+* `coarse_descriptions_at_peak`: 包含所有中间单模态描述（音频、视频、视觉、AU）的字典。
+* `final_summary`: 来自 LLM 的最终综合推理结果。
+
+`export.py` 脚本是一个多功能工具，用于处理这些输出数据。其主要功能是解析这些结构化 JSON 文件的目录，提取最相关的字段并将结果整合到一个单一的、适合分析的 `.csv` 文件中。
+
+此外，该脚本还包括为大型语言模型（LLM）微调准备数据的功能。它可以将处理后的数据（无论是来自初始 JSON 文件还是现有的 CSV 文件）转换为结构化的 ShareGPT `JSON` 或 `JSONL` 格式，可用于训练框架（例如，LLaMA-Factory）。
 
 ---
 
