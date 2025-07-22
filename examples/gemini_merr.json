@@ -1,31 +1,25 @@
 {
-    "video_id": "xxx",
-    "source_video": "video/xxx.mp4",
+    "source_path": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 4.44s: contempt (slight)",
-        "Peak at 5.40s: sad (slight), contempt (slight), angry (slight)",
-        "Peak at 6.36s: surprise (slight)",
-        "Peak at 7.04s: contempt (slight), sad (slight)"
+        "Peak at 2.88s: angry (slight), contempt (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 136,
-        "timestamp": 5.4,
+        "frame_number": 88,
+        "timestamp": 3.48,
         "top_aus_intensities": {
-            "AU02_r": 0.91,
-            "AU04_r": 2.82,
-            "AU05_r": 0.97,
-            "AU09_r": 0.93,
-            "AU10_r": 1.14,
-            "AU14_r": 2.33,
-            "AU23_r": 0.84
+            "AU06_r": 1.45,
+            "AU07_r": 2.78,
+            "AU10_r": 2.62,
+            "AU12_r": 1.74,
+            "AU14_r": 1.54,
+            "AU25_r": 2.69
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Outer brow raiser (intensity: 0.91), Brow lowerer (intensity: 2.82), Upper lid raiser (intensity: 0.97), Nose wrinkler (intensity: 0.93), Upper lip raiser (intensity: 1.14), Dimpler (intensity: 2.33), Lip tightener (intensity: 0.84)",
-        "visual_objective": "Two people are in the image. The person on the left appears to be a middle-aged male with a shaved head. He is wearing a dark shirt and a plaid jacket. The person on the right appears to be a female with long dark hair pulled back in a ponytail. She is wearing a light blue sweater. The background includes a window and a wall with a framed picture. Text is present at the bottom of the image.",
-        "audio_tone": "The speaker's tone is apologetic and slightly pleading. The pitch is moderate. The speed of speech is relatively slow. There are no significant background noises.",
-        "subtitles": "你在哪儿我还不知道？ 我是来向你道歉的，昨天晚上真的是太了。 对不起，好吗？",
-        "video_content": "A man and a woman are standing in front of a window. The man is bald and wearing a black shirt with a plaid shirt over it. The woman has her back to the camera and is wearing a light blue sweater. The man is speaking and appears to be apologizing. The woman is looking down. There is a picture on the wall."
+        "visual_expression": "Cheek raiser (intensity: 1.45), Lid tightener (intensity: 2.78), Upper lip raiser (intensity: 2.62), Lip corner puller (smile) (intensity: 1.74), Dimpler (intensity: 1.54), Lips part (intensity: 2.69)",
+        "visual_objective": "The main subject is a man. He appears to be in his 30s or 40s. He is male. He is wearing a white coat with a red collar. The background appears to be an office or medical setting, with a television screen and some shelves visible. He is smiling and talking. There is text in Chinese at the bottom of the image. A stethoscope is around his neck.",
+        "audio_analysis": "我哪知道啊？ 我也没有这方面的经验。\nSpeaker's tone: exasperated, slightly annoyed. Pitch: medium. Background noise: slight room ambience.",
+        "video_content": "Two men are in a room. One man is facing the camera and the other man is facing away from the camera. The man facing the camera is wearing a white shirt with a red stethoscope around his neck. He is speaking and smiling. The other man is wearing a white shirt. The room has a television and a cabinet. The text on the screen is in Chinese."
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight expression of contempt at 4.44s. This initial display of contempt, without further context, is difficult to interpret. At 5.40s, the emotional landscape becomes more complex. The subject experiences a peak of sadness, contempt, and anger, all at a slight intensity. This is the overall peak of emotional intensity. The facial expression at this moment is particularly revealing. The outer brow raiser, brow lowerer, upper lid raiser, nose wrinkler, upper lip raiser, dimpler, and lip tightener all contribute to a complex expression. The brow lowerer and nose wrinkler suggest anger or frustration, while the upper lip raiser and dimpler could indicate contempt or even a suppressed smile. The combination of these facial features, coupled with the sadness, suggests a state of internal conflict, possibly stemming from a situation that evokes multiple negative emotions. At 6.36s, a slight surprise is registered. This could be a reaction to something said or done by the other person in the scene. Finally, at 7.04s, the subject again displays slight contempt and sadness. This suggests a continuation of the negative emotional state, possibly a lingering resentment or disappointment. The audio tone, which is apologetic and pleading, and the subtitles, which include an apology, suggest that the man is the speaker and is trying to make amends. The woman's posture, with her back to the camera and looking down, suggests she is either listening to the apology or is feeling shame or sadness.\n\n**Part 2: Overall Assessment**\n\nThe subject's most likely overall emotional state is a combination of sadness, anger, and contempt, possibly tinged with a degree of surprise. The likely cause for this emotional state is a conflict or disagreement, as suggested by the man's apology in the subtitles (\"我是来向你道歉的，昨天晚上真的是太了。 对不起，好吗？\"). The man's apology, coupled with the woman's posture and the negative emotions displayed, suggests that the woman is the recipient of the apology and is experiencing a range of negative emotions related to the event being apologized for. The presence of contempt suggests a lingering resentment or a feeling of being wronged."
+    "final_summary": "Let's begin by dissecting the facial expressions. The initial peak at 2.88 seconds reveals a fleeting hint of anger and contempt. This suggests a negative emotional response, albeit a subtle one. The subsequent facial expression analysis at 3.48 seconds provides more detail. The cheek raiser, though present, is relatively weak, suggesting a less intense experience of joy or amusement. The lid tightener, with a higher intensity, indicates a more significant emotional response, often associated with both positive and negative emotions, such as intense focus, fear, or even suppressed anger. The upper lip raiser, also with a high intensity, is a key indicator of contempt or disgust, especially when combined with other negative cues. The lip corner puller, a smile, is present, but its intensity is moderate, suggesting a less genuine or perhaps a masked expression of happiness. The dimpler, also present, supports the smile, but again, the intensity is not overwhelming. The lips parting, with a high intensity, can indicate surprise, excitement, or even stress.\n\nNow, let's consider the audio clues. The speaker's tone is described as exasperated and slightly annoyed. The phrase \"我哪知道啊？ 我也没有这方面的经验\" (\"How would I know? I don't have experience in this area either\") further supports this. The speaker is expressing a lack of knowledge and perhaps a degree of frustration at being asked a question he cannot answer. The medium pitch suggests a controlled emotional state, not one of extreme excitement or distress.\n\nThe visual context provides additional information. The man is in a medical setting, wearing a white coat and a stethoscope. This suggests he is a medical professional. The presence of a television screen and shelves indicates an office environment. The fact that he is smiling while speaking is somewhat incongruent with the other clues. The smile could be a social mask, a way of appearing friendly despite feeling otherwise. The Chinese text at the bottom of the image is irrelevant to the emotional analysis.\n\nThe video content overview reinforces the setting and the presence of two men. The man facing the camera is the subject of our analysis.\n\nThe apparent contradiction lies in the smile versus the hints of anger, contempt, and exasperation. The smile, given the context and the other facial cues, is likely a social smile, a way of maintaining a professional demeanor. The lid tightener and upper lip raiser, combined with the exasperated tone, suggest that the man is experiencing a negative emotion, possibly frustration or annoyance, which he is attempting to conceal or downplay. The lack of experience mentioned in the audio further supports the idea that he is uncomfortable with the topic or question.\n\nIn conclusion, the core emotional state is frustration, and the most likely cause is being asked a question he cannot answer, likely related to his lack of experience in the specific area."
 }

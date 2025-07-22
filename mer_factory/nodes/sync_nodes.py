@@ -54,6 +54,7 @@ def save_au_results(state):
     result_data = {
         "source_path": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
+        "overall_peak_au_description": state.get("peak_frame_au_description"),
     }
     with open(output_path, "w") as f:
         json.dump(result_data, f, indent=4)
@@ -250,18 +251,43 @@ def filter_by_emotion(state):
     return {"detected_emotions": summary_list}
 
 
-def find_peak_frame(state):
-    """Synchronous version of find_peak_frame."""
+def find_overall_peak_au(state):
+    """Finds the single most expressive frame, its emotion, and describes its AUs."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Finding overall peak frame for representative image...")
+        console.log("Finding overall peak frame AUs...")
     au_data_path = Path(state["au_data_path"])
 
     try:
         analyzer = FacialAnalyzer(au_data_path)
+        # This dictionary contains timestamp, frame, and top_aus_intensities
         peak_frame_info = analyzer.get_overall_peak_frame_info()
+        peak_aus = peak_frame_info["top_aus_intensities"]
+        au_description = EmotionAnalyzer.extract_au_description(peak_aus)
+        if "Neutral expression" in au_description:
+            au_description = "Neutral expression at the overall peak frame."
+
     except (FileNotFoundError, ValueError) as e:
-        return {"error": f"Failed to find peak frame: {e}"}
+        return {"error": f"Failed to find peak frame AU data: {e}"}
+
+    if verbose:
+        console.log(f"Overall Peak AU Description: [yellow]{au_description}[/yellow]")
+
+    return {
+        "peak_frame_info": peak_frame_info,
+        "peak_frame_au_description": au_description,
+    }
+
+
+def extract_peak_image(state):
+    """Extracts the peak emotional frame from the video for the MER pipeline."""
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Extracting peak frame image...")
+
+    peak_frame_info = state.get("peak_frame_info")
+    if not peak_frame_info:
+        return {"error": "Peak frame information not found in state."}
 
     peak_timestamp = peak_frame_info["timestamp"]
     video_path = Path(state["video_path"])
@@ -276,9 +302,9 @@ def find_peak_frame(state):
 
     if verbose:
         console.log(
-            f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail."
+            f"Extracted peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] to [green]{peak_frame_path}[/green]."
         )
-    return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
+    return {"peak_frame_path": peak_frame_path}
 
 
 def generate_peak_frame_visual_description(state):
@@ -297,22 +323,6 @@ def generate_peak_frame_visual_description(state):
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
     return {"image_visual_description": visual_obj_desc}
-
-
-def generate_peak_frame_au_description(state):
-    """Generates an AU-based description for the peak frame."""
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Generating AU description for peak frame...")
-    peak_aus = state["peak_frame_info"]["top_aus_intensities"]
-
-    visual_expr_desc = EmotionAnalyzer.extract_au_description(peak_aus)
-    if "Neutral expression" in visual_expr_desc:
-        visual_expr_desc = "Neutral expression at the overall peak frame."
-
-    if verbose:
-        console.log(f"Peak Frame AU Description: [yellow]{visual_expr_desc}[/yellow]")
-    return {"peak_frame_au_description": visual_expr_desc}
 
 
 def synthesize_summary(state):
@@ -334,7 +344,9 @@ def synthesize_summary(state):
 
     # Chronological emotions
     detected_emotions = state.get("detected_emotions")
-    clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
+    clues.append(
+        f"- Chronological Emotion Peaks by Facial Action Unit: {'; '.join(detected_emotions)}"
+    )
 
     # Peak frame facial expression
     peak_frame_au_desc = state.get("peak_frame_au_description")

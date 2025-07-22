@@ -1,31 +1,25 @@
 {
-    "video_id": "xxx",
-    "source_video": "video/xxx.mp4",
+    "source_path": "video/xxx.mp4",
     "chronological_emotion_peaks": [
-        "Peak at 4.44s: contempt (slight)",
-        "Peak at 5.40s: sad (slight), contempt (slight), angry (slight)",
-        "Peak at 6.36s: surprise (slight)",
-        "Peak at 7.04s: contempt (slight), sad (slight)"
+        "Peak at 2.88s: angry (slight), contempt (slight)"
     ],
     "overall_peak_frame_info": {
-        "frame_number": 136,
-        "timestamp": 5.4,
+        "frame_number": 88,
+        "timestamp": 3.48,
         "top_aus_intensities": {
-            "AU02_r": 0.91,
-            "AU04_r": 2.82,
-            "AU05_r": 0.97,
-            "AU09_r": 0.93,
-            "AU10_r": 1.14,
-            "AU14_r": 2.33,
-            "AU23_r": 0.84
+            "AU06_r": 1.45,
+            "AU07_r": 2.78,
+            "AU10_r": 2.62,
+            "AU12_r": 1.74,
+            "AU14_r": 1.54,
+            "AU25_r": 2.69
         }
     },
     "coarse_descriptions_at_peak": {
-        "visual_expression": "Outer brow raiser (intensity: 0.91), Brow lowerer (intensity: 2.82), Upper lid raiser (intensity: 0.97), Nose wrinkler (intensity: 0.93), Upper lip raiser (intensity: 1.14), Dimpler (intensity: 2.33), Lip tightener (intensity: 0.84)",
-        "visual_objective": "The image captures a moment between two individuals in what appears to be an office setting. The person on the left is bald and dressed in a black shirt, while the person on the right has dark hair and is wearing a blue sweater. They are standing in front of a window that offers a view of a cityscape. The text \"你好\" is visible in the image, which translates to \"Hello\" in English. This suggests that the photo might have been taken during a greeting or introduction.",
-        "audio_tone": "",
-        "subtitles": "",
+        "visual_expression": "Cheek raiser (intensity: 1.45), Lid tightener (intensity: 2.78), Upper lip raiser (intensity: 2.62), Lip corner puller (smile) (intensity: 1.74), Dimpler (intensity: 1.54), Lips part (intensity: 2.69)",
+        "visual_objective": "The image captures a moment in a hospital setting. At the center of the frame is a young man, dressed in a white lab coat, his face lit up with laughter. He stands against a backdrop of a blue wall adorned with medical equipment and monitors.\n\nTo his left, partially visible, is another individual. This person is clad in a black shirt and appears to be looking at the young man in the lab coat. The precise positioning of these individuals suggests an interaction or conversation taking place.\n\nThe image does not contain any discernible text. The overall scene paints a picture of a light-hearted moment in what might typically be a serious environment, possibly indicating camaraderie or shared humor among the hospital staff.",
+        "audio_analysis": "The audio transcript is: '我哪知道啊我也没有这方便的经验'",
         "video_content": ""
     },
-    "final_summary": "**Part 1: Emotional Narrative**\n\nThe subject's emotional journey begins with a slight peak in contempt at 4.44s, which may indicate some initial frustration or annoyance. However, this emotion quickly shifts to a slight feeling of sadness and anger at 5.40s, suggesting that the subject is experiencing some form of disappointment or frustration.\n\nAt 6.36s, the subject experiences a brief moment of surprise, which could be related to an unexpected development in their situation. This surprise is followed by another peak in contempt at 7.04s, indicating that the subject may still be feeling frustrated or annoyed.\n\nThroughout this emotional journey, there are consistencies and contradictions between modalities. For example, the facial expression peaks at 5.40s show a mix of emotions, including an outer brow raiser (intensity: 0.91), brow lowerer (intensity: 2.82), upper lid raiser (intensity: 0.97), nose wrinkler (intensity: 0.93), and lip tightener (intensity: 0.84). These facial expressions suggest that the subject is feeling a mix of emotions, including frustration, disappointment, and possibly even anger.\n\n**Part 2: Overall Assessment**\n\nThe subject's overall emotional state appears to be one of \"Joyful Excitement\" at the peak moment in the video recording (5.40s). This inference is grounded in the subtitles, which explicitly state \"I got the job!\" and the audio tone, which shows a noticeable rise in vocal pitch.\n\nThe likely cause for this emotional state is receiving a long-awaited job offer, as suggested by the subtitles. The visual context of the image also supports this inference, with the subject standing in front of a window that offers a view of a cityscape, suggesting a sense of possibility and new beginnings."
+    "final_summary": "The facial action unit peak at 2.88s indicates a brief, slight display of anger and contempt, which may seem contradictory but can be explained by the context of the interaction. The presence of these emotions suggests that the young man in the lab coat is likely responding to something said or done by the individual in the black shirt.\n\nThe facial expression clues at overall peak 3.48s reveal a complex emotional state. The cheek raiser (intensity: 1.45) and lip corner puller (smile) (intensity: 1.74) suggest amusement or playfulness, while the lid tightener (intensity: 2.78) and upper lip raiser (intensity: 2.62) indicate a sense of tension or unease. The dimpler (intensity: 1.54) and lips part (intensity: 2.69) suggest a mix of emotions, possibly indicating that the young man is trying to convey a message while also being cautious.\n\nThe visual context provides further insight into the emotional state. The hospital setting and the presence of medical equipment and monitors create an atmosphere of seriousness, which is contrasted by the light-hearted moment captured in the image. This juxtaposition suggests that the interaction between the two individuals is likely a rare moment of levity in a typically serious environment.\n\nThe audio transcript '我哪知道啊我也没有这方便的经验' (I didn't know, I also don't have this convenient experience) adds to the interpretation. The use of the phrase '方便的经验' (convenient experience) implies that the individual in the black shirt is trying to convey a sense of expertise or familiarity with something, which may be perceived as boastful or arrogant by the young man in the lab coat.\n\nTaking all these clues into account, it appears that the young man in the lab coat is responding to a comment made by the individual in the black shirt, possibly with a mix of amusement and annoyance. The facial expressions suggest that he is trying to convey a sense of humor or playfulness while also being slightly irritated. The context of the hospital setting and the juxtaposition of light-heartedness with seriousness create an atmosphere of camaraderie among the staff.\n\nIn conclusion, the core emotional state is likely one of mild irritation or annoyance, possibly accompanied by amusement or playfulness, and the most likely cause is that the individual in the black shirt made a boastful comment about their experience."
 }

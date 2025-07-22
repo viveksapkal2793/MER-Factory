@@ -50,6 +50,7 @@ async def save_au_results(state):
     result_data = {
         "source_path": str(state["video_path"]),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
+        "overall_peak_au_description": state.get("peak_frame_au_description"),
     }
 
     def _save():
@@ -237,15 +238,16 @@ async def filter_by_emotion(state):
     au_data_path = Path(state["au_data_path"])
 
     try:
-        # Run blocking FacialAnalyzer instantiation in a separate thread
-        analyzer = await asyncio.to_thread(FacialAnalyzer, au_data_path)
+        # Run blocking FacialAnalyzer methods in a separate thread
+        def _analyze():
+            analyzer = FacialAnalyzer(au_data_path)
+            return analyzer.get_chronological_emotion_summary(
+                peak_height=state.get("threshold", 0.8),
+                peak_distance=state.get("peak_distance_frames", 20),
+                emotion_threshold=state.get("threshold", 0.8),
+            )
 
-        # These methods are CPU-bound and don't need `to_thread` as they operate on in-memory data
-        summary_list, is_expressive = analyzer.get_chronological_emotion_summary(
-            peak_height=state.get("threshold", 0.8),
-            peak_distance=state.get("peak_distance_frames", 20),
-            emotion_threshold=state.get("threshold", 0.8),
-        )
+        summary_list, is_expressive = await asyncio.to_thread(_analyze)
     except (FileNotFoundError, ValueError) as e:
         return {"error": f"Failed to analyze facial data: {e}"}
 
@@ -264,19 +266,47 @@ async def filter_by_emotion(state):
     return {"detected_emotions": summary_list}
 
 
-async def find_peak_frame(state):
+async def find_overall_peak_au(state):
+    """Finds the single most expressive frame, its emotion, and describes its AUs."""
     verbose = state.get("verbose", True)
     if verbose:
-        console.log("Finding overall peak frame for representative image...")
+        console.log("Finding overall peak frame AUs...")
     au_data_path = Path(state["au_data_path"])
 
     try:
-        # Run blocking FacialAnalyzer instantiation in a separate thread
-        analyzer = await asyncio.to_thread(FacialAnalyzer, au_data_path)
+        # Run blocking facial analysis in a separate thread
+        def _analyze():
+            analyzer = FacialAnalyzer(au_data_path)
+            peak_frame_info = analyzer.get_overall_peak_frame_info()
+            peak_aus = peak_frame_info["top_aus_intensities"]
+            au_description = EmotionAnalyzer.extract_au_description(peak_aus)
+            if "Neutral expression" in au_description:
+                au_description = "Neutral expression at the overall peak frame."
+            return peak_frame_info, au_description
 
-        peak_frame_info = analyzer.get_overall_peak_frame_info()
+        peak_frame_info, au_description = await asyncio.to_thread(_analyze)
+
     except (FileNotFoundError, ValueError) as e:
-        return {"error": f"Failed to find peak frame: {e}"}
+        return {"error": f"Failed to find peak frame AU data: {e}"}
+
+    if verbose:
+        console.log(f"Overall Peak AU Description: [yellow]{au_description}[/yellow]")
+
+    return {
+        "peak_frame_info": peak_frame_info,
+        "peak_frame_au_description": au_description,
+    }
+
+
+async def extract_peak_image(state):
+    """Extracts the peak emotional frame from the video for the MER pipeline."""
+    verbose = state.get("verbose", True)
+    if verbose:
+        console.log("Extracting peak frame image...")
+
+    peak_frame_info = state.get("peak_frame_info")
+    if not peak_frame_info:
+        return {"error": "Peak frame information not found in state."}
 
     peak_timestamp = peak_frame_info["timestamp"]
     video_path = Path(state["video_path"])
@@ -291,9 +321,9 @@ async def find_peak_frame(state):
 
     if verbose:
         console.log(
-            f"Identified overall peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] for thumbnail."
+            f"Extracted peak frame at [yellow]{peak_timestamp:.2f}s[/yellow] to [green]{peak_frame_path}[/green]."
         )
-    return {"peak_frame_info": peak_frame_info, "peak_frame_path": peak_frame_path}
+    return {"peak_frame_path": peak_frame_path}
 
 
 async def generate_peak_frame_visual_description(state):
@@ -312,25 +342,6 @@ async def generate_peak_frame_visual_description(state):
     if verbose:
         console.log(f"Peak Frame Visual Description: [cyan]{visual_obj_desc}[/cyan]")
     return {"image_visual_description": visual_obj_desc}
-
-
-async def generate_peak_frame_au_description(state):
-    """Generates an AU-based description for the peak frame."""
-    # NOTE: Here we pass the original AU other than using LLM to convert it to text.
-    # This is because the MER pipeline has other modalities can provide context,
-    # we give LLM the raw AU data to avoid any potential misinterpretation.
-    verbose = state.get("verbose", True)
-    if verbose:
-        console.log("Generating AU description for peak frame...")
-    peak_aus = state["peak_frame_info"]["top_aus_intensities"]
-
-    visual_expr_desc = EmotionAnalyzer.extract_au_description(peak_aus)
-    if "Neutral expression" in visual_expr_desc:
-        visual_expr_desc = "Neutral expression at the overall peak frame."
-
-    if verbose:
-        console.log(f"Peak Frame AU Description: [yellow]{visual_expr_desc}[/yellow]")
-    return {"peak_frame_au_description": visual_expr_desc}
 
 
 async def synthesize_summary(state):
@@ -352,7 +363,9 @@ async def synthesize_summary(state):
 
     # Chronological emotions
     detected_emotions = state.get("detected_emotions")
-    clues.append(f"- Chronological Emotion Peaks: {'; '.join(detected_emotions)}")
+    clues.append(
+        f"- Chronological Emotion Peaks by Facial Action Unit: {'; '.join(detected_emotions)}"
+    )
 
     # Peak frame facial expression
     peak_frame_au_desc = state.get("peak_frame_au_description")

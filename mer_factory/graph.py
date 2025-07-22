@@ -28,14 +28,24 @@ def route_by_processing_type(state: MERRState) -> str:
 
 
 def route_after_emotion_filter(state: MERRState) -> str:
-    """Routes flow after emotion filtering based on the pipeline."""
+    """Routes flow after emotion filtering. Both AU and MER find peak info."""
+    if state.get("error"):
+        return "handle_error"
+    proc_type = state["processing_type"]
+    if proc_type in ["AU", "MER"]:
+        return "find_overall_peak_au"
+    return "handle_error"
+
+
+def route_after_peak_au(state: MERRState) -> str:
+    """Routes based on pipeline after finding peak AUs."""
     if state.get("error"):
         return "handle_error"
     proc_type = state["processing_type"]
     if proc_type == "AU":
         return "save_au_results"
     elif proc_type == "MER":
-        return "find_peak_frame"
+        return "extract_peak_image"
     return "handle_error"
 
 
@@ -79,32 +89,36 @@ def create_graph(use_sync_nodes: bool = False):
 
     workflow = StateGraph(MERRState)
 
-    # Add all nodes from the selected module
+    # --- Node Definitions ---
     workflow.add_node("setup_paths", nodes.setup_paths)
     workflow.add_node("handle_error", nodes.handle_error)
-    # AU Pipeline
+
+    # Shared nodes for AU and MER pipelines
     workflow.add_node("run_au_extraction", nodes.run_au_extraction)
+    workflow.add_node("filter_by_emotion", nodes.filter_by_emotion)
+    workflow.add_node("find_overall_peak_au", nodes.find_overall_peak_au)
+
+    # AU Pipeline
     workflow.add_node("save_au_results", nodes.save_au_results)
+
     # Audio Pipeline
     workflow.add_node("generate_audio_description", nodes.generate_audio_description)
     workflow.add_node("save_audio_results", nodes.save_audio_results)
+
     # Video Pipeline
     workflow.add_node("generate_video_description", nodes.generate_video_description)
     workflow.add_node("save_video_results", nodes.save_video_results)
+
     # MER Pipeline
     workflow.add_node("extract_full_features", nodes.extract_full_features)
-    workflow.add_node("filter_by_emotion", nodes.filter_by_emotion)
-    workflow.add_node("find_peak_frame", nodes.find_peak_frame)
+    workflow.add_node("extract_peak_image", nodes.extract_peak_image)
     workflow.add_node(
         "generate_peak_frame_visual_description",
         nodes.generate_peak_frame_visual_description,
     )
-    workflow.add_node(
-        "generate_peak_frame_au_description",
-        nodes.generate_peak_frame_au_description,
-    )
     workflow.add_node("synthesize_summary", nodes.synthesize_summary)
     workflow.add_node("save_mer_results", nodes.save_mer_results)
+
     # Image Pipeline
     workflow.add_node("run_image_analysis", nodes.run_image_analysis)
     workflow.add_node("synthesize_image_summary", nodes.synthesize_image_summary)
@@ -132,13 +146,23 @@ def create_graph(use_sync_nodes: bool = False):
     workflow.add_edge("run_au_extraction", "filter_by_emotion")
     workflow.add_edge("extract_full_features", "filter_by_emotion")
 
-    # After emotion filtering, route based on the original pipeline choice.
+    # After emotion filtering, both pipelines find the overall peak AUs.
     workflow.add_conditional_edges(
         "filter_by_emotion",
         route_after_emotion_filter,
         {
+            "find_overall_peak_au": "find_overall_peak_au",
+            "handle_error": "handle_error",
+        },
+    )
+
+    # After finding peak AUs, route to save (AU) or more processing (MER).
+    workflow.add_conditional_edges(
+        "find_overall_peak_au",
+        route_after_peak_au,
+        {
             "save_au_results": "save_au_results",
-            "find_peak_frame": "find_peak_frame",
+            "extract_peak_image": "extract_peak_image",
             "handle_error": "handle_error",
         },
     )
@@ -166,11 +190,8 @@ def create_graph(use_sync_nodes: bool = False):
     )
 
     # 3. Define MER pipeline sequence
-    workflow.add_edge("find_peak_frame", "generate_audio_description")
-    workflow.add_edge(
-        "generate_peak_frame_visual_description", "generate_peak_frame_au_description"
-    )
-    workflow.add_edge("generate_peak_frame_au_description", "synthesize_summary")
+    workflow.add_edge("extract_peak_image", "generate_audio_description")
+    workflow.add_edge("generate_peak_frame_visual_description", "synthesize_summary")
     workflow.add_edge("synthesize_summary", "save_mer_results")
 
     # 4. Define Image pipeline sequence
