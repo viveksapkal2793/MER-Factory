@@ -17,8 +17,12 @@ lang: en
     <img src="https://zenodo.org/badge/1007639998.svg" alt="DOI">
   </div>
 
-  <img src="assets/logo.png" alt="MER-Factory Logo" class="hero-image">
+  <img src="assets/logo.svg" alt="MER-Factory Logo" class="hero-image">
 </div>
+
+## 🚀 Project Roadmap
+
+MER-Factory is under active development with new features being added regularly - check our [roadmap](https://github.com/Lum1104/MER-Factory/wiki) and welcome contributions!
 
 ## Quick Overview
 
