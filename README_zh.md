@@ -22,6 +22,10 @@
   </a>
 </p>
 
+## 🚀 项目路线图
+
+MER-Factory 正在积极开发中，新功能会定期添加 - 查看我们的[路线图](https://github.com/Lum1104/MER-Factory/wiki)，欢迎贡献！
+
 ## 目录
 
 - [Pipeline 结构](#pipeline-结构)

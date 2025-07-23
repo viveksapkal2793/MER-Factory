@@ -21,6 +21,10 @@
   </a>
 </p>
 
+## 🚀 Project Roadmap
+
+MER-Factory is under active development with new features being added regularly - check our [roadmap](https://github.com/Lum1104/MER-Factory/wiki) and welcome contributions!
+
 ## Table of Contents
 
 - [Pipeline Structure](#pipeline-structure)
