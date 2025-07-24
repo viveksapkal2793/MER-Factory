@@ -313,7 +313,9 @@ python main.py video.mp4 output/ --type MER --silent
 
 ## 引用
 
-如果您在研究或项目中发现 MER-Factory 很有用，请考虑引用我们：
+如果您觉得 MER-Factory 对您的研究或项目有帮助，请考虑给我们一个 ⭐！您的支持将帮助我们成长并不断改进。
+
+此外，如果您在工作中使用了 MER-Factory，请使用以下 BibTeX 条目引用我们：
 
 ```bibtex
 @software{Lin_MER-Factory_2025,
@@ -322,8 +324,20 @@ python main.py video.mp4 output/ --type MER --silent
   license = {MIT},
   month = {7},
   title = {{MER-Factory}},
-  url = {https://lum1104.github.io/MER-Factory/},
+  url = {https://github.com/Lum1104/MER-Factory},
   version = {0.1.0},
   year = {2025}
+}
+
+@inproceedings{NEURIPS2024_c7f43ada,
+  author = {Cheng, Zebang and Cheng, Zhi-Qi and He, Jun-Yan and Wang, Kai and Lin, Yuxiang and Lian, Zheng and Peng, Xiaojiang and Hauptmann, Alexander},
+  booktitle = {Advances in Neural Information Processing Systems},
+  editor = {A. Globerson and L. Mackey and D. Belgrave and A. Fan and U. Paquet and J. Tomczak and C. Zhang},
+  pages = {110805--110853},
+  publisher = {Curran Associates, Inc.},
+  title = {Emotion-LLaMA: Multimodal Emotion Recognition and Reasoning with Instruction Tuning},
+  url = {https://proceedings.neurips.cc/paper_files/paper/2024/file/c7f43ada17acc234f568dc66da527418-Paper-Conference.pdf},
+  volume = {37},
+  year = {2024}
 }
 ```

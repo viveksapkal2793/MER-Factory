@@ -52,7 +52,7 @@ def save_au_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_au_analysis.json"
     )
     result_data = {
-        "source_path": str(state["video_path"]),
+        "source_path": str(Path(state["video_path"]).resolve(strict=False)),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
         "overall_peak_au_description": state.get("peak_frame_au_description"),
     }
@@ -119,7 +119,7 @@ def save_audio_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_audio_analysis.json"
     )
     results = {
-        "source_path": str(state["video_path"]),
+        "source_path": str(Path(state["video_path"]).resolve(strict=False)),
         "audio_analysis": results,
     }
     with open(output_path, "w") as f:
@@ -176,7 +176,7 @@ def save_video_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_video_analysis.json"
     )
     result_data = {
-        "source_path": str(state["video_path"]),
+        "source_path": str(Path(state["video_path"]).resolve(strict=False)),
         "llm_video_summary": state["video_description"],
     }
     with open(output_path, "w") as f:
@@ -402,7 +402,7 @@ def save_mer_results(state):
     }
 
     result_data = {
-        "source_path": str(state["video_path"]),
+        "source_path": str(Path(state["video_path"]).resolve(strict=False)),
         "chronological_emotion_peaks": state.get("detected_emotions", []),
         "overall_peak_frame_info": state["peak_frame_info"],
         "coarse_descriptions_at_peak": descriptions,
@@ -520,7 +520,7 @@ def save_image_results(state):
         Path(state["video_output_dir"]) / f"{state['video_id']}_image_analysis.json"
     )
     result_data = {
-        "source_path": str(state["video_path"]),
+        "source_path": str(Path(state["video_path"]).resolve(strict=False)),
         "au_text_description": state["au_text_description"],
         "llm_au_description": state["llm_au_description"],
         "image_visual_description": state["image_visual_description"],

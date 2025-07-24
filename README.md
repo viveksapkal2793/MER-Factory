@@ -313,7 +313,9 @@ If you want to use the latest HF models or features that Ollama doesn't support:
 
 ## Citation
 
-If you find MER-Factory useful in your research or project, please consider citing us:
+If you find MER-Factory useful in your research or project, please consider giving us a ⭐! Your support helps us grow and continue improving.
+
+Additionally, if you use MER-Factory in your work, please consider cite us using the following BibTeX entries:
 
 ```bibtex
 @software{Lin_MER-Factory_2025,
@@ -322,8 +324,20 @@ If you find MER-Factory useful in your research or project, please consider citi
   license = {MIT},
   month = {7},
   title = {{MER-Factory}},
-  url = {https://lum1104.github.io/MER-Factory/},
+  url = {https://github.com/Lum1104/MER-Factory},
   version = {0.1.0},
   year = {2025}
+}
+
+@inproceedings{NEURIPS2024_c7f43ada,
+  author = {Cheng, Zebang and Cheng, Zhi-Qi and He, Jun-Yan and Wang, Kai and Lin, Yuxiang and Lian, Zheng and Peng, Xiaojiang and Hauptmann, Alexander},
+  booktitle = {Advances in Neural Information Processing Systems},
+  editor = {A. Globerson and L. Mackey and D. Belgrave and A. Fan and U. Paquet and J. Tomczak and C. Zhang},
+  pages = {110805--110853},
+  publisher = {Curran Associates, Inc.},
+  title = {Emotion-LLaMA: Multimodal Emotion Recognition and Reasoning with Instruction Tuning},
+  url = {https://proceedings.neurips.cc/paper_files/paper/2024/file/c7f43ada17acc234f568dc66da527418-Paper-Conference.pdf},
+  volume = {37},
+  year = {2024}
 }
 ```

@@ -415,6 +415,7 @@ def main():
     parser.add_argument(
         "--export_format",
         choices=["sharegpt"],
+        default="sharegpt",
         type=str.lower,
         help="If specified, exports the data to a JSON file with this format.",
     )
