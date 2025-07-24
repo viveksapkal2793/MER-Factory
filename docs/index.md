@@ -129,8 +129,8 @@ Ready to dive in? Here's what you need to know:
 }
 
 .hero-image {
-  max-width: 30%;
-  width: auto;
+  max-width: 900px;
+  width: 60%;
   height: auto;
   margin: 0.5rem auto;
   display: block;
@@ -141,7 +141,8 @@ Ready to dive in? Here's what you need to know:
 /* 响应式设计 */
 @media (max-width: 768px) {
   .hero-image {
-    width: 90%;
+    width: 80%;
+    max-width: 600px;
   }
   
   .badges {

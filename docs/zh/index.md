@@ -119,8 +119,8 @@ MER-Factory 是一个**基于 Python 的开源框架**，专为情感计算社�
 }
 
 .hero-image {
-  max-width: 30%;
-  width: auto;
+  max-width: 900px;
+  width: 60%;
   height: auto;
   margin: 0.5rem auto;
   display: block;
@@ -131,7 +131,8 @@ MER-Factory 是一个**基于 Python 的开源框架**，专为情感计算社�
 /* 响应式设计 */
 @media (max-width: 768px) {
   .hero-image {
-    width: 90%;
+    width: 80%;
+    max-width: 600px;
   }
   
   .badges {
