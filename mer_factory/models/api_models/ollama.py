@@ -69,7 +69,7 @@ class OllamaModel:
 
         # --- Hugging Face Model Initialization ---
         device = (
-            "cuda"
+            "cpu"  # since this run asynchronously, we use CPU by default
             if torch.cuda.is_available()
             else "mps" if torch.backends.mps.is_available() else "cpu"
         )
@@ -131,7 +131,13 @@ class OllamaModel:
             raise
 
     async def analyze_audio(self, audio_path: Path, prompt: str) -> dict:
-        return self._analyze_audio(audio_path, prompt)
+        if self.verbose:
+            # warning, not supported for Ollama models
+            console.log(
+                "[yellow]Warning: Audio analysis is not supported for Ollama models. Using Hugging Face model instead. (Only available in cpu)[/yellow]"
+            )
+        # return self._analyze_audio(audio_path, prompt)
+        return ""  # uncomment this line to use the cpu audio analysis
 
     def _analyze_audio(self, audio_path: Path, prompt: str) -> dict:
         """
