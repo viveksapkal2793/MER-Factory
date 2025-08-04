@@ -13,7 +13,11 @@
 
 <p align="center"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Reasoning-red"> <img src="https://img.shields.io/badge/Task-Multimodal_Emotion_Recognition-red"> <img src="https://zenodo.org/badge/1007639998.svg" alt="DOI"> </p>
 
-<p align="center"> <img src="docs/assets/logo.svg" width="700"> </p>
+<p align="center">
+  <a href="https://lum1104.github.io/MER-Factory/">
+    <img src="docs/assets/logo.svg" width="700">
+  </a>
+ </p>
 
 <!-- <p align="center">
   <a href="https://lum1104.github.io/MER-Factory/">
@@ -24,6 +28,10 @@
 ## 🚀 Project Roadmap
 
 MER-Factory is under active development with new features being added regularly - check our [roadmap](https://github.com/Lum1104/MER-Factory/wiki) and welcome contributions!
+
+<div style="text-align: center;">
+  <img src="docs/assets/framework.svg" style="border: none; width: 100%; max-width: 1000px;">
+</div>
 
 ## Table of Contents
 
