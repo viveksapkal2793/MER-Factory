@@ -60,26 +60,41 @@ def serve_dashboard():
 
 @app.route("/<path:filename>")
 def serve_static_from_tools(filename):
+    """
+    Serve static files from various locations.
+    - First, it checks for absolute paths to allow previewing any file on the system.
+    - Then, it checks for files relative to specific project directories ('utils', 'tools').
+    - Finally, it falls back to checking for files relative to the current working directory.
+    """
+    # 1. Handle absolute paths (the requested bug fix).
+    # This allows previewing media from any location on the user's machine.
+    if os.name != 'nt' and not filename.startswith('/'):
+        abs_path_candidate = '/' + filename
+    
+    if os.path.isabs(abs_path_candidate) and os.path.isfile(abs_path_candidate):
+        try:
+            directory, base_filename = os.path.split(abs_path_candidate)
+            return send_from_directory(directory, base_filename)
+        except Exception as e:
+            # Log the error and fall through to return a 404.
+            print(f"[DASHBOARD] Error serving absolute path '{abs_path_candidate}': {e}")
 
-    # Allow serving files from the root path and tools directory
+    # 2. Handle special 'prompts/' path, which are located in the 'utils' directory.
     if filename.startswith("prompts/"):
         return send_from_directory("utils", filename)
 
+    # 3. Handle paths relative to the 'tools' directory.
     tool_path = os.path.join("tools", filename)
     if os.path.isfile(tool_path):
         return send_from_directory("tools", filename)
 
-    root_file_path = os.path.join(os.getcwd(), filename)
-
-    if os.path.isfile(root_file_path):
+    # 4. Handle paths relative to the current working directory as a fallback.
+    # This allows serving files from places like the 'output' folder.
+    full_path = os.path.join(os.getcwd(), filename)
+    if os.path.isfile(full_path):
         return send_from_directory(os.getcwd(), filename)
 
-    if not filename.startswith("/") and not filename.startswith("\\"):
-        relative_path = os.path.normpath(filename)
-        full_path = os.path.join(os.getcwd(), relative_path)
-        if os.path.isfile(full_path):
-            return send_from_directory(os.getcwd(), relative_path)
-
+    # If none of the above conditions are met, the file is not found.
     return (
         jsonify(
             {
