@@ -1,3 +1,4 @@
+import os
 import torch
 from pathlib import Path
 from rich.console import Console
@@ -27,13 +28,26 @@ class Qwen2_5OmniModel:
         Initializes the Qwen2.5-Omni model.
 
         Args:
-            model_id (str): The ID of the Hugging Face model.
+            model_id (str): The ID of the Hugging Face model OR local path.
             verbose (bool): Whether to print verbose logs.
         """
         self.model_id = model_id
         self.verbose = verbose
         self.processor = None
         self.model = None
+        self.device = "cpu"  # Force CPU for your setup
+        self.torch_dtype = torch.float32  # Use float32 for CPU stability
+        
+        # Check if model_id is a local path
+        if os.path.exists(model_id) or Path(model_id).exists():
+            self.model_path = str(Path(model_id).resolve())
+            if self.verbose:
+                console.log(f"[green]Using local model from: {self.model_path}[/green]")
+        else:
+            self.model_path = model_id
+            if self.verbose:
+                console.log(f"[yellow]Model ID appears to be HuggingFace repo: {model_id}[/yellow]")
+        
         self.system_prompt = {
             "role": "system",
             "content": [
@@ -44,28 +58,52 @@ class Qwen2_5OmniModel:
             ],
         }
 
+        if self.verbose:
+            console.log(f"Initializing Qwen2.5-OmniModel")
+            console.log(f"Device: {self.device}")
+            console.log(f"Data type: {self.torch_dtype}")
+
         self._initialize_pipeline()
 
     def _initialize_pipeline(self):
-        """Loads the Hugging Face model and processor for Qwen2.5-Omni."""
+        """Loads the Hugging Face model and processor for Qwen2.5-Omni with local path support."""
         if self.verbose:
-            console.log(f"Initializing Hugging Face pipeline for '{self.model_id}'...")
+            console.log(f"Initializing Hugging Face pipeline for '{self.model_path}'...")
+        
         try:
+            # Check if using local files
+            use_local = os.path.exists(self.model_path)
+            
+            if self.verbose:
+                console.log("Loading processor...")
+            
+            self.processor = Qwen2_5OmniProcessor.from_pretrained(
+                self.model_path,
+                local_files_only=use_local,
+                trust_remote_code=True
+            )
+            
+            if self.verbose:
+                console.log("Loading model... (this may take 2-3 minutes on CPU)")
+            
             self.model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
-                self.model_id,
-                torch_dtype=(
-                    torch.bfloat16 if torch.cuda.is_available() else torch.float32
-                ),
-                device_map="auto" if torch.cuda.is_available() else "cpu",
+                self.model_path,
+                torch_dtype=self.torch_dtype,
+                device_map="cpu",  # Force CPU
+                low_cpu_mem_usage=True,
+                local_files_only=use_local,
+                trust_remote_code=True,
+                use_safetensors=True
             )
-            self.processor = Qwen2_5OmniProcessor.from_pretrained(self.model_id)
-            console.log(
-                f"Hugging Face model '{self.model_id}' initialized successfully on device: {self.model.device}."
-            )
+            
+            # Ensure model is on CPU
+            self.model = self.model.to(self.device)
+            
+            if self.verbose:
+                console.log(f"[green]Hugging Face model '{self.model_path}' initialized successfully on device: {self.model.device}[/green]")
+                
         except Exception as e:
-            console.log(
-                f"[bold red]ERROR: Could not initialize Hugging Face pipeline: {e}[/bold red]"
-            )
+            console.log(f"[bold red]ERROR: Could not initialize Hugging Face pipeline: {e}[/bold red]")
             raise
 
     def _run_generation(
