@@ -1,9 +1,13 @@
-import os
 import torch
-from pathlib import Path
 from rich.console import Console
-from transformers import Qwen2_5OmniForConditionalGeneration, Qwen2_5OmniProcessor
 from typing import List, Dict, Any
+from pathlib import Path
+
+# # Simple fix: Monkey-patch the version check
+# from transformers.utils import import_utils
+# import_utils.check_torch_load_is_safe = lambda: None  # Bypass the check
+
+from transformers import Qwen2_5OmniForConditionalGeneration, Qwen2_5OmniProcessor
 
 try:
     from qwen_omni_utils import process_mm_info
@@ -28,25 +32,15 @@ class Qwen2_5OmniModel:
         Initializes the Qwen2.5-Omni model.
 
         Args:
-            model_id (str): The ID of the Hugging Face model OR local path.
+            model_id (str): The ID of the Hugging Face model.
             verbose (bool): Whether to print verbose logs.
         """
         self.model_id = model_id
         self.verbose = verbose
         self.processor = None
         self.model = None
-        self.device = "cpu"  # Force CPU for your setup
-        self.torch_dtype = torch.float32  # Use float32 for CPU stability
-        
-        # Check if model_id is a local path
-        if os.path.exists(model_id) or Path(model_id).exists():
-            self.model_path = str(Path(model_id).resolve())
-            if self.verbose:
-                console.log(f"[green]Using local model from: {self.model_path}[/green]")
-        else:
-            self.model_path = model_id
-            if self.verbose:
-                console.log(f"[yellow]Model ID appears to be HuggingFace repo: {model_id}[/yellow]")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         
         self.system_prompt = {
             "role": "system",
@@ -66,41 +60,31 @@ class Qwen2_5OmniModel:
         self._initialize_pipeline()
 
     def _initialize_pipeline(self):
-        """Loads the Hugging Face model and processor for Qwen2.5-Omni with local path support."""
+        """Loads the Hugging Face model and processor for Qwen2.5-Omni."""
         if self.verbose:
-            console.log(f"Initializing Hugging Face pipeline for '{self.model_path}'...")
+            console.log(f"Initializing Hugging Face pipeline for '{self.model_id}'...")
         
         try:
-            # Check if using local files
-            use_local = os.path.exists(self.model_path)
-            
             if self.verbose:
                 console.log("Loading processor...")
             
             self.processor = Qwen2_5OmniProcessor.from_pretrained(
-                self.model_path,
-                local_files_only=use_local,
+                self.model_id,
                 trust_remote_code=True
             )
             
             if self.verbose:
-                console.log("Loading model... (this may take 2-3 minutes on CPU)")
+                console.log("Loading model...")
             
             self.model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
-                self.model_path,
+                self.model_id,
                 torch_dtype=self.torch_dtype,
-                device_map="cpu",  # Force CPU
-                low_cpu_mem_usage=True,
-                local_files_only=use_local,
-                trust_remote_code=True,
-                use_safetensors=True
+                device_map="auto",
+                trust_remote_code=True
             )
             
-            # Ensure model is on CPU
-            self.model = self.model.to(self.device)
-            
             if self.verbose:
-                console.log(f"[green]Hugging Face model '{self.model_path}' initialized successfully on device: {self.model.device}[/green]")
+                console.log(f"[green]Hugging Face model '{self.model_id}' initialized successfully on device: {self.model.device}[/green]")
                 
         except Exception as e:
             console.log(f"[bold red]ERROR: Could not initialize Hugging Face pipeline: {e}[/bold red]")
@@ -132,18 +116,31 @@ class Qwen2_5OmniModel:
                 use_audio_in_video=use_audio_in_video,
             )
 
+            # Move inputs to device
             inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
 
+            # Convert floating point tensors to model dtype
             for key, tensor in inputs.items():
                 if hasattr(tensor, "dtype") and tensor.dtype.is_floating_point:
                     inputs[key] = tensor.to(self.model.dtype)
 
             with torch.inference_mode():
-                # The model can generate both text and audio.
-                text_ids, audio_output = self.model.generate(
-                    **inputs, use_audio_in_video=use_audio_in_video, max_new_tokens=512
+                # Generate text and audio
+                generated_output = self.model.generate(
+                    **inputs, 
+                    use_audio_in_video=use_audio_in_video, 
+                    max_new_tokens=512
                 )
-            input_len = inputs.input_ids.shape[1]
+                
+                # Handle different output formats
+                if isinstance(generated_output, tuple):
+                    text_ids, audio_output = generated_output
+                else:
+                    text_ids = generated_output
+                    audio_output = None
+            
+            # Get input length to extract only generated tokens
+            input_len = inputs["input_ids"].shape[1]
             response_ids = text_ids[:, input_len:]
 
             generated_text = self.processor.batch_decode(
@@ -158,7 +155,9 @@ class Qwen2_5OmniModel:
             console.log(
                 f"[bold red]❌ Error during Qwen2.5-Omni generation: {e}[/bold red]"
             )
-            return f""
+            import traceback
+            traceback.print_exc()
+            return ""
 
     def describe_facial_expression(self, prompt: str) -> str:
         """Generates a description from AU text."""

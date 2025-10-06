@@ -135,6 +135,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+mer-factory-env/
 
 # Spyder project settings
 .spyderproject
@@ -212,6 +213,7 @@ vendor/
 *.log
 .tmp/
 temp/
+logs/
 
 # OS specific
 .DS_Store
