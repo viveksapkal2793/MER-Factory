@@ -25,7 +25,7 @@ from .config import (
     FINAL_OUTPUT_FILENAMES,
     ProcessingType,
 )
-from tools.ffmpeg_adapter import FFMpegAdapter
+from tools.opencv_adapter import OpenCVAdapter as FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 
 console = Console(stderr=True)
