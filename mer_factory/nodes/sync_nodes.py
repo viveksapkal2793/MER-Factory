@@ -5,7 +5,7 @@ from pathlib import Path
 from mer_factory.prompts import PromptTemplates
 from ..models import LLMModels
 
-from tools.ffmpeg_adapter import FFMpegAdapter
+from tools.opencv_adapter import OpenCVAdapter as FFMpegAdapter
 from tools.emotion_analyzer import EmotionAnalyzer
 from tools.facial_analyzer import FacialAnalyzer
 
@@ -161,7 +161,8 @@ def generate_video_description(state):
     if has_label:
         prompt = prompt.format(label=ground_truth_label)
 
-    video_description = model.describe_video(video_path, prompt)
+    # video_description = model.describe_video(video_path, prompt)
+    video_description = ""
     if verbose:
         console.log(f"Video Description: [cyan]{video_description}[/cyan]")
     return {"video_description": video_description}

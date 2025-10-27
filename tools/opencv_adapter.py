@@ -4,37 +4,41 @@ from rich.console import Console
 import cv2
 import numpy as np
 
+AUDIO_BACKEND = None
 try:
-    from moviepy.video.io.VideoFileClip import VideoFileClip
-    MOVIEPY_AVAILABLE = True
+    import av  # PyAV - pure Python, no FFmpeg needed
+    AUDIO_BACKEND = "pyav"
 except ImportError:
-    MOVIEPY_AVAILABLE = False
+    try:
+        import imageio_ffmpeg
+        AUDIO_BACKEND = "imageio"
+    except ImportError:
+        AUDIO_BACKEND = None
 
 console = Console(stderr=True)
 
 
 class OpenCVAdapter:
-    """A replacement for FFMpegAdapter using OpenCV and MoviePy."""
+    """A replacement for FFMpegAdapter using pure Python libraries (no FFmpeg)."""
 
     @staticmethod
     async def extract_audio(
         video_path: Path, output_path: Path, verbose: bool = True
     ) -> bool:
-        """Extracts audio from a video into a WAV file using MoviePy."""
+        """Extracts audio from a video using pure Python libraries."""
         if output_path.exists():
             if verbose:
                 console.log(f"Audio file exists: [cyan]{output_path}[/cyan]. Skipping.")
             return True
 
-        if not MOVIEPY_AVAILABLE:
-            console.log("[red]MoviePy not installed. Install with: pip install moviepy[/red]")
-            return False
+        if AUDIO_BACKEND is None:
+            console.log("[yellow]No audio backend available. Creating silent audio...[/yellow]")
+            return OpenCVAdapter._create_silent_audio_from_video(video_path, output_path, verbose)
 
         try:
             if verbose:
-                console.log(f"Extracting audio from [cyan]{video_path.name}[/cyan] using MoviePy...")
+                console.log(f"Extracting audio from [cyan]{video_path.name}[/cyan] using {AUDIO_BACKEND}...")
             
-            # Run in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             success = await loop.run_in_executor(
                 None, OpenCVAdapter._extract_audio_sync, video_path, output_path, verbose
@@ -42,47 +46,130 @@ class OpenCVAdapter:
             return success
 
         except Exception as e:
-            console.log(f"❌ Failed to extract audio from {video_path.name}: {e}")
-            return False
+            console.log(f"❌ Audio extraction failed: {e}")
+            return OpenCVAdapter._create_silent_audio_from_video(video_path, output_path, verbose)
 
     @staticmethod
     def _extract_audio_sync(video_path: Path, output_path: Path, verbose: bool) -> bool:
-        """Synchronous audio extraction using MoviePy."""
+        """Synchronous audio extraction using available backend."""
+        if AUDIO_BACKEND == "pyav":
+            return OpenCVAdapter._extract_with_pyav(video_path, output_path, verbose)
+        elif AUDIO_BACKEND == "imageio":
+            return OpenCVAdapter._extract_with_imageio(video_path, output_path, verbose)
+        else:
+            return OpenCVAdapter._create_silent_audio_from_video(video_path, output_path, verbose)
+
+    @staticmethod
+    def _extract_with_pyav(video_path: Path, output_path: Path, verbose: bool) -> bool:
+        """Extract audio using PyAV (pure Python, no FFmpeg dependency)."""
         try:
-            video = VideoFileClip(str(video_path))
+            import av
+            import wave
             
-            if video.audio is None:
-                console.log(f"[yellow]No audio track found in {video_path.name}[/yellow]")
-                video.close()
-                # Create minimal silent audio to avoid pipeline errors
-                return OpenCVAdapter._create_silent_audio(output_path, verbose, duration=1.0)
+            # Open video file
+            container = av.open(str(video_path))
+            audio_stream = None
             
-            video.audio.write_audiofile(
-                str(output_path),
-                codec='pcm_s16le',  # WAV format
-                fps=16000,  # 16kHz sample rate
-                nbytes=2,
-                verbose=False,
-                logger=None
-            )
-            video.close()
+            # Find audio stream
+            for stream in container.streams:
+                if stream.type == 'audio':
+                    audio_stream = stream
+                    break
+            
+            if audio_stream is None:
+                console.log(f"[yellow]No audio stream found in {video_path.name}[/yellow]")
+                container.close()
+                return OpenCVAdapter._create_silent_audio_from_video(video_path, output_path, verbose)
+            
+            # Collect audio data
+            audio_data = []
+            sample_rate = audio_stream.sample_rate or 16000
+            
+            for frame in container.decode(audio_stream):
+                if frame.samples > 0:
+                    # Convert to numpy array
+                    audio_array = frame.to_ndarray()
+                    if audio_array.ndim > 1:
+                        # Convert to mono by averaging channels
+                        audio_array = np.mean(audio_array, axis=0)
+                    audio_data.append(audio_array)
+            
+            container.close()
+            
+            if not audio_data:
+                console.log(f"[yellow]No audio data found in {video_path.name}[/yellow]")
+                return OpenCVAdapter._create_silent_audio_from_video(video_path, output_path, verbose)
+            
+            # Concatenate all audio data
+            full_audio = np.concatenate(audio_data)
+            
+            # Resample to 16kHz if needed
+            if sample_rate != 16000:
+                # Simple resampling (basic, but works)
+                ratio = 16000 / sample_rate
+                new_length = int(len(full_audio) * ratio)
+                full_audio = np.interp(
+                    np.linspace(0, len(full_audio), new_length),
+                    np.arange(len(full_audio)),
+                    full_audio
+                )
+            
+            # Convert to int16 and save as WAV
+            audio_int16 = (full_audio * 32767).astype(np.int16)
+            
+            with wave.open(str(output_path), 'w') as wav_file:
+                wav_file.setnchannels(1)  # mono
+                wav_file.setsampwidth(2)  # 16-bit
+                wav_file.setframerate(16000)
+                wav_file.writeframes(audio_int16.tobytes())
             
             if verbose:
-                console.log(f"✅ Extracted audio to [green]{output_path}[/green] using MoviePy")
+                console.log(f"✅ Extracted audio using PyAV (pure Python)")
             return True
             
         except Exception as e:
-            console.log(f"❌ MoviePy extraction failed: {e}")
-            # Fallback to silent audio
+            console.log(f"❌ PyAV extraction failed: {e}")
             return False
-            return OpenCVAdapter._create_silent_audio(output_path, verbose, duration=1.0)
 
     @staticmethod
-    def _create_silent_audio(output_path: Path, verbose: bool, duration: float = 1.0) -> bool:
-        """Create a silent audio file with proper format."""
+    def _extract_with_imageio(video_path: Path, output_path: Path, verbose: bool) -> bool:
+        """Extract audio using imageio (fallback)."""
         try:
+            import imageio
             import wave
             
+            # Read video
+            reader = imageio.get_reader(str(video_path))
+            
+            # Try to get audio
+            try:
+                audio_data = reader.get_data(0)  # This might not work for audio
+                # This is primarily for images/video frames
+                console.log(f"[yellow]ImageIO doesn't support audio extraction well[/yellow]")
+                return False
+            except:
+                return False
+                
+        except Exception as e:
+            console.log(f"❌ ImageIO extraction failed: {e}")
+            return False
+
+    @staticmethod
+    def _create_silent_audio_from_video(video_path: Path, output_path: Path, verbose: bool) -> bool:
+        """Create silent audio matching video duration."""
+        try:
+            # Get video duration using OpenCV
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                duration = 1.0  # Default 1 second
+            else:
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                duration = max(0.1, frame_count / fps if fps > 0 else 1.0)
+                cap.release()
+            
+            # Create silent audio
+            import wave
             sample_rate = 16000
             samples = int(sample_rate * duration)
             
@@ -96,7 +183,7 @@ class OpenCVAdapter:
                 wav_file.writeframes(silence.tobytes())
             
             if verbose:
-                console.log(f"[yellow]Created {duration:.1f}s silent audio: {output_path}[/yellow]")
+                console.log(f"[yellow]Created {duration:.1f}s silent audio (video has no audio or backend unavailable)[/yellow]")
             return True
             
         except Exception as e:

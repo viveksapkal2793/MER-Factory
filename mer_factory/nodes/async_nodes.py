@@ -5,7 +5,7 @@ import asyncio
 
 
 from mer_factory.prompts import PromptTemplates
-from tools.ffmpeg_adapter import FFMpegAdapter
+from tools.opencv_adapter import OpenCVAdapter as FFMpegAdapter
 from ..models import LLMModels
 from tools.emotion_analyzer import EmotionAnalyzer
 from tools.facial_analyzer import FacialAnalyzer

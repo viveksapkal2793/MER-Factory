@@ -54,9 +54,12 @@ def main_orchestrator(config: AppConfig):
             raise typer.Exit(1)
 
         if config.processing_type not in [ProcessingType.AUDIO, ProcessingType.VIDEO]:
-            if error := config.get_openface_path_error():
-                console.print(f"[bold red]{error}[/bold red]")
-                raise typer.Exit(1)
+            if not config.cache:  # Only check OpenFace if cache is disabled
+                if error := config.get_openface_path_error():
+                    console.print(f"[bold red]{error}[/bold red]")
+                    raise typer.Exit(1)
+            else:
+                console.log("[yellow]Cache enabled - skipping OpenFace validation (using pre-extracted AU files)[/yellow]")
 
         if config.label_file:
             config.labels = load_labels_from_file(config.label_file, config.verbose)
