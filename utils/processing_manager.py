@@ -25,6 +25,7 @@ from .config import (
     FINAL_OUTPUT_FILENAMES,
     ProcessingType,
 )
+from .file_handler import check_json_completeness
 from tools.opencv_adapter import OpenCVAdapter as FFMpegAdapter
 from tools.openface_adapter import OpenFaceAdapter
 
@@ -183,16 +184,26 @@ async def run_main_processing(
                 final_output_path = file_output_dir / f"{file_id}{final_output_suffix}"
 
                 if final_output_path.exists():
-                    if config.verbose:
-                        console.log(
-                            f"Cache hit: Final output for [cyan]{file_path.name}[/cyan] found. Skipping."
+                    is_complete, missing_fields = check_json_completeness(final_output_path)
+                    
+                    if is_complete:
+                        if config.verbose:
+                            console.log(
+                                f"Cache hit: Complete output for [cyan]{file_path.name}[/cyan] found. Skipping."
+                            )
+                        progress.update(
+                            task,
+                            advance=1,
+                            description=f"Skipped [cyan]{file_path.name}[/cyan]",
                         )
-                    progress.update(
-                        task,
-                        advance=1,
-                        description=f"Skipped [cyan]{file_path.name}[/cyan]",
-                    )
-                    results["skipped"] += 1
+                        results["skipped"] += 1
+                    else:
+                        if config.verbose:
+                            console.log(
+                                f"Incomplete output for [cyan]{file_path.name}[/cyan] "
+                                f"(missing: {', '.join(missing_fields[:3])}{'...' if len(missing_fields) > 3 else ''}). Reprocessing."
+                            )
+                        files_to_run.append(file_path)
                 else:
                     files_to_run.append(file_path)
         else:

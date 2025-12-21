@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List, Dict
-
+import json
 import pandas as pd
 from rich.console import Console
 
@@ -87,3 +87,49 @@ def load_labels_from_file(label_file: Path, verbose: bool = True) -> Dict[str, s
     except Exception as e:
         console.print(f"[bold red]Error reading or parsing label file: {e}[/bold red]")
         raise SystemExit(1)
+
+def check_json_completeness(json_path: Path) -> tuple[bool, list[str]]:
+    """
+    Check if a JSON file exists and has all required fields.
+    
+    Args:
+        json_path: Path to the JSON file to check.
+    
+    Returns:
+        (is_complete, missing_fields): Tuple with completion status and list of missing fields
+    """
+    if not json_path.exists():
+        return False, ["JSON file does not exist"]
+    
+    try:
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        
+        missing_fields = []
+        
+        # Check top-level required fields
+        if not data.get("chronological_emotion_peaks"):
+            missing_fields.append("chronological_emotion_peaks")
+        
+        if not data.get("overall_peak_frame_info"):
+            missing_fields.append("overall_peak_frame_info")
+        
+        # Check nested fields in coarse_descriptions_at_peak
+        coarse_desc = data.get("coarse_descriptions_at_peak", {})
+        if not coarse_desc.get("visual_expression"):
+            missing_fields.append("visual_expression")
+        if not coarse_desc.get("visual_objective"):
+            missing_fields.append("visual_objective")
+        if not coarse_desc.get("audio_analysis"):
+            missing_fields.append("audio_analysis")
+        
+        # Check final_summary
+        if not data.get("final_summary"):
+            missing_fields.append("final_summary")
+        
+        return len(missing_fields) == 0, missing_fields
+        
+    except json.JSONDecodeError:
+        return False, ["Invalid JSON format"]
+    except Exception as e:
+        return False, [f"Error reading file: {str(e)}"]
