@@ -8,6 +8,7 @@ from rich.console import Console
 import asyncio
 import diskcache
 import functools
+import json
 
 # Set gRPC verbosity to ERROR before other imports
 os.environ["GRPC_VERBOSITY"] = "ERROR"
@@ -17,7 +18,7 @@ from mer_factory.graph import create_graph
 from mer_factory.models import LLMModels
 from mer_factory.prompts import PromptTemplates
 from utils.config import AppConfig, ProcessingType, TaskType
-from utils.file_handler import find_files_to_process, load_labels_from_file
+from utils.file_handler import find_files_to_process, load_labels_from_file, check_json_completeness
 from utils.processing_manager import (
     run_feature_extraction,
     run_main_processing,
@@ -32,12 +33,91 @@ app = typer.Typer(
 )
 console = Console(stderr=True)
 
+def load_filter_list(filter_file: Path) -> set:
+    """Load video names from filter file."""
+    if not filter_file.exists():
+        console.print(f"[bold red]Error: Filter file not found at '{filter_file}'[/bold red]")
+        raise typer.Exit(1)
+    
+    video_names = set()
+    with open(filter_file, 'r') as f:
+        for line in f:
+            name = line.strip()
+            if name:
+                video_names.add(name)
+    
+    console.log(f"Loaded {len(video_names)} video names from filter file: [cyan]{filter_file.name}[/cyan]")
+    return video_names
 
-def main_orchestrator(config: AppConfig):
+def filter_incomplete_files(files_to_process: list, output_dir: Path, verbose: bool = True, filter_list: set = None) -> tuple[list, dict]:
+    """
+    Filter files to only process those with missing or incomplete JSON files.
+    
+    Returns:
+        (filtered_files, stats): Tuple with filtered file list and statistics
+    """
+    filtered_files = []
+    stats = {
+        'total': len(files_to_process),
+        'missing_json': 0,
+        'incomplete_json': 0,
+        'complete': 0,
+        'to_process': 0,
+        'filtered_out': 0
+    }
+    
+    console.log("[yellow]Checking existing JSON files for completeness...[/yellow]")
+    if filter_list:
+        console.log(f"[yellow]Filtering by {len(filter_list)} video names from filter file[/yellow]")
+    
+    for file_info in files_to_process:
+        if isinstance(file_info, dict):
+            video_name = file_info['name']
+        else:
+            video_name = file_info.stem
+
+        # If filter list is provided, check if video is in the list
+        if filter_list is not None and video_name not in filter_list:
+            stats['filtered_out'] += 1
+            if verbose:
+                console.log(f"  ⏭️  [dim]{video_name}[/dim]: Not in filter list (skipping)")
+            continue
+
+        # Construct expected JSON path
+        json_subdir = output_dir / video_name
+        json_path = json_subdir / f"{video_name}_merr_data.json"
+        
+        is_complete, missing_fields = check_json_completeness(json_path)
+        
+        if not json_path.exists():
+            stats['missing_json'] += 1
+            filtered_files.append(file_info)
+            if verbose:
+                console.log(f"  📝 [yellow]{video_name}[/yellow]: JSON missing")
+        elif not is_complete:
+            stats['incomplete_json'] += 1
+            filtered_files.append(file_info)
+            if verbose:
+                console.log(f"  ⚠️  [orange]{video_name}[/orange]: Missing fields: {', '.join(missing_fields[:3])}{'...' if len(missing_fields) > 3 else ''}")
+        else:
+            stats['complete'] += 1
+            if verbose:
+                console.log(f"  ✅ [green]{video_name}[/green]: Complete (skipping)")
+    
+    stats['to_process'] = len(filtered_files)
+    
+    return filtered_files, stats
+
+def main_orchestrator(config: AppConfig, skip_complete: bool = True, filter_file: Path = None):
     """The main function that orchestrates the entire processing pipeline."""
     console.rule(
         f"[bold magenta]MERR CLI - Mode: {config.processing_type.value} | Task: {config.task.value}[/bold magenta]"
     )
+
+    # Load filter list if provided
+    filter_list = None
+    if filter_file:
+        filter_list = load_filter_list(filter_file)
 
     llm_cache = None
     try:
@@ -80,7 +160,30 @@ def main_orchestrator(config: AppConfig):
             raise typer.Exit(1)
 
         # --- File Discovery ---
-        files_to_process = find_files_to_process(config.input_path, config.verbose)
+        all_files = find_files_to_process(config.input_path, config.verbose)
+
+        if skip_complete:
+            console.rule("[bold cyan]Filtering Files[/bold cyan]")
+            files_to_process, filter_stats = filter_incomplete_files(
+                all_files, 
+                config.output_dir, 
+                verbose=config.verbose
+            )
+            
+            console.log(f"\n📊 Filtering Results:")
+            console.log(f"  Total files found: {filter_stats['total']}")
+            console.log(f"  ✅ Complete JSON files (skipping): {filter_stats['complete']}")
+            console.log(f"  📝 Missing JSON files: {filter_stats['missing_json']}")
+            console.log(f"  ⚠️  Incomplete JSON files: {filter_stats['incomplete_json']}")
+            console.log(f"  🔄 Files to process: {filter_stats['to_process']}\n")
+            
+            if filter_stats['to_process'] == 0:
+                console.print("[bold green]✅ All files have complete JSON data. Nothing to process![/bold green]")
+                return
+        else:
+            files_to_process = all_files
+            console.log(f"Processing all {len(files_to_process)} files (skip-complete disabled)")
+
         total_files = len(files_to_process)
 
         # --- Phase 1: Feature Extraction ---
@@ -158,6 +261,13 @@ def process(
         exists=True,
         help="Path to a CSV file with 'name' and 'label' columns. Optional, for ground truth labels.",
     ),
+    filter_file: Path = typer.Option(
+        None,
+        "--filter-file",
+        "-ff",
+        exists=True,
+        help="Path to a text file containing video names to process (one per line).",
+    ),
     threshold: float = typer.Option(
         0.8, "--threshold", "-th", min=0.0, max=5.0, help="Emotion detection threshold."
     ),
@@ -188,6 +298,12 @@ def process(
         "-ca",
         help="Reuse existing audio/video/AU results from previous pipeline runs & cache LLM calls.",
     ),
+    skip_complete: bool = typer.Option(
+        True,
+        "--skip-complete",
+        "-sc",
+        help="Skip files that already have complete JSON output. Set to False to reprocess all files.",
+    ),
 ):
     """Processes media files for Multimodal Emotion Recognition and Reasoning (MERR)."""
     try:
@@ -208,7 +324,7 @@ def process(
             chatgpt_model=chatgpt_model,
             huggingface_model_id=huggingface_model_id,
         )
-        main_orchestrator(config)
+        main_orchestrator(config, skip_complete=skip_complete, filter_file=filter_file)
     except Exception as e:
         console.print(f"[bold red]An unexpected error occurred: {e}[/bold red]")
         raise typer.Exit(1)
