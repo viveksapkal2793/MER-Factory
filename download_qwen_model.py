@@ -6,13 +6,13 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, Downlo
 
 console = Console()
 
-def download_qwen_model(target_dir: str = "/scratch/data/bikash_rs/vivek/MER-Factory/model_weights"):
+def download_qwen_model(target_dir: str = "/scratch/data/bikash_rs/Vivek/MER-Factory/model_weights"):
     """Download Qwen2.5-Omni model to specified directory"""
     
     target_path = Path(target_dir)
     target_path.mkdir(parents=True, exist_ok=True)
     
-    console.print(f"[bold blue]Downloading Qwen2.5-Omni-7B to: {target_path}[/bold blue]")
+    console.print(f"[bold blue]Downloading Qwen2.5-Omni-3B to: {target_path}[/bold blue]")
     console.print("[yellow]This will download ~14GB of data. Please ensure you have sufficient disk space.[/yellow]")
     
     # Check existing files
@@ -25,7 +25,7 @@ def download_qwen_model(target_dir: str = "/scratch/data/bikash_rs/vivek/MER-Fac
         
         # Download the model with better error handling
         result = snapshot_download(
-            repo_id="Qwen/Qwen2.5-Omni-7B",
+            repo_id="Qwen/Qwen2.5-Omni-3B",
             local_dir=str(target_path),
             force_download=False,  # Don't re-download existing files
             token=None,            # No auth token needed
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--target-dir", 
         type=str, 
-        default="/scratch/data/bikash_rs/vivek/MER-Factory/model_weights",
+        default="/scratch/data/bikash_rs/Vivek/MER-Factory/model_weights",
         help="Target directory to download the model"
     )
     parser.add_argument(
