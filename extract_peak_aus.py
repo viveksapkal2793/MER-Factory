@@ -55,14 +55,13 @@ class PeakAUExtractor:
             raise ValueError(f"Annotation directory does not exist: {annotation_dir}")
     
     def find_all_au_csvs(self) -> List[Path]:
-        """Find all AU CSV files in the annotation directory."""
+        """Find all AU CSV files in the annotation directory (flat structure)."""
         csv_files = []
         
-        for subdir in self.annotation_dir.iterdir():
-            if subdir.is_dir():
-                csv_file = subdir / f"{subdir.name}.csv"
-                if csv_file.exists():
-                    csv_files.append(csv_file)
+        # Scan flat directory for all .csv files
+        for csv_file in self.annotation_dir.glob("*.csv"):
+            if csv_file.is_file():
+                csv_files.append(csv_file)
         
         return sorted(csv_files)
     
@@ -217,7 +216,7 @@ class PeakAUExtractor:
             task = progress.add_task("Processing videos...", total=len(csv_files))
             
             for csv_file in csv_files:
-                video_name = csv_file.parent.name
+                video_name = csv_file.stem
                 
                 try:
                     dialogue_num, utterance_num = self.extract_dialogue_utterance(video_name)
